@@ -489,7 +489,8 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         claudeArgs: options.claudeArgs,
         sandboxConfig,
         hookSettingsPath,
-        jsRuntime: options.jsRuntime
+        jsRuntime: options.jsRuntime,
+        resumeNativeSessionId: process.env.JOYFUL_RESUME_NATIVE_SESSION || undefined,
     });
 
     // Cleanup session resources (intervals, callbacks) - prevents memory leak

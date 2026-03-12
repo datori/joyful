@@ -150,6 +150,18 @@ export interface SpawnSessionOptions {
     // - API_TIMEOUT_MS, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
     // - Custom variables (DEEPSEEK_*, Z_AI_*, etc.)
     environmentVariables?: Record<string, string>;
+    /** Native Claude Code session ID to resume (fork) when the session first starts */
+    resumeNativeSessionId?: string;
+}
+
+/**
+ * A single native Claude Code session discovered on the host machine
+ */
+export type NativeSessionInfo = {
+    sessionId: string;
+    lastModified: number;
+    summary: string | null;
+    firstMessage: string | null;
 }
 
 // Exported session operation functions
@@ -159,7 +171,7 @@ export interface SpawnSessionOptions {
  */
 export async function machineSpawnNewSession(options: SpawnSessionOptions): Promise<SpawnSessionResult> {
 
-    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, environmentVariables } = options;
+    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, environmentVariables, resumeNativeSessionId } = options;
 
     try {
         const result = await apiSocket.machineRPC<SpawnSessionResult, {
@@ -169,10 +181,11 @@ export async function machineSpawnNewSession(options: SpawnSessionOptions): Prom
             token?: string,
             agent?: 'codex' | 'claude' | 'gemini',
             environmentVariables?: Record<string, string>;
+            resumeNativeSessionId?: string;
         }>(
             machineId,
             'spawn-joyful-session',
-            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, environmentVariables }
+            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, environmentVariables, resumeNativeSessionId }
         );
         return result;
     } catch (error) {
@@ -533,3 +546,22 @@ export type {
     SessionRipgrepResponse,
     SessionKillResponse
 };
+
+/**
+ * List native Claude Code sessions for a given working directory on a machine.
+ * Returns sessions sorted by last-modified time descending (most recent first).
+ */
+export async function machineListNativeSessions(
+    machineId: string,
+    directory: string,
+): Promise<NativeSessionInfo[]> {
+    try {
+        return await apiSocket.machineRPC<NativeSessionInfo[], { directory: string }>(
+            machineId,
+            'list-native-sessions',
+            { directory }
+        );
+    } catch {
+        return [];
+    }
+}

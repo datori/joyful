@@ -467,6 +467,19 @@ export const zhHant: TranslationStructure = {
         offlineUnableToSpawn: '無法生成新工作階段，已離線',
     },
 
+    nativeSessionBrowser: {
+        title: '原生工作階段',
+        searchPlaceholder: '搜尋工作階段…',
+        resumeButton: '在 Joyful 中繼續',
+        cancel: '取消',
+        showAll: ({ count }: { count: number }) => `顯示全部 (${count})`,
+        showLess: '顯示更少',
+        noSessions: '未找到此目錄的原生 Claude 工作階段。',
+        alreadyTracked: '已在 Joyful 中',
+        browseNativeSessions: '瀏覽原生工作階段',
+        noSummary: '無摘要',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

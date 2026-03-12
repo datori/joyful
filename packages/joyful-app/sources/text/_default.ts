@@ -465,6 +465,19 @@ export const en = {
         offlineUnableToSpawn: 'Unable to spawn new session, offline',
     },
 
+    nativeSessionBrowser: {
+        title: 'Native Sessions',
+        searchPlaceholder: 'Search sessions…',
+        resumeButton: 'Resume in Joyful',
+        cancel: 'Cancel',
+        showAll: ({ count }: { count: number }) => `Show all (${count})`,
+        showLess: 'Show less',
+        noSessions: 'No native Claude sessions found for this directory.',
+        alreadyTracked: 'Already in Joyful',
+        browseNativeSessions: 'Browse native sessions',
+        noSummary: 'No summary',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

@@ -476,6 +476,19 @@ export const ru: TranslationStructure = {
         offlineUnableToSpawn: 'Невозможно создать сессию, машина offline',
     },
 
+    nativeSessionBrowser: {
+        title: 'Нативные сессии',
+        searchPlaceholder: 'Поиск сессий…',
+        resumeButton: 'Возобновить в Joyful',
+        cancel: 'Отмена',
+        showAll: ({ count }: { count: number }) => `Показать все (${count})`,
+        showLess: 'Показать меньше',
+        noSessions: 'Нативных сессий Claude для этой директории не найдено.',
+        alreadyTracked: 'Уже в Joyful',
+        browseNativeSessions: 'Просмотр нативных сессий',
+        noSummary: 'Нет описания',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

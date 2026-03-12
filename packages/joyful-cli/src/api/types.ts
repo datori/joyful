@@ -161,6 +161,16 @@ export const DaemonStateSchema = z.object({
 
 export type DaemonState = z.infer<typeof DaemonStateSchema>
 
+/**
+ * Metadata extracted from a native Claude Code session file
+ */
+export type NativeSessionInfo = {
+  sessionId: string;
+  lastModified: number;
+  summary: string | null;
+  firstMessage: string | null;
+}
+
 export type Machine = {
   id: string,
   encryptionKey: Uint8Array;

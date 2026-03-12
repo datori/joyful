@@ -43,6 +43,8 @@ interface LoopOptions {
     hookSettingsPath: string
     /** JavaScript runtime to use for spawning Claude Code (default: 'node') */
     jsRuntime?: JsRuntime
+    /** Native Claude Code session ID to resume on first spawn (forks the native session) */
+    resumeNativeSessionId?: string
 }
 
 export async function loop(opts: LoopOptions): Promise<number> {
@@ -53,7 +55,7 @@ export async function loop(opts: LoopOptions): Promise<number> {
         api: opts.api,
         client: opts.session,
         path: opts.path,
-        sessionId: null,
+        sessionId: opts.resumeNativeSessionId ?? null,
         claudeEnvVars: opts.claudeEnvVars,
         claudeArgs: opts.claudeArgs,
         mcpServers: opts.mcpServers,

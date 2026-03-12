@@ -8,6 +8,7 @@ import { logger } from '@/ui/logger';
 import { configuration } from '@/configuration';
 import { MachineMetadata, DaemonState, Machine, Update, UpdateMachineBody } from './types';
 import { registerCommonHandlers, SpawnSessionOptions, SpawnSessionResult } from '../modules/common/registerCommonHandlers';
+import { listNativeSessions } from '../claude/utils/listNativeSessions';
 import { encodeBase64, decodeBase64, encrypt, decrypt } from './encryption';
 import { backoff } from '@/utils/time';
 import { RpcHandlerManager } from './rpc/RpcHandlerManager';
@@ -102,14 +103,14 @@ export class ApiMachineClient {
     }: MachineRpcHandlers) {
         // Register spawn session handler
         this.rpcHandlerManager.registerHandler('spawn-joyful-session', async (params: any) => {
-            const { directory, sessionId, machineId, approvedNewDirectoryCreation, agent, token, environmentVariables } = params || {};
+            const { directory, sessionId, machineId, approvedNewDirectoryCreation, agent, token, environmentVariables, resumeNativeSessionId } = params || {};
             logger.debug(`[API MACHINE] Spawning session with params: ${JSON.stringify(params)}`);
 
             if (!directory) {
                 throw new Error('Directory is required');
             }
 
-            const result = await spawnSession({ directory, sessionId, machineId, approvedNewDirectoryCreation, agent, token, environmentVariables });
+            const result = await spawnSession({ directory, sessionId, machineId, approvedNewDirectoryCreation, agent, token, environmentVariables, resumeNativeSessionId });
 
             switch (result.type) {
                 case 'success':
@@ -140,6 +141,18 @@ export class ApiMachineClient {
 
             logger.debug(`[API MACHINE] Stopped session ${sessionId}`);
             return { message: 'Session stopped' };
+        });
+
+        // Register list native sessions handler
+        this.rpcHandlerManager.registerHandler('list-native-sessions', async (params: any) => {
+            const { directory } = params || {};
+            if (!directory) {
+                throw new Error('Directory is required');
+            }
+            logger.debug(`[API MACHINE] Listing native sessions for directory: ${directory}`);
+            const sessions = await listNativeSessions(directory);
+            logger.debug(`[API MACHINE] Found ${sessions.length} native sessions`);
+            return sessions;
         });
 
         // Register stop daemon handler

@@ -468,6 +468,19 @@ export const zhHans: TranslationStructure = {
         offlineUnableToSpawn: '无法生成新会话，已离线',
     },
 
+    nativeSessionBrowser: {
+        title: '原生会话',
+        searchPlaceholder: '搜索会话…',
+        resumeButton: '在 Joyful 中恢复',
+        cancel: '取消',
+        showAll: ({ count }: { count: number }) => `显示全部 (${count})`,
+        showLess: '显示更少',
+        noSessions: '未找到此目录的原生 Claude 会话。',
+        alreadyTracked: '已在 Joyful 中',
+        browseNativeSessions: '浏览原生会话',
+        noSummary: '无摘要',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

@@ -466,6 +466,19 @@ export const pt: TranslationStructure = {
         offlineUnableToSpawn: 'Não é possível criar nova sessão, você está offline',
     },
 
+    nativeSessionBrowser: {
+        title: 'Sessões nativas',
+        searchPlaceholder: 'Pesquisar sessões…',
+        resumeButton: 'Retomar no Joyful',
+        cancel: 'Cancelar',
+        showAll: ({ count }: { count: number }) => `Mostrar todas (${count})`,
+        showLess: 'Mostrar menos',
+        noSessions: 'Nenhuma sessão nativa do Claude encontrada para este diretório.',
+        alreadyTracked: 'Já no Joyful',
+        browseNativeSessions: 'Explorar sessões nativas',
+        noSummary: 'Sem resumo',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

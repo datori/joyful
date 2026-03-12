@@ -498,6 +498,19 @@ export const ja: TranslationStructure = {
         offlineUnableToSpawn: 'オフラインのため新しいセッションを生成できません',
     },
 
+    nativeSessionBrowser: {
+        title: 'ネイティブセッション',
+        searchPlaceholder: 'セッションを検索…',
+        resumeButton: 'Joyfulで再開',
+        cancel: 'キャンセル',
+        showAll: ({ count }: { count: number }) => `すべて表示 (${count})`,
+        showLess: '折りたたむ',
+        noSessions: 'このディレクトリのネイティブClaudeセッションは見つかりませんでした。',
+        alreadyTracked: 'すでにJoyfulにあります',
+        browseNativeSessions: 'ネイティブセッションを参照',
+        noSummary: '概要なし',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

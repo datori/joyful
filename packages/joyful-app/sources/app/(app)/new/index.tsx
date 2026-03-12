@@ -43,6 +43,8 @@ import { isMachineOnline } from '@/utils/machineUtils';
 import { StatusDot } from '@/components/StatusDot';
 import { SearchableListSelector, SelectorConfig } from '@/components/SearchableListSelector';
 import { clearNewSessionDraft, loadNewSessionDraft, saveNewSessionDraft } from '@/sync/persistence';
+import { NativeSessionBrowser } from '@/components/NativeSessionBrowser';
+import { type TrackedNativeSession } from '@/hooks/useNativeSessions';
 
 // Simple temporary state for passing selections back from picker screens
 let onMachineSelected: (machineId: string) => void = () => { };
@@ -141,6 +143,18 @@ const styles = StyleSheet.create((theme, rt) => ({
         marginBottom: 12,
         lineHeight: 18,
         ...Typography.default()
+    },
+    nativeSessionsTrigger: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 8,
+        marginBottom: 8,
+    },
+    nativeSessionsTriggerText: {
+        fontSize: 13,
+        color: theme.colors.textLink,
+        ...Typography.default('regular'),
     },
     profileListItem: {
         backgroundColor: theme.colors.input.background,
@@ -442,6 +456,8 @@ function NewSessionWizard() {
     });
     const [isCreating, setIsCreating] = React.useState(false);
     const [showAdvanced, setShowAdvanced] = React.useState(false);
+    const [nativeBrowserVisible, setNativeBrowserVisible] = React.useState(false);
+    const [resumeNativeSessionId, setResumeNativeSessionId] = React.useState<string | undefined>(undefined);
 
     // Handle machineId route param from picker screens (main's navigation pattern)
     React.useEffect(() => {
@@ -1062,12 +1078,14 @@ function NewSessionWizard() {
                 directory: actualPath,
                 approvedNewDirectoryCreation: true,
                 agent: agentType,
-                environmentVariables
+                environmentVariables,
+                resumeNativeSessionId,
             });
 
             if ('sessionId' in result && result.sessionId) {
-                // Clear draft state on successful session creation
+                // Clear draft state and native session resume target on successful session creation
                 clearNewSessionDraft();
+                setResumeNativeSessionId(undefined);
 
                 await sync.refreshSessions();
 
@@ -1219,6 +1237,7 @@ function NewSessionWizard() {
     // Full wizard with numbered sections, profile management, CLI detection
     // ========================================================================
     return (
+        <>
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? Constants.statusBarHeight + useHeaderHeight() : 0}
@@ -1853,6 +1872,19 @@ function NewSessionWizard() {
                                 />
                             </View>
 
+                            {/* Browse native sessions trigger */}
+                            {selectedPath.trim() !== '' && selectedMachine && isMachineOnline(selectedMachine) && (
+                                <Pressable
+                                    onPress={() => setNativeBrowserVisible(true)}
+                                    style={styles.nativeSessionsTrigger}
+                                >
+                                    <Ionicons name="time-outline" size={15} color={theme.colors.textLink} />
+                                    <Text style={styles.nativeSessionsTriggerText}>
+                                        {t('nativeSessionBrowser.browseNativeSessions')}
+                                    </Text>
+                                </Pressable>
+                            )}
+
                             {/* Section 4: Permission Mode */}
                             <View ref={permissionSectionRef}>
                                 <Text style={styles.sectionHeader}>4. Permission Mode</Text>
@@ -1967,6 +1999,18 @@ function NewSessionWizard() {
                 </View>
             </View>
         </KeyboardAvoidingView>
+
+        <NativeSessionBrowser
+            visible={nativeBrowserVisible}
+            machineId={selectedMachineId}
+            directory={selectedPath || null}
+            onClose={() => setNativeBrowserVisible(false)}
+            onResume={(session: TrackedNativeSession) => {
+                setResumeNativeSessionId(session.sessionId);
+                setNativeBrowserVisible(false);
+            }}
+        />
+        </>
     );
 }
 

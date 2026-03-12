@@ -466,6 +466,19 @@ export const ca: TranslationStructure = {
         offlineUnableToSpawn: 'No es pot crear una nova sessió, fora de línia',
     },
 
+    nativeSessionBrowser: {
+        title: 'Sessions natives',
+        searchPlaceholder: 'Cerca sessions…',
+        resumeButton: 'Reprendre a Joyful',
+        cancel: 'Cancel·lar',
+        showAll: ({ count }: { count: number }) => `Mostra totes (${count})`,
+        showLess: 'Mostra menys',
+        noSessions: 'No s\'han trobat sessions natives de Claude per a aquest directori.',
+        alreadyTracked: 'Ja a Joyful',
+        browseNativeSessions: 'Explora sessions natives',
+        noSummary: 'Sense resum',
+    },
+
     sidebar: {
         sessionsTitle: 'Happy',
     },

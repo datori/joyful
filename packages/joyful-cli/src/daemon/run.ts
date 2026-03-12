@@ -231,7 +231,7 @@ export async function startDaemon(): Promise<void> {
     const spawnSession = async (options: SpawnSessionOptions): Promise<SpawnSessionResult> => {
       logger.debugLargeJson('[DAEMON RUN] Spawning session', options);
 
-      const { directory, sessionId, machineId, approvedNewDirectoryCreation = true } = options;
+      const { directory, sessionId, machineId, approvedNewDirectoryCreation = true, resumeNativeSessionId } = options;
       let directoryCreated = false;
 
       try {
@@ -507,15 +507,14 @@ export async function startDaemon(): Promise<void> {
             '--started-by', 'daemon'
           ];
 
-          // TODO: In future, sessionId could be used with --resume to continue existing sessions
-          // For now, we ignore it - each spawn creates a new session
           const joyfulProcess = spawnJoyfulCLI(args, {
             cwd: directory,
             detached: true,  // Sessions stay alive when daemon stops
             stdio: ['ignore', 'pipe', 'pipe'],  // Capture stdout/stderr for debugging
             env: {
               ...process.env,
-              ...extraEnv
+              ...extraEnv,
+              ...(resumeNativeSessionId ? { JOYFUL_RESUME_NATIVE_SESSION: resumeNativeSessionId } : {})
             }
           });
 
