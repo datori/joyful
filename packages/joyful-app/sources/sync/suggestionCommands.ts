@@ -16,40 +16,17 @@ interface SearchOptions {
     threshold?: number;
 }
 
-// Commands to ignore/filter out
+// Commands to hide from autocomplete — only terminal/PTY-specific and one-time installation tools.
+// Everything else (config, diagnostic, auth, review) is intentionally visible.
 export const IGNORED_COMMANDS = [
-    "add-dir",
-    "agents",
-    "config",
-    "statusline",
-    "bashes",
-    "settings",
-    "cost",
-    "doctor",
-    "exit",
-    "help",
-    "ide",
-    "init",
-    "install-github-app",
-    "mcp",
-    "memory",
-    "migrate-installer",
-    "model",
-    "pr-comments",
-    "release-notes",
-    "resume",
-    "status",
-    "bug",
-    "review",
-    "security-review",
-    "terminal-setup",
-    "upgrade",
-    "vim",
-    "permissions",
-    "hooks",
-    "export",
-    "logout",
-    "login"
+    "exit",              // kills the CLI process
+    "vim",               // interactive terminal editor
+    "ide",               // IDE integration (terminal-only)
+    "terminal-setup",    // configures terminal emulator
+    "migrate-installer", // one-time installation migration
+    "install-github-app",// one-time GitHub App installation
+    "statusline",        // configures terminal statusline display
+    "resume",            // joyful provides its own session-resume UI
 ];
 
 // Default commands always available
