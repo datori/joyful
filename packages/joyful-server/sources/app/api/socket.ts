@@ -12,6 +12,7 @@ import { sessionUpdateHandler } from "./socket/sessionUpdateHandler";
 import { machineUpdateHandler } from "./socket/machineUpdateHandler";
 import { artifactUpdateHandler } from "./socket/artifactUpdateHandler";
 import { accessKeyHandler } from "./socket/accessKeyHandler";
+import { db } from "@/storage/db";
 
 export function startSocket(app: Fastify) {
     const io = new Server(app.server, {
@@ -99,6 +100,15 @@ export function startSocket(app: Fastify) {
         }
         eventRouter.addConnection(userId, connection);
         incrementWebSocketConnection(connection.connectionType);
+
+        // Emit connect-state for user-scoped clients so the app can do selective invalidation
+        if (connection.connectionType === 'user-scoped') {
+            const sessions = await db.session.findMany({
+                where: { accountId: userId },
+                select: { id: true, seq: true }
+            });
+            socket.emit('connect-state', { sessions: Object.fromEntries(sessions.map(s => [s.id, s.seq])) });
+        }
 
         // Broadcast daemon online status
         if (connection.connectionType === 'machine-scoped') {

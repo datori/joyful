@@ -1719,9 +1719,7 @@ class Sync {
             if (sessionsData) {
                 for (const item of sessionsData) {
                     if (typeof item !== 'string') {
-                        this.getMessagesSync(item.id).invalidate();
-                        perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: item.id.slice(0, 8) });
-                        // Also invalidate git status on reconnection
+                        // Always refresh git status — it's transient and cheap
                         gitStatusSync.invalidate(item.id);
                     }
                 }
@@ -1729,6 +1727,42 @@ class Sync {
             for (const sync of this.sendSync.values()) {
                 sync.invalidate();
             }
+
+            // Fallback: if connect-state doesn't arrive within 3s, invalidate all sessions
+            let connectStateReceived = false;
+            const fallbackTimeout = setTimeout(() => {
+                if (connectStateReceived) return;
+                log.log('🔌 connect-state fallback: invalidating all sessions');
+                const sessionsData = storage.getState().sessionsData;
+                if (sessionsData) {
+                    for (const item of sessionsData) {
+                        if (typeof item !== 'string') {
+                            this.getMessagesSync(item.id).invalidate();
+                            perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: item.id.slice(0, 8) });
+                        }
+                    }
+                }
+            }, 3000);
+
+            const unsubscribe = apiSocket.onConnectState((serverSessions) => {
+                connectStateReceived = true;
+                clearTimeout(fallbackTimeout);
+                unsubscribe();
+                log.log('🔌 connect-state received, selective invalidation');
+                const sessionsData = storage.getState().sessionsData;
+                if (sessionsData) {
+                    for (const item of sessionsData) {
+                        if (typeof item !== 'string') {
+                            const serverSeq = serverSessions[item.id];
+                            const clientSeq = this.sessionLastSeq.get(item.id) ?? -1;
+                            if (serverSeq === undefined || serverSeq > clientSeq) {
+                                this.getMessagesSync(item.id).invalidate();
+                                perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: item.id.slice(0, 8) });
+                            }
+                        }
+                    }
+                }
+            });
         });
     }
 

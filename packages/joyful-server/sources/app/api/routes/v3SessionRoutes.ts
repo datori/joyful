@@ -1,6 +1,6 @@
 import { buildNewMessageUpdate, eventRouter } from "@/app/events/eventRouter";
 import { db } from "@/storage/db";
-import { allocateSessionSeqBatch, allocateUserSeq } from "@/storage/seq";
+import { allocateSessionSeqBatch, allocateUserSeqBatch } from "@/storage/seq";
 import { randomKeyNaked } from "@/utils/randomKeyNaked";
 import { z } from "zod";
 import { type Fastify } from "../types";
@@ -185,27 +185,29 @@ export function v3SessionRoutes(app: Fastify) {
                 createdMessages.push(createdMessage);
             }
 
+            const userSeqs = await allocateUserSeqBatch(userId, createdMessages.length, tx);
             const responseMessages = [...existing, ...createdMessages].sort((a, b) => a.seq - b.seq);
 
             return {
                 responseMessages,
-                createdMessages
+                createdMessages,
+                userSeqs
             };
         });
 
-        for (const message of txResult.createdMessages) {
+        for (let i = 0; i < txResult.createdMessages.length; i++) {
+            const message = txResult.createdMessages[i];
             const content = message.localId ? contentByLocalId.get(message.localId) : null;
             if (!content) {
                 continue;
             }
-            const updSeq = await allocateUserSeq(userId);
             const updatePayload = buildNewMessageUpdate({
                 ...message,
                 content: {
                     t: 'encrypted',
                     c: content
                 }
-            }, sessionId, updSeq, randomKeyNaked(12));
+            }, sessionId, txResult.userSeqs[i], randomKeyNaked(12));
 
             eventRouter.emitUpdate({
                 userId,

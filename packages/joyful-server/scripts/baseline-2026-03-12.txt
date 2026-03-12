@@ -1,0 +1,43 @@
+============================================================
+PERF BENCHMARK REPORT
+Source: /home/openclaw/code/joyful/packages/joyful-server/scripts/../data/perf.ndjson
+Total events: 7619  (server=7413 app=132 cli=74)
+============================================================
+
+[1] WEBSOCKET STREAMING PATH
+  ws.msg.fast            18  (64%)
+  ws.msg.slow seq_gap    10  (35%)
+  total ws messages      28
+  TARGET (post batch-seq-allocation): fast ≥95%, seq_gap ≤5%
+
+[2] FETCH_MSGS (REST message fetches)
+  total calls            64
+  empty (count=0)        35  (54%)  ← wasted round-trips
+  latency              p50=68ms p95=209ms p99=210ms max=210ms n=64
+  TARGET (post batch-seq-allocation): empty ≤10%
+
+[3] DB SEQ ALLOCATION N+1
+  Account.update calls        214
+  SessionMessage.create calls   95
+  ratio                       2.25x  (1.0x = batch, >1.0x = N+1)
+  TARGET (post batch-seq-allocation): ratio ≤1.0x
+
+[4] POST /v3/sessions/:id/messages LATENCY
+  p50=40ms p95=133ms p99=230ms max=237ms n=84
+  TARGET: p50 improvement expected from fewer sequential DB writes
+
+[5] RECONNECT FLOOD
+  Connect 1: initial (no reconnect flood)
+  Reconnect 2: 10 sessions invalidated  → 11 fetches  140 msgs  429ms to last fetch
+  Reconnect 3: 11 sessions invalidated  → 11 fetches  160 msgs  295ms to last fetch
+  total reconnect slow events: 21
+  TARGET (post selective-reconnect-invalidation): only sessions with new msgs invalidated
+
+[6] GET /v3/sessions/:id/messages LATENCY
+  p50=19ms p95=68ms p99=104ms max=160ms n=178
+
+[7] REGRESSION GUARDS (should not worsen)
+  Session.findFirst     p50=11ms p95=44ms p99=65ms max=105ms n=309
+  Session.findUnique    p50=2ms p95=7ms p99=20ms max=61ms n=404
+  outbox.flush          p50=77ms p95=212ms p99=309ms max=328ms n=74
+

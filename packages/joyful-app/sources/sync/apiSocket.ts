@@ -32,6 +32,7 @@ class ApiSocket {
     private encryption: Encryption | null = null;
     private messageHandlers: Map<string, (data: any) => void> = new Map();
     private reconnectedListeners: Set<() => void> = new Set();
+    private connectStateListeners: Set<(sessions: Record<string, number>) => void> = new Set();
     private statusListeners: Set<(status: 'disconnected' | 'connecting' | 'connected' | 'error') => void> = new Set();
     private currentStatus: 'disconnected' | 'connecting' | 'connected' | 'error' = 'disconnected';
 
@@ -87,6 +88,11 @@ class ApiSocket {
     onReconnected = (listener: () => void) => {
         this.reconnectedListeners.add(listener);
         return () => this.reconnectedListeners.delete(listener);
+    };
+
+    onConnectState = (listener: (sessions: Record<string, number>) => void) => {
+        this.connectStateListeners.add(listener);
+        return () => this.connectStateListeners.delete(listener);
     };
 
     onStatusChange = (listener: (status: 'disconnected' | 'connecting' | 'connected' | 'error') => void) => {
@@ -247,6 +253,10 @@ class ApiSocket {
         // Message handling
         this.socket.onAny((event, data) => {
             // console.log(`📥 SyncSocket: Received event '${event}':`, JSON.stringify(data).substring(0, 200));
+            if (event === 'connect-state' && data && typeof data.sessions === 'object') {
+                this.connectStateListeners.forEach(listener => listener(data.sessions));
+                return;
+            }
             const handler = this.messageHandlers.get(event);
             if (handler) {
                 // console.log(`📥 SyncSocket: Calling handler for '${event}'`);
