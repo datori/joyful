@@ -341,6 +341,10 @@ export const pl: TranslationStructure = {
         archived: "Zarchiwizowane",
     },
 
+    autocomplete: {
+        recentCommands: "Ostatnie polecenia",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Zakończ sesję',

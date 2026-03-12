@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
 import { FloatingOverlay } from './FloatingOverlay';
 
@@ -8,10 +8,12 @@ interface AgentInputAutocompleteProps {
     selectedIndex?: number;
     onSelect: (index: number) => void;
     itemHeight: number;
+    /** Optional section header shown above the suggestion list (e.g. "Recent commands") */
+    suggestionsLabel?: string;
 }
 
 export const AgentInputAutocomplete = React.memo((props: AgentInputAutocompleteProps) => {
-    const { suggestions, selectedIndex = -1, onSelect, itemHeight } = props;
+    const { suggestions, selectedIndex = -1, onSelect, itemHeight, suggestionsLabel } = props;
     const { theme } = useUnistyles();
 
     if (suggestions.length === 0) {
@@ -20,6 +22,13 @@ export const AgentInputAutocomplete = React.memo((props: AgentInputAutocompleteP
 
     return (
         <FloatingOverlay maxHeight={240} keyboardShouldPersistTaps="handled">
+            {suggestionsLabel && (
+                <View style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
+                    <Text style={{ fontSize: 11, color: theme.colors.textSecondary, fontWeight: '500', letterSpacing: 0.3 }}>
+                        {suggestionsLabel}
+                    </Text>
+                </View>
+            )}
             {suggestions.map((suggestion, index) => (
                 <Pressable
                     key={index}

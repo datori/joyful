@@ -362,6 +362,10 @@ export const ja: TranslationStructure = {
         archived: "アーカイブ",
     },
 
+    autocomplete: {
+        recentCommands: "最近のコマンド",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'セッションを終了',

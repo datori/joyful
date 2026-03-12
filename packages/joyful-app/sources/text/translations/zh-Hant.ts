@@ -331,6 +331,10 @@ export const zhHant: TranslationStructure = {
         archived: "已封存",
     },
 
+    autocomplete: {
+        recentCommands: "最近指令",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: '終止工作階段',

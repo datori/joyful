@@ -59,6 +59,8 @@ interface AgentInputProps {
     };
     autocompletePrefixes: string[];
     autocompleteSuggestions: (query: string) => Promise<{ key: string, text: string, component: React.ElementType }[]>;
+    /** Optional label shown above the autocomplete suggestion list */
+    autocompleteLabel?: string;
     usageData?: {
         inputTokens: number;
         outputTokens: number;
@@ -550,6 +552,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             selectedIndex={selected}
                             onSelect={handleSuggestionSelect}
                             itemHeight={48}
+                            suggestionsLabel={props.autocompleteLabel}
                         />
                     </View>
                 )}

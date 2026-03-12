@@ -32,6 +32,7 @@ import {
 import { AIBackendProfile, getProfileEnvironmentVariables, validateProfileForAgent } from '@/sync/settings';
 import { getBuiltInProfile, DEFAULT_PROFILES } from '@/sync/profileUtils';
 import { AgentInput } from '@/components/AgentInput';
+import { getRecentCommandSuggestions } from '@/components/autocomplete/suggestions';
 import { StyleSheet } from 'react-native-unistyles';
 import { randomUUID } from 'expo-crypto';
 import { useCLIDetection } from '@/hooks/useCLIDetection';
@@ -1187,8 +1188,9 @@ function NewSessionWizard() {
                                 isSendDisabled={!canCreate}
                                 isSending={isCreating}
                                 placeholder="What would you like to work on?"
-                                autocompletePrefixes={[]}
-                                autocompleteSuggestions={async () => []}
+                                autocompletePrefixes={['/']}
+                                autocompleteSuggestions={getRecentCommandSuggestions}
+                                autocompleteLabel={t('autocomplete.recentCommands')}
                                 agentType={agentType}
                                 onAgentClick={handleAgentClick}
                                 permissionMode={permissionMode}
@@ -1941,8 +1943,9 @@ function NewSessionWizard() {
                             isSendDisabled={!canCreate}
                             isSending={isCreating}
                             placeholder="What would you like to work on?"
-                            autocompletePrefixes={[]}
-                            autocompleteSuggestions={async () => []}
+                            autocompletePrefixes={['/']}
+                            autocompleteSuggestions={getRecentCommandSuggestions}
+                            autocompleteLabel={t('autocomplete.recentCommands')}
                             agentType={agentType}
                             onAgentClick={handleAgentInputAgentClick}
                             permissionMode={permissionMode}

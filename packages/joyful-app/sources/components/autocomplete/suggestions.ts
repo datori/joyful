@@ -1,7 +1,7 @@
 import { CommandSuggestion, FileMentionSuggestion } from '@/components/AgentInputSuggestionView';
 import * as React from 'react';
 import { searchFiles, FileItem } from '@/sync/suggestionFile';
-import { searchCommands, CommandItem } from '@/sync/suggestionCommands';
+import { searchCommands, searchRecentCommands, CommandItem } from '@/sync/suggestionCommands';
 
 export async function getCommandSuggestions(sessionId: string, query: string): Promise<{
     key: string;
@@ -56,6 +56,28 @@ export async function getFileMentionSuggestions(sessionId: string, query: string
     } catch (error) {
         console.error('Error fetching file suggestions:', error);
         // Return empty array on error
+        return [];
+    }
+}
+
+// Suggestions for the new session screen using the global recent-commands cache
+export async function getRecentCommandSuggestions(query: string): Promise<{
+    key: string;
+    text: string;
+    component: React.ComponentType;
+}[]> {
+    const searchTerm = query.startsWith('/') ? query.slice(1) : query;
+    try {
+        const commands = await searchRecentCommands(searchTerm, { limit: 5 });
+        return commands.map((cmd: CommandItem) => ({
+            key: `cmd-${cmd.command}`,
+            text: `/${cmd.command}`,
+            component: () => React.createElement(CommandSuggestion, {
+                command: cmd.command,
+                description: cmd.description
+            })
+        }));
+    } catch {
         return [];
     }
 }

@@ -304,6 +304,10 @@ export const ru: TranslationStructure = {
         archived: "Архивные",
     },
 
+    autocomplete: {
+        recentCommands: "Недавние команды",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Завершить сессию',

@@ -345,6 +345,10 @@ export const en: TranslationStructure = {
         archived: "Archived",
     },
 
+    autocomplete: {
+        recentCommands: "Recent commands",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Kill Session',

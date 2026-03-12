@@ -330,6 +330,10 @@ export const ca: TranslationStructure = {
         archived: "Arxivades",
     },
 
+    autocomplete: {
+        recentCommands: "Ordres recents",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Finalitza la sessió',

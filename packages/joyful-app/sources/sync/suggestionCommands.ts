@@ -123,3 +123,57 @@ export async function searchCommands(
 export function getAllCommands(sessionId: string): CommandItem[] {
     return getCommandsFromSession(sessionId);
 }
+
+// Collect recently-seen commands across ALL sessions in storage (naive global cache).
+// Deduplicates and applies IGNORED_COMMANDS filter. Always includes DEFAULT_COMMANDS.
+export function getRecentCommands(): CommandItem[] {
+    const state = storage.getState();
+    const commands: CommandItem[] = [...DEFAULT_COMMANDS];
+    const seen = new Set(DEFAULT_COMMANDS.map(c => c.command));
+
+    for (const session of Object.values(state.sessions)) {
+        if (!session.metadata?.slashCommands) continue;
+        for (const cmd of session.metadata.slashCommands) {
+            if (IGNORED_COMMANDS.includes(cmd)) continue;
+            if (seen.has(cmd)) continue;
+            seen.add(cmd);
+            commands.push({
+                command: cmd,
+                description: COMMAND_DESCRIPTIONS[cmd],
+            });
+        }
+    }
+
+    return commands;
+}
+
+// Search recent commands with fuzzy matching (no session ID required).
+// Used on the new session creation screen before a session exists.
+export async function searchRecentCommands(
+    query: string,
+    options: SearchOptions = {}
+): Promise<CommandItem[]> {
+    const { limit = 10, threshold = 0.3 } = options;
+    const commands = getRecentCommands();
+
+    if (!query || query.trim().length === 0) {
+        return commands.slice(0, limit);
+    }
+
+    const fuseOptions = {
+        keys: [
+            { name: 'command', weight: 0.7 },
+            { name: 'description', weight: 0.3 }
+        ],
+        threshold,
+        includeScore: true,
+        shouldSort: true,
+        minMatchCharLength: 1,
+        ignoreLocation: true,
+        useExtendedSearch: true
+    };
+
+    const fuse = new Fuse(commands, fuseOptions);
+    const results = fuse.search(query, { limit });
+    return results.map(result => result.item);
+}

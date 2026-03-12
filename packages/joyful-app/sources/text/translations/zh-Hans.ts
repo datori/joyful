@@ -332,6 +332,10 @@ export const zhHans: TranslationStructure = {
         archived: "已归档",
     },
 
+    autocomplete: {
+        recentCommands: "最近命令",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: '终止会话',
