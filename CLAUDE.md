@@ -153,6 +153,17 @@ JOYFUL_SERVER_URL=http://localhost:3007 JOYFUL_HOME_DIR=~/.joyful-dev npx yarn c
 ```
 Note: the daemon spawns from the **built binary** (`dist/index.mjs`). Run `yarn workspace joyful build` first if CLI source has changed.
 
+**After changing CLI source** — use the rebuild+restart shortcut (build + force stop + start):
+```bash
+yarn dev:daemon:restart
+```
+⚠️ **Do not use `daemon start` alone after a rebuild.** The daemon detects its own version and skips restarting if the version string hasn't changed, leaving the old binary running. Always stop first.
+
+**Tailing the latest daemon log** (new log file is created per PID on each start):
+```bash
+tail -f ~/.joyful-dev/logs/$(ls -t ~/.joyful-dev/logs/ | grep daemon | head -1)
+```
+
 **3. Web app** (in joyful-dev:webapp):
 ```bash
 EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 npx yarn web

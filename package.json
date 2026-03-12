@@ -5,7 +5,8 @@
         "cli": "yarn workspace joyful cli",
         "release": "node ./scripts/release.cjs",
         "web": "yarn workspace joyful-app web",
-        "postinstall": "node ./scripts/postinstall.cjs"
+        "postinstall": "node ./scripts/postinstall.cjs",
+        "dev:daemon:restart": "yarn workspace joyful dev:daemon:rebuild-restart"
     },
     "workspaces": {
         "packages": [

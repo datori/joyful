@@ -79,6 +79,8 @@
     "dev:daemon:start": "node scripts/env-wrapper.cjs dev daemon start",
     "dev:daemon:stop": "node scripts/env-wrapper.cjs dev daemon stop",
     "dev:daemon:status": "node scripts/env-wrapper.cjs dev daemon status",
+    "dev:daemon:restart": "JOYFUL_SERVER_URL=http://localhost:3007 node scripts/env-wrapper.cjs dev daemon stop; JOYFUL_SERVER_URL=http://localhost:3007 node scripts/env-wrapper.cjs dev daemon start",
+    "dev:daemon:rebuild-restart": "yarn build && JOYFUL_SERVER_URL=http://localhost:3007 node scripts/env-wrapper.cjs dev daemon stop; JOYFUL_SERVER_URL=http://localhost:3007 node scripts/env-wrapper.cjs dev daemon start",
     "dev:auth": "node scripts/env-wrapper.cjs dev auth",
     "// ==== Setup ====": "",
     "setup:dev": "node scripts/setup-dev.cjs",
