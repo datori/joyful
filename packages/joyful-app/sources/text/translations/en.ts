@@ -930,7 +930,13 @@ export const en: TranslationStructure = {
             confirm: 'Delete',
             cancel: 'Cancel',
         },
-    }
+    },
+
+    restore: {
+        // Used by restore/index.tsx (link-new-device QR screen)
+        linkDeviceInstructions: '1. Open Joyful on your mobile device\n2. Go to Settings → Account\n3. Tap "Link New Device"\n4. Scan this QR code',
+        restoreWithSecretKey: 'Restore with Secret Key Instead',
+    },
 } as const;
 
 export type TranslationsEn = typeof en;

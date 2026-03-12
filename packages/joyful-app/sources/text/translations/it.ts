@@ -913,7 +913,12 @@ export const it: TranslationStructure = {
         friendRequestGeneric: 'Nuova richiesta di amicizia',
         friendAccepted: ({ name }: { name: string }) => `Ora sei amico di ${name}`,
         friendAcceptedGeneric: 'Richiesta di amicizia accettata',
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. Apri Joyful sul tuo dispositivo mobile\n2. Vai a Impostazioni → Account\n3. Tocca "Collega nuovo dispositivo"\n4. Scansiona questo codice QR',
+        restoreWithSecretKey: 'Ripristina con chiave segreta',
+    },
 } as const;
 
 export type TranslationsIt = typeof it;

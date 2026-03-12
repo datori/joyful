@@ -913,7 +913,12 @@ export const ca: TranslationStructure = {
         friendRequestGeneric: 'Nova sol·licitud d\'amistat',
         friendAccepted: ({ name }: { name: string }) => `Ara ets amic de ${name}`,
         friendAcceptedGeneric: 'Sol·licitud d\'amistat acceptada',
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. Obre Joyful al teu dispositiu mòbil\n2. Vés a Configuració → Compte\n3. Toca "Vincula el nou dispositiu"\n4. Escaneja aquest codi QR',
+        restoreWithSecretKey: 'Restaura amb la clau secreta',
+    },
 } as const;
 
 export type TranslationsCa = typeof ca;

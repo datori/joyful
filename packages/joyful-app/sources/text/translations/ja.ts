@@ -916,5 +916,10 @@ export const ja: TranslationStructure = {
         friendRequestGeneric: '新しい友達リクエスト',
         friendAccepted: ({ name }: { name: string }) => `${name}さんと友達になりました`,
         friendAcceptedGeneric: '友達リクエストが承認されました',
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. モバイルデバイスでJoyfulを開く\n2. 設定 → アカウントへ移動\n3. 「新しいデバイスをリンク」をタップ\n4. このQRコードをスキャン',
+        restoreWithSecretKey: 'シークレットキーで復元',
+    },
 } as const;

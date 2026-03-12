@@ -915,5 +915,10 @@ export const zhHans: TranslationStructure = {
         friendRequestGeneric: '新的好友请求',
         friendAccepted: ({ name }: { name: string }) => `您现在与 ${name} 成为了好友`,
         friendAcceptedGeneric: '好友请求已接受',
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. 在移动设备上打开 Joyful\n2. 前往设置 → 账户\n3. 点击「链接新设备」\n4. 扫描此二维码',
+        restoreWithSecretKey: '使用密钥恢复',
+    },
 } as const;

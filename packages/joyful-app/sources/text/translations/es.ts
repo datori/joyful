@@ -915,7 +915,12 @@ export const es: TranslationStructure = {
             confirm: 'Eliminar',
             cancel: 'Cancelar',
         },
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. Abre Joyful en tu dispositivo móvil\n2. Ve a Ajustes → Cuenta\n3. Toca "Vincular nuevo dispositivo"\n4. Escanea este código QR',
+        restoreWithSecretKey: 'Restaurar con clave secreta',
+    },
 } as const;
 
 export type TranslationsEs = typeof es;

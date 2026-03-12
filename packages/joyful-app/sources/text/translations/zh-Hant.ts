@@ -915,5 +915,10 @@ export const zhHant: TranslationStructure = {
             confirm: '刪除',
             cancel: '取消',
         },
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. 在行動裝置上開啟 Joyful\n2. 前往設定 → 帳戶\n3. 點選「連結新裝置」\n4. 掃描此 QR 碼',
+        restoreWithSecretKey: '使用密鑰還原',
+    },
 } as const;

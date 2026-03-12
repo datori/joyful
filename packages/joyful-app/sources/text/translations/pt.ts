@@ -913,7 +913,12 @@ export const pt: TranslationStructure = {
         friendRequestGeneric: 'Novo pedido de amizade',
         friendAccepted: ({ name }: { name: string }) => `Agora você é amigo de ${name}`,
         friendAcceptedGeneric: 'Pedido de amizade aceito',
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. Abra o Joyful no seu dispositivo móvel\n2. Acesse Configurações → Conta\n3. Toque em "Vincular novo dispositivo"\n4. Escaneie este código QR',
+        restoreWithSecretKey: 'Restaurar com chave secreta',
+    },
 } as const;
 
 export type TranslationsPt = typeof pt;

@@ -937,7 +937,12 @@ export const ru: TranslationStructure = {
             confirm: 'Удалить',
             cancel: 'Отмена',
         },
-    }
+    },
+
+    restore: {
+        linkDeviceInstructions: '1. Откройте Joyful на вашем мобильном устройстве\n2. Перейдите в Настройки → Аккаунт\n3. Нажмите «Привязать новое устройство»\n4. Отсканируйте этот QR-код',
+        restoreWithSecretKey: 'Восстановить с помощью секретного ключа',
+    },
 } as const;
 
 export type TranslationsRu = typeof ru;
