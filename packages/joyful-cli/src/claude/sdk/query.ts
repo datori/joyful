@@ -339,8 +339,13 @@ export function query(config: {
         : args
 
     // Spawn Claude Code process
-    // Use clean env for global claude to avoid local node_modules/.bin taking precedence
-    const spawnEnv = isCommandOnly ? getCleanEnv() : process.env
+    // Use clean env for global claude to avoid local node_modules/.bin taking precedence.
+    // Always strip CLAUDECODE and CLAUDE_CODE_ENTRYPOINT so the subprocess is not blocked by
+    // Claude Code's nested-session guard (joyful is intentionally started inside a Claude session).
+    const baseEnv = isCommandOnly ? getCleanEnv() : { ...process.env }
+    const spawnEnv = baseEnv
+    delete (spawnEnv as Record<string, string | undefined>)['CLAUDECODE']
+    delete (spawnEnv as Record<string, string | undefined>)['CLAUDE_CODE_ENTRYPOINT']
     logDebug(`Spawning Claude Code process: ${spawnCommand} ${spawnArgs.join(' ')} (using ${isCommandOnly ? 'clean' : 'normal'} env)`)
 
     const child = spawn(spawnCommand, spawnArgs, {

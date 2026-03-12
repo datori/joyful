@@ -493,9 +493,14 @@ function runClaudeCli(cliPath) {
         // Note: Interceptors won't work with binary files, but that's acceptable
         // as binary files are self-contained and don't need interception
         const args = process.argv.slice(2);
+        // Strip Claude Code session env vars so the subprocess is not blocked by the
+        // nested-session guard (joyful daemon is intentionally started inside a Claude session).
+        const env = { ...process.env };
+        delete env.CLAUDECODE;
+        delete env.CLAUDE_CODE_ENTRYPOINT;
         const child = spawn(cliPath, args, {
             stdio: 'inherit',
-            env: process.env
+            env
         });
         child.on('exit', (code) => {
             process.exit(code || 0);
