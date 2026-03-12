@@ -327,6 +327,10 @@ export const zhHant: TranslationStructure = {
         advancedFeatureFooter: "這是一個進階功能。只有在您知道自己在做什麼時才更改伺服器。更改伺服器後您需要重新登入。"
     },
 
+    sessionList: {
+        archived: "已封存",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: '終止工作階段',

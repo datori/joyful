@@ -337,6 +337,10 @@ export const pl: TranslationStructure = {
         advancedFeatureFooter: 'To jest zaawansowana funkcja. Zmieniaj serwer tylko jeśli wiesz, co robisz. Po zmianie serwera będziesz musiał się wylogować i zalogować ponownie.'
     },
 
+    sessionList: {
+        archived: "Zarchiwizowane",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Zakończ sesję',

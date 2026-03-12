@@ -328,6 +328,10 @@ export const zhHans: TranslationStructure = {
         advancedFeatureFooter: "这是一个高级功能。只有在您知道自己在做什么时才更改服务器。更改服务器后您需要重新登录。"
     },
 
+    sessionList: {
+        archived: "已归档",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: '终止会话',

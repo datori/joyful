@@ -192,6 +192,28 @@ const stylesheet = StyleSheet.create((theme) => ({
         textAlign: 'center',
         ...Typography.default('semiBold'),
     },
+    archivedSectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: theme.colors.groupped.background,
+        paddingHorizontal: 24,
+        paddingTop: 20,
+        paddingBottom: 8,
+    },
+    archivedSectionHeaderText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.groupped.sectionTitle,
+        letterSpacing: 0.1,
+        ...Typography.default('semiBold'),
+    },
+    archivedSessionWrapper: {
+        opacity: 0.55,
+    },
+    sessionTitleArchived: {
+        fontSize: 14,
+    },
 }));
 
 export function SessionsList() {
@@ -205,12 +227,20 @@ export function SessionsList() {
     const router = useRouter();
     const selectable = isTablet;
     const experiments = useSetting('experiments');
+    const [isArchivedExpanded, setIsArchivedExpanded] = React.useState(false);
+
+    // When archived section is collapsed, hide all archived session rows
+    const visibleData = React.useMemo(() => {
+        if (!data || isArchivedExpanded) return data;
+        return data.filter(item => !(item.type === 'session' && item.variant === 'archived'));
+    }, [data, isArchivedExpanded]);
+
     const dataWithSelected = selectable ? React.useMemo(() => {
-        return data?.map(item => ({
+        return visibleData?.map(item => ({
             ...item,
             selected: pathname.startsWith(`/session/${item.type === 'session' ? item.session.id : ''}`)
         }));
-    }, [data, pathname]) : data;
+    }, [visibleData, pathname]) : visibleData;
 
     // Request review
     React.useEffect(() => {
@@ -232,6 +262,7 @@ export function SessionsList() {
             case 'active-sessions': return 'active-sessions';
             case 'project-group': return `project-group-${item.machine.id}-${item.displayPath}-${index}`;
             case 'session': return `session-${item.session.id}`;
+            case 'archived-section-header': return 'archived-section-header';
         }
     }, []);
 
@@ -274,13 +305,27 @@ export function SessionsList() {
                     </View>
                 );
 
+            case 'archived-section-header':
+                return (
+                    <Pressable style={styles.archivedSectionHeader} onPress={() => setIsArchivedExpanded(v => !v)} hitSlop={8}>
+                        <Text style={styles.archivedSectionHeaderText}>
+                            {t('sessionList.archived')} ({item.count})
+                        </Text>
+                        <Ionicons
+                            name={isArchivedExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={16}
+                            color={styles.archivedSectionHeaderText.color}
+                        />
+                    </Pressable>
+                );
+
             case 'session':
-                // Determine card styling based on position within date group
+                // Determine card styling based on position within group
                 const prevItem = index > 0 && dataWithSelected ? dataWithSelected[index - 1] : null;
                 const nextItem = index < (dataWithSelected?.length || 0) - 1 && dataWithSelected ? dataWithSelected[index + 1] : null;
 
-                const isFirst = prevItem?.type === 'header';
-                const isLast = nextItem?.type === 'header' || nextItem == null || nextItem?.type === 'active-sessions';
+                const isFirst = prevItem?.type === 'header' || prevItem?.type === 'archived-section-header';
+                const isLast = nextItem?.type === 'header' || nextItem?.type === 'archived-section-header' || nextItem == null || nextItem?.type === 'active-sessions';
                 const isSingle = isFirst && isLast;
 
                 return (
@@ -290,10 +335,11 @@ export function SessionsList() {
                         isFirst={isFirst}
                         isLast={isLast}
                         isSingle={isSingle}
+                        isArchived={item.variant === 'archived'}
                     />
                 );
         }
-    }, [pathname, dataWithSelected, compactSessionView]);
+    }, [pathname, dataWithSelected, compactSessionView, isArchivedExpanded]);
 
 
     // Remove this section as we'll use FlatList for all items now
@@ -323,12 +369,13 @@ export function SessionsList() {
 }
 
 // Sub-component that handles session message logic
-const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle }: {
+const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, isArchived }: {
     session: Session;
     selected?: boolean;
     isFirst?: boolean;
     isLast?: boolean;
     isSingle?: boolean;
+    isArchived?: boolean;
 }) => {
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
@@ -403,7 +450,8 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle }
                 <View style={styles.sessionTitleRow}>
                     <Text style={[
                         styles.sessionTitle,
-                        sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected
+                        sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
+                        isArchived ? styles.sessionTitleArchived : undefined,
                     ]} numberOfLines={1}> {/* {variant !== 'no-path' ? 1 : 2} - issue is we don't have anything to take this space yet and it looks strange - if summaries were more reliably generated, we can add this. While no summary - add something like "New session" or "Empty session", and extend summary to 2 lines once we have it */}
                         {sessionName}
                     </Text>
@@ -434,7 +482,8 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle }
         styles.sessionItemContainer,
         isSingle ? styles.sessionItemContainerSingle :
             isFirst ? styles.sessionItemContainerFirst :
-                isLast ? styles.sessionItemContainerLast : {}
+                isLast ? styles.sessionItemContainerLast : {},
+        isArchived ? styles.archivedSessionWrapper : undefined,
     ];
 
     if (!swipeEnabled) {

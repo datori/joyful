@@ -300,6 +300,10 @@ export const ru: TranslationStructure = {
         advancedFeatureFooter: 'Это расширенная функция. Изменяйте сервер только если знаете, что делаете. Вам нужно будет выйти и войти снова после изменения серверов.'
     },
 
+    sessionList: {
+        archived: "Архивные",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Завершить сессию',

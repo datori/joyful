@@ -64,7 +64,8 @@ export type SessionListViewItem =
     | { type: 'header'; title: string }
     | { type: 'active-sessions'; sessions: Session[] }
     | { type: 'project-group'; displayPath: string; machine: Machine }
-    | { type: 'session'; session: Session; variant?: 'default' | 'no-path' };
+    | { type: 'session'; session: Session; variant?: 'default' | 'no-path' | 'archived' }
+    | { type: 'archived-section-header'; count: number };
 
 // Legacy type for backward compatibility - to be removed
 export type SessionListItem = string | Session;
@@ -177,68 +178,11 @@ function buildSessionListViewData(
         listData.push({ type: 'active-sessions', sessions: activeSessions });
     }
 
-    // Group inactive sessions by date
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-
-    let currentDateGroup: Session[] = [];
-    let currentDateString: string | null = null;
-
-    for (const session of inactiveSessions) {
-        const sessionDate = new Date(session.updatedAt);
-        const dateString = sessionDate.toDateString();
-
-        if (currentDateString !== dateString) {
-            // Process previous group
-            if (currentDateGroup.length > 0 && currentDateString) {
-                const groupDate = new Date(currentDateString);
-                const sessionDateOnly = new Date(groupDate.getFullYear(), groupDate.getMonth(), groupDate.getDate());
-
-                let headerTitle: string;
-                if (sessionDateOnly.getTime() === today.getTime()) {
-                    headerTitle = 'Today';
-                } else if (sessionDateOnly.getTime() === yesterday.getTime()) {
-                    headerTitle = 'Yesterday';
-                } else {
-                    const diffTime = today.getTime() - sessionDateOnly.getTime();
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    headerTitle = `${diffDays} days ago`;
-                }
-
-                listData.push({ type: 'header', title: headerTitle });
-                currentDateGroup.forEach(sess => {
-                    listData.push({ type: 'session', session: sess });
-                });
-            }
-
-            // Start new group
-            currentDateString = dateString;
-            currentDateGroup = [session];
-        } else {
-            currentDateGroup.push(session);
-        }
-    }
-
-    // Process final group
-    if (currentDateGroup.length > 0 && currentDateString) {
-        const groupDate = new Date(currentDateString);
-        const sessionDateOnly = new Date(groupDate.getFullYear(), groupDate.getMonth(), groupDate.getDate());
-
-        let headerTitle: string;
-        if (sessionDateOnly.getTime() === today.getTime()) {
-            headerTitle = 'Today';
-        } else if (sessionDateOnly.getTime() === yesterday.getTime()) {
-            headerTitle = 'Yesterday';
-        } else {
-            const diffTime = today.getTime() - sessionDateOnly.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            headerTitle = `${diffDays} days ago`;
-        }
-
-        listData.push({ type: 'header', title: headerTitle });
-        currentDateGroup.forEach(sess => {
-            listData.push({ type: 'session', session: sess });
+    // Add archived (inactive) sessions as a collapsed section at the bottom
+    if (inactiveSessions.length > 0) {
+        listData.push({ type: 'archived-section-header', count: inactiveSessions.length });
+        inactiveSessions.forEach(sess => {
+            listData.push({ type: 'session', session: sess, variant: 'archived' });
         });
     }
 

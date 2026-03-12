@@ -326,6 +326,10 @@ export const pt: TranslationStructure = {
         advancedFeatureFooter: 'Este é um recurso avançado. Altere o servidor apenas se souber o que está fazendo. Você precisará sair e entrar novamente após alterar servidores.'
     },
 
+    sessionList: {
+        archived: "Arquivadas",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Encerrar sessão',

@@ -358,6 +358,10 @@ export const ja: TranslationStructure = {
         advancedFeatureFooter: "これは高度な機能です。何をしているか理解している場合のみサーバーを変更してください。サーバー変更後は再度ログインが必要です。"
     },
 
+    sessionList: {
+        archived: "アーカイブ",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'セッションを終了',

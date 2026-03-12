@@ -326,6 +326,10 @@ export const ca: TranslationStructure = {
         advancedFeatureFooter: 'Aquesta és una funció avançada. Només canvia el servidor si saps el que fas. Hauràs de tancar la sessió i tornar-la a iniciar després de canviar els servidors.'
     },
 
+    sessionList: {
+        archived: "Arxivades",
+    },
+
     sessionInfo: {
         // Used by Session Info screen (app/(app)/session/[id]/info.tsx)
         killSession: 'Finalitza la sessió',
