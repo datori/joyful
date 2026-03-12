@@ -93,7 +93,7 @@ Each package has its own `CLAUDE.md` with detailed guidelines. Key highlights:
 ### joyful-app
 - Always use `t(...)` for all user-visible strings; add to all 9 language files
 - Never use `Alert` from React Native — use `@/modal` instead
-- Use `useHappyAction` for async operations (auto error handling)
+- Use `useJoyfulAction` for async operations (auto error handling)
 - Use `ItemList` for most containers, `Item` component for content
 - Use Expo Router API, not React Navigation directly
 - Wrap pages in `memo`, styles at end of file
@@ -115,6 +115,65 @@ Each package has its own `CLAUDE.md` with detailed guidelines. Key highlights:
 - Action files: prefix with entity type then action (e.g., `friendAdd.ts`)
 - Use `privacyKit.decodeBase64`/`encodeBase64` instead of Buffer
 - Test files use `.spec.ts` suffix
+
+## Local Development Setup
+
+The dev stack runs fully isolated from any other `happy`/`happier` servers on this machine.
+
+### Ports and data directories
+| Service | Port | Data |
+|---------|------|------|
+| happy-server (existing, leave alone) | 3005 | Docker |
+| happier-server (existing, leave alone) | 3006 | Docker |
+| **joyful-server (standalone dev)** | **3007** | `packages/joyful-server/data/` (PGlite) |
+| joyful-app (web) | 8081 | — |
+| happy daemon (existing, leave alone) | — | `~/.happy/` |
+| **joyful daemon (dev)** | — | **`~/.joyful-dev/`** |
+
+### tmux session: `joyful-dev`
+```
+joyful-dev:server   ← standalone server (port 3007)
+joyful-dev:webapp   ← expo web (port 8081)
+joyful-dev:logs     ← tail -f daemon log
+```
+
+### Starting the stack (if stopped)
+
+**1. Server** — must run `migrate` first, then `serve` (two separate subcommands):
+```bash
+# In joyful-dev:server window, from packages/joyful-server/
+PORT=3007 JOYFUL_MASTER_SECRET=a6821b8bdb38ec3c0f9b14e030054290341dadfe84f0af409e1473677117fae3 DATA_DIR=./data npx tsx sources/standalone.ts migrate
+PORT=3007 JOYFUL_MASTER_SECRET=a6821b8bdb38ec3c0f9b14e030054290341dadfe84f0af409e1473677117fae3 DATA_DIR=./data npx tsx sources/standalone.ts serve
+```
+Or combined: `migrate && serve` in one shell command. Env vars must be passed inline — `tsx --env-file` does not load them reliably in tmux.
+
+**2. Daemon**:
+```bash
+JOYFUL_SERVER_URL=http://localhost:3007 JOYFUL_HOME_DIR=~/.joyful-dev npx yarn cli daemon start
+```
+Note: the daemon spawns from the **built binary** (`dist/index.mjs`). Run `yarn workspace joyful build` first if CLI source has changed.
+
+**3. Web app** (in joyful-dev:webapp):
+```bash
+EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 npx yarn web
+```
+
+### Linking the web app to the CLI account
+The bootstrap seed (one-time setup, already done):
+```
+9Tc4K47QSXltFaffZ0QCTyuI76Qi90nm3rMQgoduzRg
+```
+Open `http://localhost:8081` → Settings → Restore with Secret Key → paste seed.
+
+To create a fresh account (if needed):
+```bash
+JOYFUL_SERVER_URL=http://localhost:3007 JOYFUL_HOME_DIR=~/.joyful-dev npx yarn cli dev bootstrap --force
+```
+
+### Running the CLI against the dev stack
+```bash
+JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 npx yarn cli
+```
 
 ## Documentation
 
