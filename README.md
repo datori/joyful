@@ -1,6 +1,8 @@
-> **This is a fork of [Happy Coder](https://github.com/slopus/happy) — an active fork with a focus on orchestrating Claude Code instances, including more frequent feature additions and bug fixes than the upstream project.**
+## About this fork
 
-## Changes from upstream Happy Coder
+This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained with a focus on orchestrating Claude Code instances. Expect more frequent feature additions and bug fixes relative to upstream.
+
+### Changes from upstream
 
 <!-- changelog-summary: 2026-03-12 (fork base: d343330c) -->
 
@@ -11,6 +13,8 @@
 - **Renamed throughout** — all `happy`/`handy` identifiers, env vars (`JOYFUL_MASTER_SECRET`), and home directory (`~/.joyful-dev`) updated to `joyful`
 
 <!-- end-changelog-summary -->
+
+---
 
 <div align="center"><img src="/.github/logotype-dark.png" width="400" title="Joyful Coder" alt="Joyful Coder"/></div>
 
