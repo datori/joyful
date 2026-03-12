@@ -3,6 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { PrismaPGlite } from "pglite-prisma-adapter";
 import * as fs from "fs";
 import * as path from "path";
+import { perfLog, perfEnabled } from "./perfLog";
 
 let pgliteInstance: PGlite | null = null;
 
@@ -51,7 +52,32 @@ function createClient(): PrismaClient {
     return new PrismaClient();
 }
 
-export const db = createClient();
+function withPerfMiddleware(client: PrismaClient): PrismaClient {
+    if (!perfEnabled) {
+        return client;
+    }
+    return client.$extends({
+        query: {
+            $allModels: {
+                async $allOperations({ model, operation, args, query }) {
+                    const start = Date.now();
+                    const result = await query(args);
+                    perfLog({
+                        ts: Date.now(),
+                        src: 'server',
+                        op: 'db.query',
+                        model,
+                        action: operation,
+                        dur_ms: Date.now() - start,
+                    });
+                    return result;
+                },
+            },
+        },
+    }) as unknown as PrismaClient;
+}
+
+export const db = withPerfMiddleware(createClient());
 
 export function getPGlite(): PGlite | null {
     return pgliteInstance;

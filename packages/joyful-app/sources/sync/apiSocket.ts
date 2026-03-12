@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { TokenStorage } from '@/auth/tokenStorage';
 import { Encryption } from './encryption/encryption';
+import { perfMark, getForegroundTs } from '@/utils/perfBuffer';
 
 //
 // Types
@@ -219,6 +220,8 @@ class ApiSocket {
         this.socket.on('connect', () => {
             // console.log('🔌 SyncSocket: Connected, recovered: ' + this.socket?.recovered);
             // console.log('🔌 SyncSocket: Socket ID:', this.socket?.id);
+            const foregroundTs = getForegroundTs();
+            perfMark('ws.connected', { dur_ms: foregroundTs !== null ? Date.now() - foregroundTs : undefined });
             this.updateStatus('connected');
             if (!this.socket?.recovered) {
                 this.reconnectedListeners.forEach(listener => listener());

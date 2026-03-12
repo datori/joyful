@@ -314,6 +314,7 @@ export class ApiSessionClient extends EventEmitter {
         }
 
         const batch = this.pendingOutbox.slice();
+        const flushStart = Date.now();
         const response = await axios.post<V3PostSessionMessagesResponse>(
             `${configuration.requireServerUrl()}/v3/sessions/${encodeURIComponent(this.sessionId)}/messages`,
             {
@@ -332,6 +333,23 @@ export class ApiSessionClient extends EventEmitter {
             message.seq > acc ? message.seq : acc
         ), this.lastSeq);
         this.lastSeq = maxSeq;
+
+        // Perf: record outbox flush timing (fire-and-forget, dev only)
+        if (process.env.DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING && process.env.JOYFUL_SERVER_URL) {
+            void fetch(`${process.env.JOYFUL_SERVER_URL}/dev/perf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    events: [{
+                        ts: flushStart,
+                        src: 'cli',
+                        op: 'outbox.flush',
+                        count: batch.length,
+                        dur_ms: Date.now() - flushStart,
+                    }]
+                }),
+            }).catch(() => { /* silently ignore */ });
+        }
     }
 
     private enqueueMessage(content: unknown, invalidate: boolean = true) {

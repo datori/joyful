@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import { readFileSync, existsSync } from 'fs';
 import { Fastify } from '../types';
+import { perfLog, getPerfFilePath, type PerfEvent } from '@/storage/perfLog';
 
 export function devRoutes(app: Fastify) {
 
@@ -49,6 +51,48 @@ export function devRoutes(app: Fastify) {
                     fileConsolidatedLogger.info(logData, message);
             }
 
+            return reply.send({ success: true });
+        });
+
+        // GET /dev/perf — return last 500 perf events for agent analysis
+        app.get('/dev/perf', {
+            schema: { querystring: z.object({ limit: z.coerce.number().min(1).max(2000).optional() }) }
+        }, async (request, reply) => {
+            const limit = request.query.limit ?? 500;
+            const filePath = getPerfFilePath();
+            if (!existsSync(filePath)) {
+                return reply.send({ events: [], total: 0 });
+            }
+            const content = readFileSync(filePath, 'utf-8');
+            const lines = content.split('\n').filter(l => l.trim().length > 0);
+            const tail = lines.slice(-limit);
+            const events: PerfEvent[] = [];
+            for (const line of tail) {
+                try {
+                    events.push(JSON.parse(line) as PerfEvent);
+                } catch {
+                    // Skip malformed lines
+                }
+            }
+            return reply.send({ events, total: lines.length });
+        });
+
+        // POST /dev/perf — accept batched perf events from app/CLI
+        app.post('/dev/perf', {
+            schema: {
+                body: z.object({
+                    events: z.array(z.object({
+                        ts: z.number(),
+                        src: z.enum(['server', 'app', 'cli']),
+                        op: z.string(),
+                        dur_ms: z.number().optional(),
+                    }).passthrough())
+                })
+            }
+        }, async (request, reply) => {
+            for (const event of request.body.events) {
+                perfLog(event as PerfEvent);
+            }
             return reply.send({ success: true });
         });
     }

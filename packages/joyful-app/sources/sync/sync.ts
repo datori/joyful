@@ -40,6 +40,7 @@ import { fetchFeed } from './apiFeed';
 import { FeedItem } from './feedTypes';
 import { UserProfile } from './friendTypes';
 import { resolveMessageModeMeta } from './messageMeta';
+import { perfMark, setForegroundTs, flushPerfBuffer } from '@/utils/perfBuffer';
 
 type V3GetSessionMessagesResponse = {
     messages: ApiMessage[];
@@ -127,6 +128,9 @@ class Sync {
         AppState.addEventListener('change', (nextAppState) => {
             this.appState = nextAppState;
             if (nextAppState === 'active') {
+                const foregroundTs = Date.now();
+                setForegroundTs(foregroundTs);
+                perfMark('app.foreground');
                 const shouldFailAfterResume = this.backgroundSendStartedAt !== null
                     && this.hasPendingOutboxMessages()
                     && (Date.now() - this.backgroundSendStartedAt) >= Sync.BACKGROUND_SEND_TIMEOUT_MS;
@@ -148,9 +152,12 @@ class Sync {
                 this.friendsSync.invalidate();
                 this.friendRequestsSync.invalidate();
                 this.feedSync.invalidate();
+                const sessionsCount = Object.keys(storage.getState().sessions ?? {}).length;
+                perfMark('app.synced', { dur_ms: Date.now() - foregroundTs, sessions_count: sessionsCount });
             } else {
                 log.log(`📱 App state changed to: ${nextAppState}`);
                 this.maybeStartBackgroundSendWatchdog();
+                void flushPerfBuffer();
             }
         });
     }
@@ -1600,11 +1607,14 @@ class Sync {
                 throw new Error(`Session encryption not ready for ${sessionId}`);
             }
 
+            const fetchStart = Date.now();
             let afterSeq = this.sessionLastSeq.get(sessionId) ?? 0;
             let hasMore = true;
             let totalNormalized = 0;
+            let pages = 0;
 
             while (hasMore) {
+                pages++;
                 const response = await apiSocket.request(`/v3/sessions/${sessionId}/messages?after_seq=${afterSeq}&limit=100`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch messages for ${sessionId}: ${response.status}`);
@@ -1647,6 +1657,7 @@ class Sync {
             }
 
             storage.getState().applyMessagesLoaded(sessionId);
+            perfMark('fetch_msgs', { session_id: sessionId.slice(0, 8), count: totalNormalized, pages, dur_ms: Date.now() - fetchStart });
             log.log(`💬 fetchMessages completed for session ${sessionId} - processed ${totalNormalized} messages`);
         });
     }
@@ -1709,6 +1720,7 @@ class Sync {
                 for (const item of sessionsData) {
                     if (typeof item !== 'string') {
                         this.getMessagesSync(item.id).invalidate();
+                        perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: item.id.slice(0, 8) });
                         // Also invalidate git status on reconnection
                         gitStatusSync.invalidate(item.id);
                     }
@@ -1742,6 +1754,7 @@ class Sync {
             }
 
             // Decrypt message
+            const decryptStart = Date.now();
             let lastMessage: NormalizedMessage | null = null;
             if (updateData.body.message) {
                 const decrypted = await encryption.decryptMessage(updateData.body.message);
@@ -1805,6 +1818,7 @@ class Sync {
                         console.log('🔄 Sync: Applying message (fast path):', JSON.stringify(lastMessage));
                         this.enqueueMessages(updateData.body.sid, [lastMessage]);
                         this.sessionLastSeq.set(updateData.body.sid, incomingSeq);
+                        perfMark('ws.msg.fast', { seq: incomingSeq, dur_ms: Date.now() - decryptStart });
                         let hasMutableTool = false;
                         if (lastMessage.role === 'agent' && lastMessage.content[0] && lastMessage.content[0].type === 'tool-result') {
                             hasMutableTool = storage.getState().isMutableToolCall(updateData.body.sid, lastMessage.content[0].tool_use_id);
@@ -1813,6 +1827,8 @@ class Sync {
                             gitStatusSync.invalidate(updateData.body.sid);
                         }
                     } else {
+                        const slowReason = currentLastSeq === undefined ? 'first_load' : 'seq_gap';
+                        perfMark('ws.msg.slow', { seq: incomingSeq, reason: slowReason });
                         this.getMessagesSync(updateData.body.sid).invalidate();
                     }
                 }

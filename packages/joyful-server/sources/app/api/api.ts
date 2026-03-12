@@ -23,6 +23,7 @@ import { feedRoutes } from "./routes/feedRoutes";
 import { kvRoutes } from "./routes/kvRoutes";
 import { v3SessionRoutes } from "./routes/v3SessionRoutes";
 import { isLocalStorage, getLocalFilesDir } from "@/storage/files";
+import { perfLog, perfEnabled } from "@/storage/perfLog";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -54,6 +55,22 @@ export async function startApi() {
     enableMonitoring(typed);
     enableErrorHandlers(typed);
     enableAuthentication(typed);
+
+    // Perf: HTTP request timing (dev only)
+    if (perfEnabled) {
+        app.addHook('onResponse', (request, reply, done) => {
+            perfLog({
+                ts: Date.now(),
+                src: 'server',
+                op: 'http.request',
+                method: request.method,
+                path: request.routeOptions.url ?? request.url,
+                status: reply.statusCode,
+                dur_ms: Math.round(reply.elapsedTime),
+            });
+            done();
+        });
+    }
 
     // Serve local files when using local storage
     if (isLocalStorage()) {
