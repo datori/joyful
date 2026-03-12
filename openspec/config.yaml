@@ -1,20 +1,95 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  ## Project: Happy Coder (forked)
+  Mobile and web client for Claude Code & Codex — lets users run and control AI coding agents
+  remotely from iOS, Android, or web, with end-to-end encryption.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  ## Monorepo Structure (Yarn 1 workspaces)
+
+  ### packages/happy-cli  (npm: happy-coder)
+  TypeScript CLI that runs on the user's machine alongside Claude Code / Codex / Gemini.
+  - Daemon architecture: persistent background process (daemon) manages sessions and connects
+    to backend via WebSocket (Socket.io)
+  - Supports Claude (Anthropic SDK), Codex, Gemini agents via pluggable adapter pattern
+    (AgentRegistry in src/agent/core/ with pluggable AgentBackend, TransportHandler, MessageAdapter)
+  - ACP (Agent Client Protocol) integration via @agentclientprotocol/sdk
+  - TUI rendered with Ink (React for terminal); agent-specific displays in src/ui/ink/
+  - Bundled with pkgroll; dev via tsx
+  - Key subdirs: src/agent/, src/claude/, src/gemini/, src/daemon/, src/commands/, src/ui/
+
+  ### packages/happy-app
+  React Native + Expo app (iOS, Android) with web support (Expo web + Tauri desktop).
+  - Expo Router for file-based navigation (sources/app/)
+  - React 19, Zustand for state, React Native Unistyles + twrnc for styling
+  - Socket.io-client for realtime updates from server
+  - ElevenLabs + LiveKit for voice/WebRTC sessions
+  - RevenueCat for in-app subscriptions
+  - Platform-specific files: .appspec.ts (native), .native.ts, .web.tsx suffixes
+  - PostHog for analytics
+  - i18n: 9 languages (en, ru, pl, es, ca, it, pt, ja, zh-Hans) in sources/text/translations/;
+    all user-visible strings use t() function
+  - Key subdirs: sources/app/, sources/encryption/, sources/realtime/, sources/components/
+
+  ### packages/happy-server
+  Fastify 5 backend.
+  - Fastify with fastify-type-provider-zod; all routes typed via Zod schemas
+  - Prisma + PostgreSQL (production); PGLite embedded for standalone binary
+  - Redis via @socket.io/redis-streams-adapter for horizontal scaling
+  - Socket.io for realtime (sessions, machines, feed)
+  - S3/MinIO for file storage
+  - Public-key-based auth (TweetNaCl keypairs + challenge-response); JWT bearer tokens after handshake
+  - privacy-kit for base64 encoding/encryption helpers (never use Buffer directly)
+  - Can compile to standalone binary via `bun build` (uses PGLite, no external DB needed)
+  - Key subdirs: sources/app/ (routes), sources/storage/ (db/files), sources/modules/
+
+  ### packages/happy-wire  (npm: @slopus/happy-wire)
+  Shared Zod schemas for wire protocol. Imported by both CLI and server.
+  - All messages are encrypted blobs on the wire (never plaintext content)
+  - Versioned encrypted value pattern: `{ version: number, value: string }` (base64)
+  - Discriminated union MessageContent: user | agent | session-protocol roles
+
+  ### packages/happy-agent  (npm: @slopus/agent)
+  Small CLI for remotely controlling agents. Commander-based.
+
+  ## Key Domain Concepts
+
+  **Machine**: Represents a CLI installation. Has `metadata` (static: hostname, platform,
+  CLI version) and `daemonState` (dynamic: status, pid, port). Both are versioned encrypted blobs.
+
+  **Session**: One Claude/Codex/Gemini conversation. Belongs to a machine+account. Has `metadata`
+  (encrypted session info) and `agentState` (encrypted agent progress). Messages stored server-side
+  as encrypted blobs; server never sees plaintext.
+
+  **Daemon**: Background process (one per machine) that: (a) maintains WebSocket to server,
+  (b) spawns/tracks child agent processes, (c) handles RPC from mobile app (spawn/stop sessions),
+  (d) self-updates when CLI version changes.
+
+  **E2E Encryption**: TweetNaCl box encryption (NaCl) + libsodium. Each account has a keypair.
+  Session keys derived per session. All content encrypted before leaving device. Server stores
+  and relays encrypted blobs only.
+
+  ## Tech Stack Summary
+  - Language: TypeScript everywhere (strict), tsx for dev, pkgroll for library builds
+  - Testing: Vitest
+  - DB: Prisma + PostgreSQL; PGLite for embedded/standalone
+  - Realtime: Socket.io
+  - HTTP clients: axios; HTTP server: Fastify 5
+  - Crypto: TweetNaCl (box/sign), libsodium (app-native), privacy-kit (server base64/encryption)
+  - IDs: CUID2 (@paralleldrive/cuid2)
+  - Validation: Zod (pinned at 3.25.76 across all packages)
+
+  ## Conventions
+  - Zod schemas: named `*Schema`; inferred types: `z.infer<typeof *Schema>`
+  - Platform files: `.appspec.ts` (native polyfills), `.native.ts`, `.web.tsx`
+  - Path aliases: `@/` maps to `sources/` (app, server) or `src/` (CLI)
+  - Versioned state pattern: `{ version: number, value: string | null }` for all encrypted fields
+  - Encrypted updates use optimistic concurrency: include `expectedVersion`, server returns
+    `version-mismatch` with current state if stale
+  - Conventional commits style preferred
+  - No default exports in library code; named exports only
+
+  ## What This Fork May Change
+  This is a fork of the upstream Happy Coder project. Changes may include new agent integrations,
+  UI modifications, server-side features, or protocol extensions. Prefer minimal diffs from
+  upstream where possible; document intentional divergences.
