@@ -18,8 +18,8 @@ import { t } from '@/text';
 import { isVersionSupported, MINIMUM_CLI_VERSION } from '@/utils/versionUtils';
 import { CodeView } from '@/components/CodeView';
 import { Session } from '@/sync/storageTypes';
-import { useHappyAction } from '@/hooks/useHappyAction';
-import { HappyError } from '@/utils/errors';
+import { useJoyfulAction } from '@/hooks/useJoyfulAction';
+import { JoyfulError } from '@/utils/errors';
 
 // Animated status dot component
 function StatusDot({ color, isPulsing, size = 8 }: { color: string; isPulsing?: boolean; size?: number }) {
@@ -151,10 +151,10 @@ function SessionInfoContent({ session }: { session: Session }) {
     }, [session]);
 
     // Use HappyAction for archiving - it handles errors automatically
-    const [archivingSession, performArchive] = useHappyAction(async () => {
+    const [archivingSession, performArchive] = useJoyfulAction(async () => {
         const result = await sessionKill(session.id);
         if (!result.success) {
-            throw new HappyError(result.message || t('sessionInfo.failedToArchiveSession'), false);
+            throw new JoyfulError(result.message || t('sessionInfo.failedToArchiveSession'), false);
         }
         // Success - navigate back
         router.back();
@@ -177,10 +177,10 @@ function SessionInfoContent({ session }: { session: Session }) {
     }, [performArchive]);
 
     // Use HappyAction for deletion - it handles errors automatically
-    const [deletingSession, performDelete] = useHappyAction(async () => {
+    const [deletingSession, performDelete] = useJoyfulAction(async () => {
         const result = await sessionDelete(session.id);
         if (!result.success) {
-            throw new HappyError(result.message || t('sessionInfo.failedToDeleteSession'), false);
+            throw new JoyfulError(result.message || t('sessionInfo.failedToDeleteSession'), false);
         }
         // Success - no alert needed, UI will update to show deleted state
     });

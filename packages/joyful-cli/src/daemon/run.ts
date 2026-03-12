@@ -12,7 +12,7 @@ import { configuration } from '@/configuration';
 import { startCaffeinate, stopCaffeinate } from '@/utils/caffeinate';
 import packageJson from '../../package.json';
 import { getEnvironmentInfo } from '@/ui/doctor';
-import { spawnHappyCLI } from '@/utils/spawnHappyCLI';
+import { spawnJoyfulCLI } from '@/utils/spawnJoyfulCLI';
 import { writeDaemonState, DaemonLocallyPersistedState, readDaemonState, acquireDaemonLock, releaseDaemonLock, readSettings, getActiveProfile, getEnvironmentVariables, validateProfileForAgent, getProfileEnvironmentVariables } from '@/persistence';
 
 import { cleanupDaemonState, isDaemonRunningCurrentlyInstalledHappyVersion, stopDaemon } from './controlClient';
@@ -497,7 +497,7 @@ export async function startDaemon(): Promise<void> {
 
           // TODO: In future, sessionId could be used with --resume to continue existing sessions
           // For now, we ignore it - each spawn creates a new session
-          const joyfulProcess = spawnHappyCLI(args, {
+          const joyfulProcess = spawnJoyfulCLI(args, {
             cwd: directory,
             detached: true,  // Sessions stay alive when daemon stops
             stdio: ['ignore', 'pipe', 'pipe'],  // Capture stdout/stderr for debugging
@@ -734,7 +734,7 @@ export async function startDaemon(): Promise<void> {
         // 3. Next it will start a new daemon with the latest version with daemon-sync :D
         // Done!
         try {
-          spawnHappyCLI(['daemon', 'start'], {
+          spawnJoyfulCLI(['daemon', 'start'], {
             detached: true,
             stdio: 'ignore'
           });

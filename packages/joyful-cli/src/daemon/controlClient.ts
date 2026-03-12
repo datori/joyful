@@ -168,8 +168,8 @@ export async function isDaemonRunningCurrentlyInstalledHappyVersion(): Promise<b
     // If reading package.json doesn't work correctly after npm upgrades, 
     // we can revert to spawning a process (but should add timeout and cleanup!)
     /*
-    const { spawnHappyCLI } = await import('@/utils/spawnHappyCLI');
-    const joyfulProcess = spawnHappyCLI(['--version'], { stdio: 'pipe' });
+    const { spawnJoyfulCLI } = await import('@/utils/spawnJoyfulCLI');
+    const joyfulProcess = spawnJoyfulCLI(['--version'], { stdio: 'pipe' });
     let version: string | null = null;
     joyfulProcess.stdout?.on('data', (data) => {
       version = data.toString().trim();

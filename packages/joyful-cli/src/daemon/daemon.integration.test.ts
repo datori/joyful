@@ -29,7 +29,7 @@ import {
 } from '@/daemon/controlClient';
 import { readDaemonState, clearDaemonState } from '@/persistence';
 import { Metadata } from '@/api/types';
-import { spawnHappyCLI } from '@/utils/spawnHappyCLI';
+import { spawnJoyfulCLI } from '@/utils/spawnJoyfulCLI';
 import { getLatestDaemonLog } from '@/ui/logger';
 
 // Utility to wait for condition
@@ -82,7 +82,7 @@ describe.skipIf(!await isServerHealthy())('Daemon Integration Tests', { timeout:
     
     // Start fresh daemon for this test
     // This will return and start a background process - we don't need to wait for it
-    void spawnHappyCLI(['daemon', 'start'], {
+    void spawnJoyfulCLI(['daemon', 'start'], {
       stdio: 'ignore'
     });
     
@@ -189,7 +189,7 @@ describe.skipIf(!await isServerHealthy())('Daemon Integration Tests', { timeout:
 
   it('should track both daemon-spawned and terminal sessions', async () => {
     // Spawn a real joyful process that looks like it was started from terminal
-    const terminalHappyProcess = spawnHappyCLI([
+    const terminalHappyProcess = spawnJoyfulCLI([
       '--joyful-starting-mode', 'remote',
       '--started-by', 'terminal'
     ], {
@@ -389,7 +389,7 @@ describe.skipIf(!await isServerHealthy())('Daemon Integration Tests', { timeout:
    * 3. Test runs `yarn build` to recompile with new version
    * 4. Daemon's heartbeat (every 30s) reads package.json and compares to its compiled version
    * 5. Daemon detects mismatch: package.json != configuration.currentCliVersion
-   * 6. Daemon spawns new daemon via spawnHappyCLI(['daemon', 'start'])
+   * 6. Daemon spawns new daemon via spawnJoyfulCLI(['daemon', 'start'])
    * 7. New daemon starts, reads daemon.state.json, sees old version != its compiled version
    * 8. New daemon calls stopDaemon() to kill old daemon, then takes over
    * 

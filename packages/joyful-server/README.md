@@ -1,10 +1,10 @@
-# Happy Server
+# Joyful Server
 
 Minimal backend for open-source end-to-end encrypted Claude Code clients.
 
-## What is Happy?
+## What is Joyful?
 
-Happy Server is the synchronization backbone for secure Claude Code clients. It enables multiple devices to share encrypted conversations while maintaining complete privacy - the server never sees your messages, only encrypted blobs it cannot read.
+Joyful Server is the synchronization backbone for secure Claude Code clients. It enables multiple devices to share encrypted conversations while maintaining complete privacy - the server never sees your messages, only encrypted blobs it cannot read.
 
 ## Features
 
@@ -20,20 +20,20 @@ Happy Server is the synchronization backbone for secure Claude Code clients. It 
 
 ## How It Works
 
-Your Claude Code clients generate encryption keys locally and use Happy Server as a secure relay. Messages are end-to-end encrypted before leaving your device. The server's job is simple: store encrypted blobs and sync them between your devices in real-time.
+Your Claude Code clients generate encryption keys locally and use Joyful Server as a secure relay. Messages are end-to-end encrypted before leaving your device. The server's job is simple: store encrypted blobs and sync them between your devices in real-time.
 
 ## Hosting
 
-**You don't need to self-host!** Our free cloud Happy Server at `happy-api.slopus.com` is just as secure as running your own. Since all data is end-to-end encrypted before it reaches our servers, we literally cannot read your messages even if we wanted to. The encryption happens on your device, and only you have the keys.
+**You don't need to self-host!** Our free cloud Joyful Server at `api.cluster-fluster.com` is just as secure as running your own. Since all data is end-to-end encrypted before it reaches our servers, we literally cannot read your messages even if we wanted to. The encryption happens on your device, and only you have the keys.
 
-That said, Happy Server is open source and self-hostable if you prefer running your own infrastructure. The security model is identical whether you use our servers or your own.
+That said, Joyful Server is open source and self-hostable if you prefer running your own infrastructure. The security model is identical whether you use our servers or your own.
 
 ## Self-Hosting with Docker
 
 The standalone Docker image runs everything in a single container with no external dependencies (no Postgres, no Redis, no S3).
 
 ```bash
-docker build -t happy-server -f Dockerfile .
+docker build -t joyful-server -f Dockerfile .
 ```
 
 Run from the monorepo root:
@@ -41,8 +41,8 @@ Run from the monorepo root:
 ```bash
 docker run -p 3005:3005 \
   -e JOYFUL_MASTER_SECRET=<your-secret> \
-  -v happy-data:/data \
-  happy-server
+  -v joyful-data:/data \
+  joyful-server
 ```
 
 This uses:
@@ -50,7 +50,7 @@ This uses:
 - **Local filesystem** - for file uploads (stored in `/data/files`)
 - **In-memory event bus** - no Redis needed
 
-Data persists in the `happy-data` Docker volume across container restarts.
+Data persists in the `joyful-data` Docker volume across container restarts.
 
 ### Environment Variables
 

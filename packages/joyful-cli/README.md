@@ -1,4 +1,4 @@
-# Happy
+# Joyful
 
 Code on the go — control AI coding agents from your mobile device.
 
@@ -7,7 +7,7 @@ Free. Open source. Code anywhere.
 ## Installation
 
 ```bash
-npm install -g happy-coder
+npm install -g joyful
 ```
 
 ## Run From Source
@@ -27,7 +27,7 @@ yarn cli --help
 ### Claude (default)
 
 ```bash
-happy
+joyful
 ```
 
 This will:
@@ -38,7 +38,7 @@ This will:
 ### Gemini
 
 ```bash
-happy gemini
+joyful gemini
 ```
 
 Start a Gemini CLI session with remote control capabilities.
@@ -46,44 +46,44 @@ Start a Gemini CLI session with remote control capabilities.
 **First time setup:**
 ```bash
 # Authenticate with Google
-happy connect gemini
+joyful connect gemini
 ```
 
 ## Commands
 
 ### Main Commands
 
-- `happy` – Start Claude Code session (default)
-- `happy gemini` – Start Gemini CLI session
-- `happy codex` – Start Codex mode
-- `happy acp` – Start a generic ACP-compatible agent
+- `joyful` – Start Claude Code session (default)
+- `joyful gemini` – Start Gemini CLI session
+- `joyful codex` – Start Codex mode
+- `joyful acp` – Start a generic ACP-compatible agent
 
 ### Utility Commands
 
-- `happy auth` – Manage authentication
-- `happy connect` – Store AI vendor API keys in Happy cloud
-- `happy sandbox` – Configure sandbox runtime restrictions
-- `happy notify` – Send a push notification to your devices
-- `happy daemon` – Manage background service
-- `happy doctor` – System diagnostics & troubleshooting
+- `joyful auth` – Manage authentication
+- `joyful connect` – Store AI vendor API keys in Joyful cloud
+- `joyful sandbox` – Configure sandbox runtime restrictions
+- `joyful notify` – Send a push notification to your devices
+- `joyful daemon` – Manage background service
+- `joyful doctor` – System diagnostics & troubleshooting
 
 ### Connect Subcommands
 
 ```bash
-happy connect gemini     # Authenticate with Google for Gemini
-happy connect claude     # Authenticate with Anthropic
-happy connect codex      # Authenticate with OpenAI
-happy connect status     # Show connection status for all vendors
+joyful connect gemini     # Authenticate with Google for Gemini
+joyful connect claude     # Authenticate with Anthropic
+joyful connect codex      # Authenticate with OpenAI
+joyful connect status     # Show connection status for all vendors
 ```
 
 ### Gemini Subcommands
 
 ```bash
-happy gemini                      # Start Gemini session
-happy gemini model set <model>    # Set default model
-happy gemini model get            # Show current model
-happy gemini project set <id>     # Set Google Cloud Project ID (for Workspace accounts)
-happy gemini project get          # Show current Google Cloud Project ID
+joyful gemini                      # Start Gemini session
+joyful gemini model set <model>    # Set default model
+joyful gemini model get            # Show current model
+joyful gemini project set <id>     # Set Google Cloud Project ID (for Workspace accounts)
+joyful gemini project get          # Show current Google Cloud Project ID
 ```
 
 **Available models:** `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`
@@ -91,18 +91,18 @@ happy gemini project get          # Show current Google Cloud Project ID
 ### Generic ACP Commands
 
 ```bash
-happy acp gemini                     # Run built-in Gemini ACP command
-happy acp opencode                   # Run built-in OpenCode ACP command
-happy acp opencode --verbose         # Include raw backend/envelope logs
-happy acp -- custom-agent --flag     # Run any ACP-compatible command directly
+joyful acp gemini                     # Run built-in Gemini ACP command
+joyful acp opencode                   # Run built-in OpenCode ACP command
+joyful acp opencode --verbose         # Include raw backend/envelope logs
+joyful acp -- custom-agent --flag     # Run any ACP-compatible command directly
 ```
 
 ### Sandbox Subcommands
 
 ```bash
-happy sandbox configure  # Interactive sandbox setup wizard
-happy sandbox status     # Show current sandbox configuration
-happy sandbox disable    # Disable sandboxing
+joyful sandbox configure  # Interactive sandbox setup wizard
+joyful sandbox status     # Show current sandbox configuration
+joyful sandbox disable    # Disable sandboxing
 ```
 
 ## Options
@@ -122,13 +122,13 @@ happy sandbox disable    # Disable sandboxing
 
 ## Environment Variables
 
-### Happy Configuration
+### Joyful Configuration
 
-- `HAPPY_SERVER_URL` - Custom server URL (default: https://api.cluster-fluster.com)
-- `HAPPY_WEBAPP_URL` - Custom web app URL (default: https://app.happy.engineering)
-- `HAPPY_HOME_DIR` - Custom home directory for Happy data (default: ~/.happy)
-- `HAPPY_DISABLE_CAFFEINATE` - Disable macOS sleep prevention (set to `true`, `1`, or `yes`)
-- `HAPPY_EXPERIMENTAL` - Enable experimental features (set to `true`, `1`, or `yes`)
+- `JOYFUL_SERVER_URL` - Custom server URL (default: https://api.cluster-fluster.com)
+- `JOYFUL_WEBAPP_URL` - Custom web app URL (default: https://app.happy.engineering)
+- `JOYFUL_HOME_DIR` - Custom home directory for Joyful data (default: ~/.joyful)
+- `JOYFUL_DISABLE_CAFFEINATE` - Disable macOS sleep prevention (set to `true`, `1`, or `yes`)
+- `JOYFUL_EXPERIMENTAL` - Enable experimental features (set to `true`, `1`, or `yes`)
 
 ### Gemini Configuration
 
@@ -142,8 +142,8 @@ happy sandbox disable    # Disable sandboxing
 Personal Gmail accounts work out of the box:
 
 ```bash
-happy connect gemini
-happy gemini
+joyful connect gemini
+joyful gemini
 ```
 
 ### Google Workspace Account
@@ -155,12 +155,12 @@ Google Workspace (organization) accounts require a Google Cloud Project:
 3. Set the project ID:
 
 ```bash
-happy gemini project set your-project-id
+joyful gemini project set your-project-id
 ```
 
 Or use environment variable:
 ```bash
-GOOGLE_CLOUD_PROJECT=your-project-id happy gemini
+GOOGLE_CLOUD_PROJECT=your-project-id joyful gemini
 ```
 
 **Guide:** https://goo.gle/gemini-cli-auth-docs#workspace-gca
@@ -180,7 +180,7 @@ Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for developme
 ### For Gemini
 
 - Gemini CLI installed (`npm install -g @google/gemini-cli`)
-- Google account authenticated via `happy connect gemini`
+- Google account authenticated via `joyful connect gemini`
 
 ## License
 

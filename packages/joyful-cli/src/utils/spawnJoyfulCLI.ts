@@ -67,7 +67,7 @@ import { isBun } from './runtime';
  * @param options - Spawn options (same as child_process.spawn)
  * @returns ChildProcess instance
  */
-export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): ChildProcess {
+export function spawnJoyfulCLI(args: string[], options: SpawnOptions = {}): ChildProcess {
   const projectRoot = projectPath();
   const entrypoint = join(projectRoot, 'dist', 'index.mjs');
 
@@ -83,7 +83,7 @@ export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): Child
   // for when "joyful" was started and don't care about the underlying node process
   // details and flags we use to achieve the same result.
   const fullCommand = `joyful ${args.join(' ')}`;
-  logger.debug(`[SPAWN HAPPY CLI] Spawning: ${fullCommand} in ${directory}`);
+  logger.debug(`[SPAWN JOYFUL CLI] Spawning: ${fullCommand} in ${directory}`);
   
   // Use the same Node.js flags that the wrapper script uses
   const nodeArgs = [
@@ -96,7 +96,7 @@ export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): Child
   // Sanity check of the entrypoint path exists
   if (!existsSync(entrypoint)) {
     const errorMessage = `Entrypoint ${entrypoint} does not exist`;
-    logger.debug(`[SPAWN HAPPY CLI] ${errorMessage}`);
+    logger.debug(`[SPAWN JOYFUL CLI] ${errorMessage}`);
     throw new Error(errorMessage);
   }
   

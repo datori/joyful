@@ -27,7 +27,7 @@ import { handleAuthCommand } from './commands/auth'
 import { handleConnectCommand } from './commands/connect'
 import { handleSandboxCommand } from './commands/sandbox'
 import { handleDevCommand } from './commands/dev'
-import { spawnHappyCLI } from './utils/spawnHappyCLI'
+import { spawnJoyfulCLI } from './utils/spawnJoyfulCLI'
 import { claudeCliPath } from './claude/claudeLocal'
 import { execFileSync } from 'node:child_process'
 import { extractNoSandboxFlag } from './utils/sandboxFlags'
@@ -336,7 +336,7 @@ import { extractNoSandboxFlag } from './utils/sandboxFlags'
       logger.debug('Ensuring Happy background service is running & matches our version...');
       if (!(await isDaemonRunningCurrentlyInstalledHappyVersion())) {
         logger.debug('Starting Happy background service...');
-        const daemonProcess = spawnHappyCLI(['daemon', 'start-sync'], {
+        const daemonProcess = spawnJoyfulCLI(['daemon', 'start-sync'], {
           detached: true,
           stdio: 'ignore',
           env: process.env
@@ -383,7 +383,7 @@ import { extractNoSandboxFlag } from './utils/sandboxFlags'
       logger.debug('Ensuring Happy background service is running & matches our version...');
       if (!(await isDaemonRunningCurrentlyInstalledHappyVersion())) {
         logger.debug('Starting Happy background service...');
-        const daemonProcess = spawnHappyCLI(['daemon', 'start-sync'], {
+        const daemonProcess = spawnJoyfulCLI(['daemon', 'start-sync'], {
           detached: true,
           stdio: 'ignore',
           env: process.env
@@ -469,7 +469,7 @@ import { extractNoSandboxFlag } from './utils/sandboxFlags'
 
     } else if (daemonSubcommand === 'start') {
       // Spawn detached daemon process
-      const child = spawnHappyCLI(['daemon', 'start-sync'], {
+      const child = spawnJoyfulCLI(['daemon', 'start-sync'], {
         detached: true,
         stdio: 'ignore',
         env: process.env
@@ -711,7 +711,7 @@ ${chalk.bold.cyan('Claude Code Options (from `claude --help`):')}
       logger.debug('Starting Happy background service...');
 
       // Use the built binary to spawn daemon
-      const daemonProcess = spawnHappyCLI(['daemon', 'start-sync'], {
+      const daemonProcess = spawnJoyfulCLI(['daemon', 'start-sync'], {
         detached: true,
         stdio: 'ignore',
         env: process.env

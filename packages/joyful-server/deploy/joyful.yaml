@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: handy-server
+  name: joyful-server
 spec:
   strategy:
     type: RollingUpdate
@@ -11,19 +11,19 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: handy-server
+      app: joyful-server
   template:
     metadata:
       labels:
-        app: handy-server
+        app: joyful-server
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9090"
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - name: handy
-        image: docker.korshakov.com/handy-server:{version}
+      - name: joyful
+        image: docker.korshakov.com/joyful-server:{version}
         ports:
         - containerPort: 3005
         env:
@@ -37,7 +37,7 @@ spec:
           value: https://files.cluster-fluster.com/joyful
         envFrom:
         - secretRef:
-            name: handy-secrets
+            name: joyful-secrets
         livenessProbe:
           httpGet:
             path: /health
@@ -58,48 +58,48 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: handy-server-pdb
+  name: joyful-server-pdb
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app: handy-server
+      app: joyful-server
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: handy-secrets
+  name: joyful-secrets
 spec:
   refreshInterval: 1h
   secretStoreRef:
     name: vault-backend
     kind: SecretStore
   target:
-    name: handy-secrets
+    name: joyful-secrets
     creationPolicy: Owner
   dataFrom:
     - extract:
-        key: /handy-db
+        key: /joyful-db
     - extract:
-        key: /handy-master
+        key: /joyful-master
     - extract:
-        key: /handy-github
+        key: /joyful-github
     - extract:
-        key: /handy-files
+        key: /joyful-files
     - extract:
-        key: /handy-e2b
+        key: /joyful-e2b
     - extract:
-        key: /handy-revenuecat
+        key: /joyful-revenuecat
     - extract:
-        key: /handy-elevenlabs
+        key: /joyful-elevenlabs
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: handy-server
+  name: joyful-server
 spec:
   selector:
-    app: handy-server
+    app: joyful-server
   ports:
   - port: 3000
     targetPort: 3005
