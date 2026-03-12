@@ -11,6 +11,7 @@ import type { Session } from '@/sync/storageTypes';
 import { machineStopDaemon, machineUpdateMetadata } from '@/sync/ops';
 import { Modal } from '@/modal';
 import { formatPathRelativeToHome, getSessionName, getSessionSubtitle } from '@/utils/sessionUtils';
+import { formatMemory } from '@/utils/stringUtils';
 import { isMachineOnline } from '@/utils/machineUtils';
 import { sync } from '@/sync/sync';
 import { useUnistyles, StyleSheet } from 'react-native-unistyles';
@@ -477,6 +478,16 @@ export default function MachineDetailScreen() {
                                         title={t('machine.cliVersion')}
                                         subtitle={machine.daemonState.startedWithCliVersion}
                                         subtitleStyle={{ fontFamily: 'Menlo', fontSize: 13 }}
+                                    />
+                                )}
+                                {machine.daemonState.memTotal != null && machine.daemonState.memFree != null && (
+                                    <Item
+                                        title={t('machine.memory')}
+                                        detail={t('machine.memoryUsage', {
+                                            used: formatMemory(machine.daemonState.memTotal - machine.daemonState.memFree),
+                                            total: formatMemory(machine.daemonState.memTotal),
+                                        })}
+                                        showChevron={false}
                                     />
                                 )}
                             </>

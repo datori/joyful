@@ -3,6 +3,7 @@
  * Similar to ApiSessionClient but for machine-scoped connections
  */
 
+import { totalmem, freemem } from 'node:os';
 import { io, Socket } from 'socket.io-client';
 import { logger } from '@/ui/logger';
 import { configuration } from '@/configuration';
@@ -79,6 +80,7 @@ type MachineRpcHandlers = {
 export class ApiMachineClient {
     private socket!: Socket<ServerToDaemonEvents, DaemonToServerEvents>;
     private keepAliveInterval: NodeJS.Timeout | null = null;
+    private memStatsInterval: NodeJS.Timeout | null = null;
     private rpcHandlerManager: RpcHandlerManager;
 
     constructor(
@@ -254,21 +256,26 @@ export class ApiMachineClient {
                 status: 'running',
                 pid: process.pid,
                 httpPort: this.machine.daemonState?.httpPort,
-                startedAt: Date.now()
+                startedAt: Date.now(),
+                memTotal: totalmem(),
+                memFree: freemem(),
+                memDaemonRss: process.memoryUsage().rss,
             }));
 
 
             // Register all handlers
             this.rpcHandlerManager.onSocketConnect(this.socket);
 
-            // Start keep-alive
+            // Start keep-alive and memory stats refresh
             this.startKeepAlive();
+            this.startMemStats();
         });
 
         this.socket.on('disconnect', () => {
             logger.debug('[API MACHINE] Disconnected from server');
             this.rpcHandlerManager.onSocketDisconnect();
             this.stopKeepAlive();
+            this.stopMemStats();
         });
 
         // Single consolidated RPC handler
@@ -332,9 +339,34 @@ export class ApiMachineClient {
         }
     }
 
+    private startMemStats() {
+        this.stopMemStats();
+        this.memStatsInterval = setInterval(() => {
+            this.updateDaemonState((state) => ({
+                ...state,
+                status: state?.status ?? 'running',
+                memTotal: totalmem(),
+                memFree: freemem(),
+                memDaemonRss: process.memoryUsage().rss,
+            })).catch((err) => {
+                logger.debug('[API MACHINE] Memory stats update failed:', err);
+            });
+        }, 60000);
+        logger.debug('[API MACHINE] Memory stats refresh started (60s interval)');
+    }
+
+    private stopMemStats() {
+        if (this.memStatsInterval) {
+            clearInterval(this.memStatsInterval);
+            this.memStatsInterval = null;
+            logger.debug('[API MACHINE] Memory stats refresh stopped');
+        }
+    }
+
     shutdown() {
         logger.debug('[API MACHINE] Shutting down');
         this.stopKeepAlive();
+        this.stopMemStats();
         if (this.socket) {
             this.socket.close();
             logger.debug('[API MACHINE] Socket closed');

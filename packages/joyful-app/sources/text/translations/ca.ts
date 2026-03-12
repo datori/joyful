@@ -490,6 +490,7 @@ export const ca: TranslationStructure = {
 
     sidebar: {
         sessionsTitle: 'Happy',
+        machines: 'Màquines',
     },
 
     toolView: {
@@ -773,6 +774,8 @@ export const ca: TranslationStructure = {
         metadataVersion: 'Versió de les metadades',
         untitledSession: 'Sessió sense títol',
         back: 'Enrere',
+        memory: 'Memòria',
+        memoryUsage: ({ used, total }: { used: string; total: string }) => `${used} / ${total} usats`,
     },
 
     message: {

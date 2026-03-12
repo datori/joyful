@@ -9,6 +9,7 @@ import { useIsTablet } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
 import { EmptySessionsTablet } from './EmptySessionsTablet';
 import { SessionsList } from './SessionsList';
+import { MachinesSidebarPanel } from './MachinesSidebarPanel';
 import { FABWide } from './FABWide';
 import { TabBar, TabType } from './TabBar';
 import { InboxView } from './InboxView';
@@ -264,32 +265,20 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
 
     // Sidebar variant
     if (variant === 'sidebar') {
-        // Loading state
-        if (sessionListViewData === null) {
-            return (
-                <View style={styles.sidebarContentContainer}>
+        return (
+            <View style={styles.sidebarContentContainer}>
+                <MachinesSidebarPanel />
+                {sessionListViewData === null ? (
                     <View style={styles.tabletLoadingContainer}>
                         <ActivityIndicator size="small" color={theme.colors.textSecondary} />
                     </View>
-                </View>
-            );
-        }
-
-        // Empty state
-        if (sessionListViewData.length === 0) {
-            return (
-                <View style={styles.sidebarContentContainer}>
+                ) : sessionListViewData.length === 0 ? (
                     <View style={styles.emptyStateContainer}>
                         <EmptySessionsTablet />
                     </View>
-                </View>
-            );
-        }
-
-        // Sessions list
-        return (
-            <View style={styles.sidebarContentContainer}>
-                <SessionsList />
+                ) : (
+                    <SessionsList />
+                )}
             </View>
         );
     }

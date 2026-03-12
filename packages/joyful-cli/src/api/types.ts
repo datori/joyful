@@ -156,7 +156,10 @@ export const DaemonStateSchema = z.object({
     z.union([
       z.enum(['mobile-app', 'cli', 'os-signal', 'unknown']),
       z.string() // Forward compatibility
-    ]).optional()
+    ]).optional(),
+  memTotal: z.number().optional(),       // os.totalmem() — total installed RAM in bytes
+  memFree: z.number().optional(),        // os.freemem()  — available RAM in bytes
+  memDaemonRss: z.number().optional(),   // process.memoryUsage().rss — daemon process RSS in bytes
 })
 
 export type DaemonState = z.infer<typeof DaemonStateSchema>

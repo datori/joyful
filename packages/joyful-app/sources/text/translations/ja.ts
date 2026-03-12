@@ -522,6 +522,7 @@ export const ja: TranslationStructure = {
 
     sidebar: {
         sessionsTitle: 'Happy',
+        machines: 'マシン',
     },
 
     toolView: {
@@ -805,6 +806,8 @@ export const ja: TranslationStructure = {
         metadataVersion: 'メタデータバージョン',
         untitledSession: '無題のセッション',
         back: '戻る',
+        memory: 'メモリ',
+        memoryUsage: ({ used, total }: { used: string; total: string }) => `${used} / ${total} 使用中`,
     },
 
     message: {

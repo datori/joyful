@@ -492,6 +492,7 @@ export const zhHans: TranslationStructure = {
 
     sidebar: {
         sessionsTitle: 'Happy',
+        machines: '机器',
     },
 
     toolView: {
@@ -775,6 +776,8 @@ export const zhHans: TranslationStructure = {
         metadataVersion: '元数据版本',
         untitledSession: '无标题会话',
         back: '返回',
+        memory: '内存',
+        memoryUsage: ({ used, total }: { used: string; total: string }) => `已使用 ${used} / ${total}`,
     },
 
     message: {

@@ -491,6 +491,7 @@ export const zhHant: TranslationStructure = {
 
     sidebar: {
         sessionsTitle: 'Happy',
+        machines: '機器',
     },
 
     toolView: {
@@ -774,6 +775,8 @@ export const zhHant: TranslationStructure = {
         metadataVersion: '中繼資料版本',
         untitledSession: '無標題工作階段',
         back: '返回',
+        memory: '記憶體',
+        memoryUsage: ({ used, total }: { used: string; total: string }) => `已使用 ${used} / ${total}`,
     },
 
     message: {

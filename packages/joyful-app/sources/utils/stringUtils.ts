@@ -27,6 +27,16 @@ export function toCamelCase(str: string): string {
 }
 
 /**
+ * Format a byte count as a human-readable string with one decimal place (e.g. "12.3 GB", "512.0 MB")
+ */
+export function formatMemory(bytes: number): string {
+    const gb = bytes / (1024 * 1024 * 1024);
+    if (gb >= 1) return `${gb.toFixed(1)} GB`;
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(0)} MB`;
+}
+
+/**
  * Create a safe filename from a string
  * Removes/replaces characters that might cause issues in filenames
  */

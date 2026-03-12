@@ -489,6 +489,7 @@ export const en = {
 
     sidebar: {
         sessionsTitle: 'Happy',
+        machines: 'Machines',
     },
 
     toolView: {
@@ -772,6 +773,8 @@ export const en = {
         metadataVersion: 'Metadata Version',
         untitledSession: 'Untitled Session',
         back: 'Back',
+        memory: 'Memory',
+        memoryUsage: ({ used, total }: { used: string; total: string }) => `${used} / ${total} used`,
     },
 
     message: {
