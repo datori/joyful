@@ -261,6 +261,7 @@ export const zhHant: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: '啟動新工作階段',
+        resumeNative: '繼續',
         noMachinesFound: '未找到裝置。請先在您的電腦上啟動 Joyful 工作階段。',
         allMachinesOffline: '所有裝置似乎都已離線',
         machineDetails: '查看裝置詳情 →',
@@ -465,6 +466,14 @@ export const zhHant: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `顯示全部 (${count} 個路徑)`,
         enterCustomPath: '輸入自訂路徑',
         offlineUnableToSpawn: '無法生成新工作階段，已離線',
+    },
+
+    nativeSessionResumePicker: {
+        title: '繼續原生工作階段',
+        machinePlaceholder: '選擇裝置',
+        pathPlaceholder: '輸入目錄路徑…',
+        findSessions: '尋找工作階段',
+        cancel: '取消',
     },
 
     nativeSessionBrowser: {

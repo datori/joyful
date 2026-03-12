@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useFriendRequests, useSocketStatus, useRealtimeStatus } from '@/sync/storage';
+import { useFriendRequests, useSocketStatus, useRealtimeStatus, useAllMachines } from '@/sync/storage';
+import { isMachineOnline } from '@/utils/machineUtils';
+import { NativeSessionResumePicker } from './NativeSessionResumePicker';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
 import { useIsTablet } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
@@ -234,6 +236,10 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     // Tab state management
     // NOTE: Zen tab removed - the feature never got to a useful state
     const [activeTab, setActiveTab] = React.useState<TabType>('sessions');
+    const [resumePickerVisible, setResumePickerVisible] = React.useState(false);
+
+    const allMachines = useAllMachines();
+    const hasOnlineMachine = allMachines.some(isMachineOnline);
 
     const handleNewSession = React.useCallback(() => {
         router.push('/new');
@@ -313,11 +319,23 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
                     )}
                 </View>
                 {renderTabContent()}
+            {activeTab === 'sessions' && (
+                <FABWide
+                    onPress={handleNewSession}
+                    onResume={() => setResumePickerVisible(true)}
+                    resumeDisabled={!hasOnlineMachine}
+                    bottomOffset={16}
+                />
+            )}
             </View>
             <TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 inboxBadgeCount={friendRequests.length}
+            />
+            <NativeSessionResumePicker
+                visible={resumePickerVisible}
+                onClose={() => setResumePickerVisible(false)}
             />
         </>
     );

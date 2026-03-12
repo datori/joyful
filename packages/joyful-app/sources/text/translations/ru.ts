@@ -242,6 +242,7 @@ export const ru: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Начать новую сессию',
+        resumeNative: 'Возобновить',
         noMachinesFound: 'Машины не найдены. Сначала запустите сессию Happy на вашем компьютере.',
         allMachinesOffline: 'Все машины находятся offline',
         machineDetails: 'Посмотреть детали машины →',
@@ -474,6 +475,14 @@ export const ru: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `Показать все (${count} ${plural({ count, one: 'путь', few: 'пути', many: 'путей' })})`,
         enterCustomPath: 'Ввести свой путь',
         offlineUnableToSpawn: 'Невозможно создать сессию, машина offline',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Возобновить нативную сессию',
+        machinePlaceholder: 'Выберите машину',
+        pathPlaceholder: 'Введите путь к директории…',
+        findSessions: 'Найти сессии',
+        cancel: 'Отмена',
     },
 
     nativeSessionBrowser: {

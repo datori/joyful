@@ -260,6 +260,7 @@ export const pt: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Iniciar nova sessão',
+        resumeNative: 'Retomar',
         noMachinesFound: 'Nenhuma máquina encontrada. Inicie uma sessão Happy no seu computador primeiro.',
         allMachinesOffline: 'Todas as máquinas estão offline',
         machineDetails: 'Ver detalhes da máquina →',
@@ -464,6 +465,14 @@ export const pt: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `Mostrar todos (${count} caminhos)`,
         enterCustomPath: 'Inserir caminho personalizado',
         offlineUnableToSpawn: 'Não é possível criar nova sessão, você está offline',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Retomar sessão nativa',
+        machinePlaceholder: 'Selecionar máquina',
+        pathPlaceholder: 'Inserir caminho do diretório…',
+        findSessions: 'Encontrar sessões',
+        cancel: 'Cancelar',
     },
 
     nativeSessionBrowser: {

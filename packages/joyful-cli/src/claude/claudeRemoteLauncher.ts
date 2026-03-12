@@ -15,12 +15,51 @@ import { EnhancedMode } from "./loop";
 import { RawJSONLines } from "@/claude/types";
 import { OutgoingMessageQueue } from "./utils/OutgoingMessageQueue";
 import { getToolName } from "./utils/getToolName";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { getProjectPath } from "./utils/path";
 
 interface PermissionsField {
     date: number;
     result: 'approved' | 'denied';
     mode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
     allowedTools?: string[];
+}
+
+/**
+ * Replay messages from a native Claude session JSONL file to the app.
+ * Called when a session is started with a resumeNativeSessionId so the user
+ * can see the previous conversation history before sending a new message.
+ */
+async function replayNativeSessionHistory(session: Session): Promise<void> {
+    const nativeSessionId = session.sessionId;
+    if (!nativeSessionId) return;
+
+    const filePath = join(getProjectPath(session.path), `${nativeSessionId}.jsonl`);
+    let content: string;
+    try {
+        content = await readFile(filePath, 'utf-8');
+    } catch {
+        logger.debug(`[replayNativeSessionHistory] Could not read native session file: ${filePath}`);
+        return;
+    }
+
+    const joyfulSessionId = session.client.sessionId;
+    let replayed = 0;
+    for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        let parsed: any;
+        try {
+            parsed = JSON.parse(trimmed);
+        } catch {
+            continue;
+        }
+        if (parsed.type !== 'user' && parsed.type !== 'assistant') continue;
+        session.client.sendClaudeSessionMessage({ ...parsed, sessionId: joyfulSessionId } as RawJSONLines);
+        replayed++;
+    }
+    logger.debug(`[replayNativeSessionHistory] Replayed ${replayed} messages from native session ${nativeSessionId}`);
 }
 
 export async function claudeRemoteLauncher(session: Session): Promise<'switch' | 'exit'> {
@@ -324,6 +363,9 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
             message: string;
             mode: EnhancedMode;
         } | null = null;
+
+        // Replay native session history before entering the main loop
+        await replayNativeSessionHistory(session);
 
         // Track session ID to detect when it actually changes
         // This prevents context loss when mode changes (permission mode, model, etc.)

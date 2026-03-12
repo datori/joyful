@@ -260,6 +260,7 @@ export const ca: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Inicia una nova sessió',
+        resumeNative: 'Reprèn',
         noMachinesFound: 'No s\'han trobat màquines. Inicia una sessió de Joyful al teu ordinador primer.',
         allMachinesOffline: 'Totes les màquines estan fora de línia',
         machineDetails: 'Veure detalls de la màquina →',
@@ -464,6 +465,14 @@ export const ca: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `Mostra tots (${count} camins)`,
         enterCustomPath: 'Introdueix un camí personalitzat',
         offlineUnableToSpawn: 'No es pot crear una nova sessió, fora de línia',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Reprendre sessió nativa',
+        machinePlaceholder: 'Selecciona la màquina',
+        pathPlaceholder: 'Introdueix la ruta del directori…',
+        findSessions: 'Cerca sessions',
+        cancel: 'Cancel·lar',
     },
 
     nativeSessionBrowser: {

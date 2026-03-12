@@ -292,6 +292,7 @@ export const ja: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: '新しいセッションを開始',
+        resumeNative: '再開',
         noMachinesFound: 'マシンが見つかりません。まずコンピューターでHappyセッションを起動してください。',
         allMachinesOffline: 'すべてのマシンがオフラインです',
         machineDetails: 'マシンの詳細を表示 →',
@@ -496,6 +497,14 @@ export const ja: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `すべて表示 (${count}パス)`,
         enterCustomPath: 'カスタムパスを入力',
         offlineUnableToSpawn: 'オフラインのため新しいセッションを生成できません',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'ネイティブセッションを再開',
+        machinePlaceholder: 'マシンを選択',
+        pathPlaceholder: 'ディレクトリパスを入力…',
+        findSessions: 'セッションを検索',
+        cancel: 'キャンセル',
     },
 
     nativeSessionBrowser: {

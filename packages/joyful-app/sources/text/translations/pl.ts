@@ -271,6 +271,7 @@ export const pl: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Rozpocznij nową sesję',
+        resumeNative: 'Wznów',
         noMachinesFound: 'Nie znaleziono maszyn. Najpierw uruchom sesję Happy na swoim komputerze.',
         allMachinesOffline: 'Wszystkie maszyny są offline',
         machineDetails: 'Zobacz szczegóły maszyny →',
@@ -474,6 +475,14 @@ export const pl: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `Pokaż wszystkie (${count} ${plural({ count, one: 'ścieżka', few: 'ścieżki', many: 'ścieżek' })})`,
         enterCustomPath: 'Wprowadź niestandardową ścieżkę',
         offlineUnableToSpawn: 'Nie można utworzyć nowej sesji, offline',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Wznów sesję natywną',
+        machinePlaceholder: 'Wybierz maszynę',
+        pathPlaceholder: 'Wprowadź ścieżkę katalogu…',
+        findSessions: 'Znajdź sesje',
+        cancel: 'Anuluj',
     },
 
     nativeSessionBrowser: {

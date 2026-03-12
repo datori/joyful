@@ -262,6 +262,7 @@ export const zhHans: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: '启动新会话',
+        resumeNative: '恢复',
         noMachinesFound: '未找到设备。请先在您的计算机上启动 Joyful 会话。',
         allMachinesOffline: '所有设备似乎都已离线',
         machineDetails: '查看设备详情 →',
@@ -466,6 +467,14 @@ export const zhHans: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `显示全部 (${count} 个路径)`,
         enterCustomPath: '输入自定义路径',
         offlineUnableToSpawn: '无法生成新会话，已离线',
+    },
+
+    nativeSessionResumePicker: {
+        title: '恢复原生会话',
+        machinePlaceholder: '选择设备',
+        pathPlaceholder: '输入目录路径…',
+        findSessions: '查找会话',
+        cancel: '取消',
     },
 
     nativeSessionBrowser: {

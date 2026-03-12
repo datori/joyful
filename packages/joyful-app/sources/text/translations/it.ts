@@ -289,6 +289,7 @@ export const it: TranslationStructure = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Avvia nuova sessione',
+        resumeNative: 'Riprendi',
         noMachinesFound: 'Nessuna macchina trovata. Avvia prima una sessione Joyful sul tuo computer.',
         allMachinesOffline: 'Tutte le macchine sembrano offline',
         machineDetails: 'Visualizza dettagli macchina →',
@@ -493,6 +494,14 @@ export const it: TranslationStructure = {
         showAll: ({ count }: { count: number }) => `Mostra tutto (${count} percorsi)`,
         enterCustomPath: 'Inserisci percorso personalizzato',
         offlineUnableToSpawn: 'Impossibile avviare una nuova sessione, offline',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Riprendi sessione nativa',
+        machinePlaceholder: 'Seleziona macchina',
+        pathPlaceholder: 'Inserisci il percorso della directory…',
+        findSessions: 'Trova sessioni',
+        cancel: 'Annulla',
     },
 
     nativeSessionBrowser: {

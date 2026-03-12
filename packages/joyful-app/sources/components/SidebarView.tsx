@@ -1,4 +1,6 @@
-import { useSocketStatus, useFriendRequests, useSettings } from '@/sync/storage';
+import { useSocketStatus, useFriendRequests, useSettings, useAllMachines } from '@/sync/storage';
+import { isMachineOnline } from '@/utils/machineUtils';
+import { NativeSessionResumePicker } from './NativeSessionResumePicker';
 import * as React from 'react';
 import { Text, View, Pressable, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -140,6 +142,9 @@ export const SidebarView = React.memo(() => {
     const friendRequests = useFriendRequests();
     const inboxHasContent = useInboxHasContent();
     const settings = useSettings();
+    const allMachines = useAllMachines();
+    const hasOnlineMachine = allMachines.some(isMachineOnline);
+    const [resumePickerVisible, setResumePickerVisible] = React.useState(false);
 
     // Compute connection status once per render (theme-reactive, no stale memoization)
     const connectionStatus = (() => {
@@ -290,7 +295,15 @@ export const SidebarView = React.memo(() => {
                 )}
                 <MainView variant="sidebar" />
             </View>
-            <FABWide onPress={handleNewSession} />
+            <FABWide
+                onPress={handleNewSession}
+                onResume={() => setResumePickerVisible(true)}
+                resumeDisabled={!hasOnlineMachine}
+            />
+            <NativeSessionResumePicker
+                visible={resumePickerVisible}
+                onClose={() => setResumePickerVisible(false)}
+            />
         </>
     )
 });

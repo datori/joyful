@@ -259,6 +259,7 @@ export const en = {
     newSession: {
         // Used by new-session screen and launch flows
         title: 'Start New Session',
+        resumeNative: 'Resume',
         noMachinesFound: 'No machines found. Start a Happy session on your computer first.',
         allMachinesOffline: 'All machines appear offline',
         machineDetails: 'View machine details →',
@@ -463,6 +464,14 @@ export const en = {
         showAll: ({ count }: { count: number }) => `Show all (${count} paths)`,
         enterCustomPath: 'Enter custom path',
         offlineUnableToSpawn: 'Unable to spawn new session, offline',
+    },
+
+    nativeSessionResumePicker: {
+        title: 'Resume Native Session',
+        machinePlaceholder: 'Select machine',
+        pathPlaceholder: 'Enter directory path…',
+        findSessions: 'Find Sessions',
+        cancel: 'Cancel',
     },
 
     nativeSessionBrowser: {
