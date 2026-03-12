@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a fork of Happy Coder — a monorepo providing mobile, web, and desktop clients for Claude Code, Codex, and Gemini with end-to-end encryption. Users run `happy` instead of `claude` (or `happy codex`/`happy gemini`) to control AI coding sessions from iOS, Android, web, or desktop.
+This is a fork of Happy Coder — a monorepo providing mobile, web, and desktop clients for Claude Code, Codex, and Gemini with end-to-end encryption. Users run `joyful` instead of `claude` (or `joyful codex`/`joyful gemini`) to control AI coding sessions from iOS, Android, web, or desktop.
 
 **Fork policy**: Prefer minimal diffs from upstream where possible. Document intentional divergences.
 
@@ -12,49 +12,49 @@ This is a fork of Happy Coder — a monorepo providing mobile, web, and desktop 
 
 | Package | Purpose | Tech |
 |---------|---------|------|
-| `happy-app` | Cross-platform UI client | React Native 0.81, Expo 54, Expo Router v6, Unistyles, Tauri (macOS) |
-| `happy-cli` | CLI wrapper for Claude Code/Codex/Gemini with daemon | Node.js, Ink (React TUI), `@anthropic-ai/claude-code` SDK, Socket.IO |
-| `happy-server` | Backend for encrypted sync, auth, sessions | Fastify 5, Prisma, PostgreSQL (or PGlite standalone), Redis, Socket.IO |
-| `happy-wire` | Shared wire types and Zod schemas | TypeScript, Zod |
-| `happy-agent` | Remote agent control CLI | Commander.js, Socket.IO |
+| `joyful-app` | Cross-platform UI client | React Native 0.81, Expo 54, Expo Router v6, Unistyles, Tauri (macOS) |
+| `joyful-cli` | CLI wrapper for Claude Code/Codex/Gemini with daemon | Node.js, Ink (React TUI), `@anthropic-ai/claude-code` SDK, Socket.IO |
+| `joyful-server` | Backend for encrypted sync, auth, sessions | Fastify 5, Prisma, PostgreSQL (or PGlite standalone), Redis, Socket.IO |
+| `joyful-wire` | Shared wire types and Zod schemas | TypeScript, Zod |
+| `joyful-agent` | Remote agent control CLI | Commander.js, Socket.IO |
 
 ## Commands
 
 ### Root
 ```bash
-yarn cli              # Run happy-cli from source
-yarn cli codex        # Run happy-cli in codex mode
-yarn web              # Run happy-app web dev server
+yarn cli              # Run joyful-cli from source
+yarn cli codex        # Run joyful-cli in codex mode
+yarn web              # Run joyful-app web dev server
 yarn release          # Release all packages
 ```
 
-### happy-app
+### joyful-app
 ```bash
-yarn workspace happy-app start        # Expo dev server
-yarn workspace happy-app ios          # iOS simulator
-yarn workspace happy-app android      # Android emulator
-yarn workspace happy-app web          # Web browser
-yarn workspace happy-app typecheck    # TypeScript checking
-yarn workspace happy-app test         # Vitest (watch mode)
-yarn workspace happy-app tauri:dev    # macOS Tauri desktop
-yarn workspace happy-app ota          # OTA deploy via EAS Update
+yarn workspace joyful-app start        # Expo dev server
+yarn workspace joyful-app ios          # iOS simulator
+yarn workspace joyful-app android      # Android emulator
+yarn workspace joyful-app web          # Web browser
+yarn workspace joyful-app typecheck    # TypeScript checking
+yarn workspace joyful-app test         # Vitest (watch mode)
+yarn workspace joyful-app tauri:dev    # macOS Tauri desktop
+yarn workspace joyful-app ota          # OTA deploy via EAS Update
 ```
 
-### happy-cli
+### joyful-cli
 ```bash
-yarn workspace happy-coder cli        # Run CLI from source
-yarn workspace happy-coder build      # Build with pkgroll
-yarn workspace happy-coder test       # Vitest
+yarn workspace joyful cli        # Run CLI from source
+yarn workspace joyful build      # Build with pkgroll
+yarn workspace joyful test       # Vitest
 ```
 
-### happy-server
+### joyful-server
 ```bash
-yarn workspace happy-server start     # Start server
-yarn workspace happy-server build     # TypeScript type check
-yarn workspace happy-server test      # Vitest
-yarn workspace happy-server migrate   # Run Prisma migrations
-yarn workspace happy-server generate  # Generate Prisma client
-yarn workspace happy-server db        # Start local PostgreSQL in Docker
+yarn workspace joyful-server start     # Start server
+yarn workspace joyful-server build     # TypeScript type check
+yarn workspace joyful-server test      # Vitest
+yarn workspace joyful-server migrate   # Run Prisma migrations
+yarn workspace joyful-server generate  # Generate Prisma client
+yarn workspace joyful-server db        # Start local PostgreSQL in Docker
 ```
 
 ## Architecture
@@ -72,7 +72,7 @@ All communication is end-to-end encrypted (TweetNaCl box/sign, libsodium on nati
 - **Versioned encrypted state**: All encrypted fields use `{ version: number, value: string | null }` pattern with optimistic concurrency (`expectedVersion` on updates).
 
 ### Package Dependencies
-`happy-wire` is the shared dependency used by all other packages for type-safe Zod schemas. The app, CLI, and server all communicate through wire types.
+`joyful-wire` is the shared dependency used by all other packages for type-safe Zod schemas. The app, CLI, and server all communicate through wire types.
 
 ## Code Style (All Packages)
 
@@ -90,7 +90,7 @@ All communication is end-to-end encrypted (TweetNaCl box/sign, libsodium on nati
 
 Each package has its own `CLAUDE.md` with detailed guidelines. Key highlights:
 
-### happy-app
+### joyful-app
 - Always use `t(...)` for all user-visible strings; add to all 9 language files
 - Never use `Alert` from React Native — use `@/modal` instead
 - Use `useHappyAction` for async operations (auto error handling)
@@ -101,13 +101,13 @@ Each package has its own `CLAUDE.md` with detailed guidelines. Key highlights:
 - Always run `yarn typecheck` after changes
 - Web is secondary platform; iOS/Android are primary
 
-### happy-cli
+### joyful-cli
 - Strict typing required; no untyped code
 - File-based logging only (avoid console output that disturbs Claude sessions)
 - No mocking in tests — real API calls
 - Test files colocated as `.test.ts`
 
-### happy-server
+### joyful-server
 - Fastify routes with Zod validation; all operations must be idempotent
 - Use `inTx` for database transactions; never run non-transactional things inside transactions
 - Never create Prisma migrations manually — only run `yarn generate`

@@ -2,18 +2,18 @@
     "name": "monorepo",
     "private": true,
     "scripts": {
-        "cli": "yarn workspace happy-coder cli",
+        "cli": "yarn workspace joyful cli",
         "release": "node ./scripts/release.cjs",
-        "web": "yarn workspace happy-app web",
+        "web": "yarn workspace joyful-app web",
         "postinstall": "node ./scripts/postinstall.cjs"
     },
     "workspaces": {
         "packages": [
-            "packages/happy-app",
-            "packages/happy-agent",
-            "packages/happy-cli",
-            "packages/happy-server",
-            "packages/happy-wire"
+            "packages/joyful-app",
+            "packages/joyful-agent",
+            "packages/joyful-cli",
+            "packages/joyful-server",
+            "packages/joyful-wire"
         ],
         "nohoist": [
             "**/zod",

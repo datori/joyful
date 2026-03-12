@@ -1,4 +1,4 @@
-# Standalone happy-server: single container, no external dependencies
+# Standalone joyful-server: single container, no external dependencies
 # Uses PGlite (embedded Postgres), local filesystem storage, no Redis
 
 # Stage 1: install dependencies
@@ -11,30 +11,30 @@ WORKDIR /repo
 COPY package.json yarn.lock ./
 COPY scripts ./scripts
 
-RUN mkdir -p packages/happy-app packages/happy-server packages/happy-cli packages/happy-agent packages/happy-wire
+RUN mkdir -p packages/joyful-app packages/joyful-server packages/joyful-cli packages/joyful-agent packages/joyful-wire
 
-COPY packages/happy-app/package.json packages/happy-app/
-COPY packages/happy-server/package.json packages/happy-server/
-COPY packages/happy-cli/package.json packages/happy-cli/
-COPY packages/happy-agent/package.json packages/happy-agent/
-COPY packages/happy-wire/package.json packages/happy-wire/
+COPY packages/joyful-app/package.json packages/joyful-app/
+COPY packages/joyful-server/package.json packages/joyful-server/
+COPY packages/joyful-cli/package.json packages/joyful-cli/
+COPY packages/joyful-agent/package.json packages/joyful-agent/
+COPY packages/joyful-wire/package.json packages/joyful-wire/
 
 # Workspace postinstall requirements
-COPY packages/happy-app/patches packages/happy-app/patches
-COPY packages/happy-server/prisma packages/happy-server/prisma
-COPY packages/happy-cli/scripts packages/happy-cli/scripts
-COPY packages/happy-cli/tools packages/happy-cli/tools
+COPY packages/joyful-app/patches packages/joyful-app/patches
+COPY packages/joyful-server/prisma packages/joyful-server/prisma
+COPY packages/joyful-cli/scripts packages/joyful-cli/scripts
+COPY packages/joyful-cli/tools packages/joyful-cli/tools
 
-RUN SKIP_HAPPY_WIRE_BUILD=1 yarn install --frozen-lockfile --ignore-engines
+RUN SKIP_JOYFUL_WIRE_BUILD=1 yarn install --frozen-lockfile --ignore-engines
 
 # Stage 2: copy source and type-check
 FROM deps AS builder
 
-COPY packages/happy-wire ./packages/happy-wire
-COPY packages/happy-server ./packages/happy-server
+COPY packages/joyful-wire ./packages/joyful-wire
+COPY packages/joyful-server ./packages/joyful-server
 
-RUN yarn workspace @slopus/happy-wire build
-RUN yarn workspace happy-server build
+RUN yarn workspace joyful-wire build
+RUN yarn workspace joyful-server build
 
 # Stage 3: runtime
 FROM node:20-slim AS runner
@@ -48,10 +48,10 @@ ENV DATA_DIR=/data
 ENV PGLITE_DIR=/data/pglite
 
 COPY --from=builder /repo/node_modules /repo/node_modules
-COPY --from=builder /repo/packages/happy-wire /repo/packages/happy-wire
-COPY --from=builder /repo/packages/happy-server /repo/packages/happy-server
+COPY --from=builder /repo/packages/joyful-wire /repo/packages/joyful-wire
+COPY --from=builder /repo/packages/joyful-server /repo/packages/joyful-server
 
 VOLUME /data
 EXPOSE 3005
 
-CMD ["sh", "-c", "node_modules/.bin/tsx packages/happy-server/sources/standalone.ts migrate && exec node_modules/.bin/tsx packages/happy-server/sources/standalone.ts serve"]
+CMD ["sh", "-c", "node_modules/.bin/tsx packages/joyful-server/sources/standalone.ts migrate && exec node_modules/.bin/tsx packages/joyful-server/sources/standalone.ts serve"]

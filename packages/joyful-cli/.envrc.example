@@ -1,0 +1,17 @@
+# Joyful CLI Development Environment
+#
+# This file is for direnv users who want automatic environment switching
+# when entering this directory.
+#
+# Setup:
+#   1. Install direnv: https://direnv.net/
+#   2. Copy this file: cp .envrc.example .envrc
+#   3. Run: direnv allow
+#
+# The .envrc file is gitignored, so each developer can customize it.
+
+export JOYFUL_HOME_DIR="$HOME/.joyful-dev"
+export JOYFUL_VARIANT="dev"
+export JOYFUL_SERVER_URL="${JOYFUL_SERVER_URL:?JOYFUL_SERVER_URL must be set}"
+
+echo "🔧 DEV environment activated (data: $JOYFUL_HOME_DIR)"
