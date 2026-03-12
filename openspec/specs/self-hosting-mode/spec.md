@@ -36,3 +36,18 @@ The CLI and server SHALL NOT send push notifications through the upstream Happy 
 #### Scenario: Push notification endpoint removed
 - **WHEN** the codebase is searched for upstream push notification URLs
 - **THEN** no such references exist in runtime code (references may exist in comments documenting the removal)
+
+---
+
+### Requirement: Standalone server runs on port 3007
+When running in standalone mode (PGlite embedded database, no external PostgreSQL or Redis), the joyful server SHALL default to port 3007. This avoids conflicts with the upstream happy-coder server, which defaults to port 3005, allowing both to coexist on the same developer machine.
+
+The port is configurable via the `PORT` environment variable; 3007 is the default documented in `.env.standalone.example`.
+
+#### Scenario: Standalone server does not conflict with happy-server
+- **WHEN** both joyful-server standalone and happy-coder server are running on the same machine with their default ports
+- **THEN** they bind to different ports (3007 and 3005 respectively) and do not conflict
+
+#### Scenario: Port override
+- **WHEN** the `PORT` environment variable is set to a value other than 3007
+- **THEN** the standalone server binds to that port instead

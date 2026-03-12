@@ -81,3 +81,14 @@ Internal MCP tool names exposed by the CLI SHALL use the `mcp__joyful__` prefix 
 #### Scenario: MCP tool registration
 - **WHEN** the CLI registers MCP tools
 - **THEN** tool names follow the pattern `mcp__joyful__<tool-name>`
+
+---
+
+### Requirement: Server-side env vars use JOYFUL_ prefix
+All server environment variables introduced by this fork SHALL use the `JOYFUL_` prefix.
+
+**Known deviation (to be resolved):** The standalone server currently reads `HANDY_MASTER_SECRET` (inherited from the upstream `handy-server` naming). This variable has not yet been renamed to `JOYFUL_MASTER_SECRET`. Until it is renamed, `HANDY_MASTER_SECRET` is accepted as an exception to this requirement. This deviation is documented in `packages/joyful-server/.env.standalone.example`.
+
+#### Scenario: Future rename of HANDY_MASTER_SECRET
+- **WHEN** the `HANDY_MASTER_SECRET` env var is renamed to `JOYFUL_MASTER_SECRET` in the server source
+- **THEN** the `.env.standalone.example` file and all documentation SHALL be updated to reflect the new name
