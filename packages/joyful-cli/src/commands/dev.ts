@@ -52,7 +52,7 @@ ${chalk.bold('Options:')}
   --force      Overwrite existing credentials if they already exist
 
 ${chalk.gray('Example workflow:')}
-${chalk.gray('  1. Start the standalone server: cd packages/joyful-server && PORT=3007 HANDY_MASTER_SECRET=... tsx sources/standalone.ts')}
+${chalk.gray('  1. Start the standalone server: cd packages/joyful-server && PORT=3007 JOYFUL_MASTER_SECRET=... tsx sources/standalone.ts')}
 ${chalk.gray('  2. Run bootstrap: JOYFUL_SERVER_URL=http://localhost:3007 JOYFUL_HOME_DIR=~/.joyful-dev joyful dev bootstrap')}
 ${chalk.gray('  3. Start web app: EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 yarn web')}
 ${chalk.gray('  4. Open web app → Settings → Restore with Secret Key → paste the seed')}

@@ -4,7 +4,7 @@ let keyTree: KeyTree | null = null;
 
 export async function initEncrypt() {
     keyTree = new KeyTree(await crypto.deriveSecureKey({
-        key: process.env.HANDY_MASTER_SECRET!,
+        key: process.env.JOYFUL_MASTER_SECRET!,
         usage: 'joyful-server-tokens'
     }));
 }

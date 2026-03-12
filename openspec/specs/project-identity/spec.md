@@ -98,10 +98,16 @@ Internal MCP tool names exposed by the CLI SHALL use the `mcp__joyful__` prefix 
 ---
 
 ### Requirement: Server-side env vars use JOYFUL_ prefix
-All server environment variables introduced by this fork SHALL use the `JOYFUL_` prefix.
+All server environment variables introduced by this fork SHALL use the `JOYFUL_` prefix. The server SHALL read `JOYFUL_MASTER_SECRET` as its master secret. The variable `HANDY_MASTER_SECRET` SHALL NOT be read.
 
-**Known deviation (to be resolved):** The standalone server currently reads `HANDY_MASTER_SECRET` (inherited from the upstream `handy-server` naming). This variable has not yet been renamed to `JOYFUL_MASTER_SECRET`. Until it is renamed, `HANDY_MASTER_SECRET` is accepted as an exception to this requirement. This deviation is documented in `packages/joyful-server/.env.standalone.example`.
+#### Scenario: Server starts with JOYFUL_MASTER_SECRET set
+- **WHEN** `JOYFUL_MASTER_SECRET` is set in the server environment
+- **THEN** the server initializes auth and encryption using that value
 
-#### Scenario: Future rename of HANDY_MASTER_SECRET
-- **WHEN** the `HANDY_MASTER_SECRET` env var is renamed to `JOYFUL_MASTER_SECRET` in the server source
-- **THEN** the `.env.standalone.example` file and all documentation SHALL be updated to reflect the new name
+#### Scenario: Server fails without JOYFUL_MASTER_SECRET
+- **WHEN** `JOYFUL_MASTER_SECRET` is not set and `HANDY_MASTER_SECRET` is also not set
+- **THEN** the server fails to start with a clear error message indicating `JOYFUL_MASTER_SECRET` is required
+
+#### Scenario: Old env var not read
+- **WHEN** only `HANDY_MASTER_SECRET` is set (not `JOYFUL_MASTER_SECRET`)
+- **THEN** the server does not use the old variable and fails to start with the same clear error

@@ -40,7 +40,7 @@ Run from the monorepo root:
 
 ```bash
 docker run -p 3005:3005 \
-  -e HANDY_MASTER_SECRET=<your-secret> \
+  -e JOYFUL_MASTER_SECRET=<your-secret> \
   -v happy-data:/data \
   happy-server
 ```
@@ -56,7 +56,7 @@ Data persists in the `happy-data` Docker volume across container restarts.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `HANDY_MASTER_SECRET` | Yes | - | Master secret for auth/encryption |
+| `JOYFUL_MASTER_SECRET` | Yes | - | Master secret for auth/encryption |
 | `PUBLIC_URL` | No | `http://localhost:3005` | Public base URL for file URLs sent to clients |
 | `PORT` | No | `3005` | Server port |
 | `DATA_DIR` | No | `/data` | Base data directory |
