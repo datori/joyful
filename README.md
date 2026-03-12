@@ -1,5 +1,17 @@
 > **This is a fork of [Happy Coder](https://github.com/slopus/happy) — an active fork with a focus on orchestrating Claude Code instances, including more frequent feature additions and bug fixes than the upstream project.**
 
+## Changes from upstream Happy Coder
+
+<!-- changelog-summary: 2026-03-12 (fork base: d343330c) -->
+
+- **Native session browser** — discover and resume existing Claude Code sessions (JSONL files in `~/.claude/projects/`) directly from the app, without starting a new session
+- **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session" on the sessions list screen; pick machine, working directory, and native session in one flow
+- **Claude Code model & effort integration** — CLI reads `~/.claude/settings.json` at startup and surfaces default model and effort level to the app; effort picker added to session creation and session view; actual running model captured from the SDK and kept in sync
+- **Safe co-existence with Happy daemon** — joyful daemon now runs independently of any existing `happy`/`happier` daemon on the same machine
+- **Renamed throughout** — all `happy`/`handy` identifiers, env vars (`JOYFUL_MASTER_SECRET`), and home directory (`~/.joyful-dev`) updated to `joyful`
+
+<!-- end-changelog-summary -->
+
 <div align="center"><img src="/.github/logotype-dark.png" width="400" title="Joyful Coder" alt="Joyful Coder"/></div>
 
 <h1 align="center">
