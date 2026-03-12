@@ -19,13 +19,15 @@ import { sync } from '@/sync/sync';
 import { SessionTypeSelector } from '@/components/SessionTypeSelector';
 import { createWorktree } from '@/utils/createWorktree';
 import { getTempData, type NewSessionData } from '@/utils/tempDataStore';
-import type { PermissionMode, ModelMode } from '@/components/PermissionModeSelector';
+import type { PermissionMode } from '@/components/PermissionModeSelector';
 import {
     getAvailableModels,
     getAvailablePermissionModes,
+    getClaudeEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
+    type ModelMode,
 } from '@/components/modelModeOptions';
 import { AIBackendProfile, getProfileEnvironmentVariables, validateProfileForAgent } from '@/sync/settings';
 import { getBuiltInProfile, DEFAULT_PROFILES } from '@/sync/profileUtils';
@@ -368,14 +370,6 @@ function NewSessionWizard() {
         ]) ?? modes[0];
     });
 
-    const [modelMode, setModelMode] = React.useState<ModelMode | null>(() => {
-        const models = getAvailableModels(agentType, null, t);
-        return resolveCurrentOption(models, [
-            lastUsedModelMode,
-            getDefaultModelKey(agentType),
-        ]);
-    });
-
     // Session details state
     const [selectedMachineId, setSelectedMachineId] = React.useState<string | null>(() => {
         if (machines.length > 0) {
@@ -391,6 +385,36 @@ function NewSessionWizard() {
         return null;
     });
 
+    // Derive selected machine for CC defaults
+    const selectedMachine = React.useMemo(
+        () => machines.find(m => m.id === selectedMachineId) ?? null,
+        [machines, selectedMachineId],
+    );
+
+    const [modelMode, setModelMode] = React.useState<ModelMode | null>(() => {
+        const models = getAvailableModels(agentType, null, t);
+        const machineDefault = machines.find(m => m.id === selectedMachineId)?.metadata?.claudeDefaultModel;
+        return resolveCurrentOption(models, [
+            lastUsedModelMode,
+            machineDefault,
+            getDefaultModelKey(agentType),
+        ]);
+    });
+
+    const availableEffortLevels = React.useMemo(() => (
+        agentType === 'claude' ? getClaudeEffortLevels(t) : []
+    ), [agentType]);
+
+    const [effortLevel, setEffortLevel] = React.useState<string | null>(() => {
+        return machines.find(m => m.id === selectedMachineId)?.metadata?.claudeDefaultEffortLevel ?? null;
+    });
+
+    const effortLevelMode = React.useMemo((): ModelMode | null => {
+        if (availableEffortLevels.length === 0) return null;
+        const key = effortLevel ?? 'default';
+        return availableEffortLevels.find(e => e.key === key) ?? availableEffortLevels[0];
+    }, [effortLevel, availableEffortLevels]);
+
     const handlePermissionModeChange = React.useCallback((mode: PermissionMode) => {
         setPermissionMode(mode);
         // Save the new selection immediately
@@ -400,6 +424,10 @@ function NewSessionWizard() {
     const handleModelModeChange = React.useCallback((mode: ModelMode) => {
         setModelMode(mode);
         sync.applySettings({ lastUsedModelMode: mode.key });
+    }, []);
+
+    const handleEffortLevelChange = React.useCallback((mode: ModelMode) => {
+        setEffortLevel(mode.key === 'default' ? null : mode.key);
     }, []);
 
     //
@@ -583,11 +611,6 @@ function NewSessionWizard() {
         return getBuiltInProfile(selectedProfileId);
     }, [selectedProfileId, profileMap]);
 
-    const selectedMachine = React.useMemo(() => {
-        if (!selectedMachineId) return null;
-        return machines.find(m => m.id === selectedMachineId);
-    }, [selectedMachineId, machines]);
-
     // Get recent paths for the selected machine
     // Recent machines computed from sessions (for inline machine selection)
     const recentMachines = React.useMemo(() => {
@@ -719,15 +742,18 @@ function NewSessionWizard() {
     }, [agentType, permissionMode?.key, availableModes]);
 
     // Ensure model mode is valid for current agent, falling back when needed.
+    // Also apply CC defaults when machine changes.
     React.useEffect(() => {
+        const machineDefault = selectedMachine?.metadata?.claudeDefaultModel;
         const resolvedModelMode = resolveCurrentOption(availableModels, [
             modelMode?.key,
+            machineDefault,
             getDefaultModelKey(agentType),
         ]);
         if (resolvedModelMode?.key !== modelMode?.key) {
             setModelMode(resolvedModelMode);
         }
-    }, [agentType, modelMode?.key, availableModels]);
+    }, [agentType, modelMode?.key, availableModels, selectedMachine]);
 
     // Scroll to section helpers - for AgentInput button clicks
     const scrollToSection = React.useCallback((ref: React.RefObject<View | Text | null>) => {
@@ -1045,11 +1071,12 @@ function NewSessionWizard() {
 
                 await sync.refreshSessions();
 
-                // Set permission mode and model mode on the session
+                // Set permission mode, model mode, and effort level on the session
                 storage.getState().updateSessionPermissionMode(result.sessionId, permissionMode.key);
                 if (modelMode) {
                     storage.getState().updateSessionModelMode(result.sessionId, modelMode.key);
                 }
+                storage.getState().updateSessionEffortLevel(result.sessionId, effortLevel);
 
                 // Send initial message if provided
                 if (sessionPrompt.trim()) {
@@ -1077,7 +1104,7 @@ function NewSessionWizard() {
             Modal.alert(t('common.error'), errorMessage);
             setIsCreating(false);
         }
-    }, [selectedMachineId, selectedPath, sessionPrompt, sessionType, experimentsEnabled, agentType, selectedProfileId, permissionMode, modelMode, recentMachinePaths, profileMap, router]);
+    }, [selectedMachineId, selectedPath, sessionPrompt, sessionType, experimentsEnabled, agentType, selectedProfileId, permissionMode, modelMode, effortLevel, recentMachinePaths, profileMap, router]);
 
     const screenWidth = useWindowDimensions().width;
 
@@ -1171,6 +1198,9 @@ function NewSessionWizard() {
                                 modelMode={modelMode}
                                 availableModels={availableModels}
                                 onModelModeChange={handleModelModeChange}
+                                effortLevel={effortLevelMode}
+                                availableEffortLevels={availableEffortLevels}
+                                onEffortLevelChange={handleEffortLevelChange}
                                 connectionStatus={connectionStatus}
                                 machineName={selectedMachine?.metadata?.displayName || selectedMachine?.metadata?.host}
                                 onMachineClick={handleMachineClick}
@@ -1922,6 +1952,9 @@ function NewSessionWizard() {
                             modelMode={modelMode}
                             availableModels={availableModels}
                             onModelModeChange={handleModelModeChange}
+                            effortLevel={effortLevelMode}
+                            availableEffortLevels={availableEffortLevels}
+                            onEffortLevelChange={handleEffortLevelChange}
                             connectionStatus={connectionStatus}
                             machineName={selectedMachine?.metadata?.displayName || selectedMachine?.metadata?.host}
                             onMachineClick={handleAgentInputMachineClick}

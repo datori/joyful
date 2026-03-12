@@ -10,5 +10,6 @@ export const MessageMetaSchema = z.object({
   allowedTools: z.array(z.string()).nullable().optional(),
   disallowedTools: z.array(z.string()).nullable().optional(),
   displayText: z.string().optional(),
+  effortLevel: z.enum(['low', 'medium', 'high', 'max']).nullable().optional(),
 });
 export type MessageMeta = z.infer<typeof MessageMetaSchema>;

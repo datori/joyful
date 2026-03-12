@@ -91,6 +91,7 @@ export interface Session {
     draft?: string | null; // Local draft message, not synced to server
     permissionMode?: string | null; // Local permission mode key, not synced to server
     modelMode?: string | null; // Local model key, not synced to server
+    effortLevel?: string | null; // Local effort level key, not synced to server
     // IMPORTANT: latestUsage is extracted from reducerState.latestUsage after message processing.
     // We store it directly on Session to ensure it's available immediately on load.
     // Do NOT store reducerState itself on Session - it's mutable and should only exist in SessionMessages.
@@ -126,6 +127,8 @@ export const MachineMetadataSchema = z.object({
     username: z.string().optional(),
     arch: z.string().optional(),
     displayName: z.string().optional(), // Custom display name for the machine
+    claudeDefaultModel: z.string().optional(),
+    claudeDefaultEffortLevel: z.string().optional(),
     // Daemon status fields
     daemonLastKnownStatus: z.enum(['running', 'shutting-down']).optional(),
     daemonLastKnownPid: z.number().optional(),

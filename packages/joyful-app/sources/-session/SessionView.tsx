@@ -3,9 +3,11 @@ import { AgentInput } from '@/components/AgentInput';
 import {
     getAvailableModels,
     getAvailablePermissionModes,
+    getClaudeEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
+    type ModelMode,
 } from '@/components/modelModeOptions';
 import { getSuggestions } from '@/components/autocomplete/suggestions';
 import { ChatHeaderView } from '@/components/ChatHeaderView';
@@ -36,7 +38,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
-import type { ModelMode, PermissionMode } from '@/components/PermissionModeSelector';
+import type { PermissionMode } from '@/components/PermissionModeSelector';
 
 export const SessionView = React.memo((props: { id: string }) => {
     const sessionId = props.id;
@@ -197,6 +199,16 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
             getDefaultModelKey(flavor),
         ])
     ), [availableModels, session.modelMode, session.metadata?.currentModelCode, flavor]);
+
+    const availableEffortLevels = React.useMemo(() => (
+        flavor === 'claude' ? getClaudeEffortLevels(t) : []
+    ), [flavor]);
+
+    const effortLevelMode = React.useMemo<ModelMode | null>(() => {
+        if (availableEffortLevels.length === 0) return null;
+        const key = session.effortLevel ?? 'default';
+        return availableEffortLevels.find(e => e.key === key) ?? availableEffortLevels[0];
+    }, [availableEffortLevels, session.effortLevel]);
     const sessionStatus = useSessionStatus(session);
     const sessionUsage = useSessionUsage(sessionId);
     const alwaysShowContextSize = useSetting('alwaysShowContextSize');
@@ -224,6 +236,10 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
 
     const updateModelMode = React.useCallback((mode: ModelMode) => {
         storage.getState().updateSessionModelMode(sessionId, mode.key);
+    }, [sessionId]);
+
+    const updateEffortLevel = React.useCallback((mode: ModelMode) => {
+        storage.getState().updateSessionEffortLevel(sessionId, mode.key === 'default' ? null : mode.key);
     }, [sessionId]);
 
     // Memoize header-dependent styles to prevent re-renders
@@ -309,6 +325,9 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
             modelMode={modelMode}
             availableModels={availableModels}
             onModelModeChange={updateModelMode}
+            effortLevel={effortLevelMode}
+            availableEffortLevels={availableEffortLevels}
+            onEffortLevelChange={updateEffortLevel}
             metadata={session.metadata}
             connectionStatus={{
                 text: sessionStatus.statusText,

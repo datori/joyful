@@ -410,6 +410,16 @@ export const zhHant: TranslationStructure = {
             title: '模型',
             configureInCli: '在 CLI 設定中配置模型',
         },
+        effort: {
+            title: '推理強度',
+            default: '預設',
+            defaultDescription: '使用 Claude 預設設定',
+            low: '低',
+            medium: '中',
+            high: '高',
+            max: '最大',
+            badge: ({ level }: { level: string }) => `強度: ${level}`,
+        },
         codexPermissionMode: {
             title: 'CODEX 權限模式',
             default: 'CLI 設定',

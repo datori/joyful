@@ -175,6 +175,8 @@ export interface QueryOptions {
     canCallTool?: CanCallToolCallback
     /** Path to a settings JSON file to pass to Claude via --settings */
     settingsPath?: string
+    /** Reasoning effort level passed as --effort flag (low | medium | high | max) */
+    effortLevel?: string
 }
 
 /**

@@ -419,6 +419,16 @@ export const ru: TranslationStructure = {
             title: 'МОДЕЛЬ',
             configureInCli: 'Настройте модели в настройках CLI',
         },
+        effort: {
+            title: 'УСИЛИЕ',
+            default: 'По умолчанию',
+            defaultDescription: 'Использовать настройки Claude',
+            low: 'Низкое',
+            medium: 'Среднее',
+            high: 'Высокое',
+            max: 'Максимальное',
+            badge: ({ level }: { level: string }) => `Усилие: ${level}`,
+        },
         codexPermissionMode: {
             title: 'РЕЖИМ РАЗРЕШЕНИЙ CODEX',
             default: 'Настройки CLI',

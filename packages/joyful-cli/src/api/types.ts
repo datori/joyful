@@ -133,7 +133,9 @@ export const MachineMetadataSchema = z.object({
   joyfulCliVersion: z.string(),
   homeDir: z.string(),
   joyfulHomeDir: z.string(),
-  joyfulLibDir: z.string()
+  joyfulLibDir: z.string(),
+  claudeDefaultModel: z.string().optional(),
+  claudeDefaultEffortLevel: z.string().optional(),
 })
 
 export type MachineMetadata = z.infer<typeof MachineMetadataSchema>
@@ -180,7 +182,8 @@ export const MessageMetaSchema = z.object({
   customSystemPrompt: z.string().nullable().optional(), // Custom system prompt for this message (null = reset)
   appendSystemPrompt: z.string().nullable().optional(), // Append to system prompt for this message (null = reset)
   allowedTools: z.array(z.string()).nullable().optional(), // Allowed tools for this message (null = reset)
-  disallowedTools: z.array(z.string()).nullable().optional() // Disallowed tools for this message (null = reset)
+  disallowedTools: z.array(z.string()).nullable().optional(), // Disallowed tools for this message (null = reset)
+  effortLevel: z.enum(['low', 'medium', 'high', 'max']).nullable().optional() // Reasoning effort level (null = use default)
 })
 
 export type MessageMeta = z.infer<typeof MessageMetaSchema>

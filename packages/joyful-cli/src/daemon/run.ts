@@ -22,6 +22,17 @@ import { join } from 'path';
 import { projectPath } from '@/projectPath';
 import { getTmuxUtilities, isTmuxAvailable, parseTmuxSessionIdentifier, formatTmuxSessionIdentifier } from '@/utils/tmux';
 import { expandEnvironmentVariables } from '@/utils/expandEnvVars';
+import { readClaudeSettings } from '@/claude/utils/claudeSettings';
+
+// Read Claude Code's default model and effort level from ~/.claude/settings.json
+function readClaudeCodeDefaults(): { claudeDefaultModel?: string; claudeDefaultEffortLevel?: string } {
+  const settings = readClaudeSettings();
+  if (!settings) return {};
+  return {
+    ...(settings.model ? { claudeDefaultModel: settings.model } : {}),
+    ...(settings.effortLevel ? { claudeDefaultEffortLevel: settings.effortLevel } : {}),
+  };
+}
 
 // Prepare initial metadata
 export const initialMachineMetadata: MachineMetadata = {
@@ -30,7 +41,8 @@ export const initialMachineMetadata: MachineMetadata = {
   joyfulCliVersion: packageJson.version,
   homeDir: os.homedir(),
   joyfulHomeDir: configuration.joyfulHomeDir,
-  joyfulLibDir: projectPath()
+  joyfulLibDir: projectPath(),
+  ...readClaudeCodeDefaults(),
 };
 
 // Get environment variables for a profile, filtered for agent compatibility

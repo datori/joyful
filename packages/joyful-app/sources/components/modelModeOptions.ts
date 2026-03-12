@@ -9,6 +9,7 @@ export type ModeOption = {
 
 export type PermissionMode = ModeOption;
 export type ModelMode = ModeOption;
+export type EffortLevel = ModeOption;
 
 export type PermissionModeKey = string;
 export type ModelModeKey = string;
@@ -71,9 +72,21 @@ export function getGeminiPermissionModes(translate: Translate): PermissionMode[]
 export function getClaudeModelModes(): ModelMode[] {
     return [
         { key: 'default', name: 'Default', description: 'Use CLI settings' },
-        { key: 'adaptiveUsage', name: 'Adaptive Usage', description: 'Balanced model routing' },
-        { key: 'sonnet', name: 'Sonnet', description: 'Fast and capable' },
-        { key: 'opus', name: 'Opus', description: 'Most capable' },
+        { key: 'claude-opus-4-6', name: 'Claude Opus 4.6', description: 'Most capable' },
+        { key: 'claude-opus-4-6[1m]', name: 'Claude Opus 4.6 (1M)', description: 'Most capable, 1M context' },
+        { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', description: 'Fast and capable' },
+        { key: 'claude-sonnet-4-6[1m]', name: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
+        { key: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', description: 'Fastest' },
+    ];
+}
+
+export function getClaudeEffortLevels(translate: Translate): EffortLevel[] {
+    return [
+        { key: 'default', name: translate('agentInput.effort.default'), description: translate('agentInput.effort.defaultDescription') },
+        { key: 'low', name: translate('agentInput.effort.low'), description: null },
+        { key: 'medium', name: translate('agentInput.effort.medium'), description: null },
+        { key: 'high', name: translate('agentInput.effort.high'), description: null },
+        { key: 'max', name: translate('agentInput.effort.max'), description: null },
     ];
 }
 

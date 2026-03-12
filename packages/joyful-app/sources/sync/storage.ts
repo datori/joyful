@@ -119,6 +119,7 @@ interface StorageState {
     updateSessionDraft: (sessionId: string, draft: string | null) => void;
     updateSessionPermissionMode: (sessionId: string, mode: string) => void;
     updateSessionModelMode: (sessionId: string, mode: string) => void;
+    updateSessionEffortLevel: (sessionId: string, level: string | null) => void;
     // Artifact methods
     applyArtifacts: (artifacts: DecryptedArtifact[]) => void;
     addArtifact: (artifact: DecryptedArtifact) => void;
@@ -312,9 +313,10 @@ export const storage = create<StorageState>()((set, get) => {
                 const presence = resolveSessionOnlineState(session);
 
                 // Preserve existing draft and permission mode if they exist, or load from saved data
-                const existingDraft = state.sessions[session.id]?.draft;
+                const existingSession = state.sessions[session.id];
+                const existingDraft = existingSession?.draft;
                 const savedDraft = savedDrafts[session.id];
-                const existingPermissionMode = state.sessions[session.id]?.permissionMode;
+                const existingPermissionMode = existingSession?.permissionMode;
                 const savedPermissionMode = savedPermissionModes[session.id];
                 const defaultPermissionMode: PermissionModeKey = isSandboxEnabled(session.metadata) ? 'bypassPermissions' : 'default';
                 const resolvedPermissionMode: PermissionModeKey =
@@ -327,7 +329,10 @@ export const storage = create<StorageState>()((set, get) => {
                     ...session,
                     presence,
                     draft: existingDraft || savedDraft || session.draft || null,
-                    permissionMode: resolvedPermissionMode
+                    permissionMode: resolvedPermissionMode,
+                    // Preserve local-only fields that are not synced to the server
+                    modelMode: existingSession?.modelMode ?? session.modelMode,
+                    effortLevel: existingSession?.effortLevel ?? session.effortLevel,
                 };
             });
 
@@ -824,6 +829,21 @@ export const storage = create<StorageState>()((set, get) => {
             return {
                 ...state,
                 sessions: updatedSessions
+            };
+        }),
+        updateSessionEffortLevel: (sessionId: string, level: string | null) => set((state) => {
+            const session = state.sessions[sessionId];
+            if (!session) return state;
+
+            return {
+                ...state,
+                sessions: {
+                    ...state.sessions,
+                    [sessionId]: {
+                        ...session,
+                        effortLevel: level
+                    }
+                }
             };
         }),
         // Project management methods

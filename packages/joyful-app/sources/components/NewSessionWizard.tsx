@@ -1626,10 +1626,10 @@ export function NewSessionWizard({ onComplete, onCancel, initialPrompt = '' }: N
 
                         <ItemGroup title="Model Mode">
                             {(agentType === 'claude' ? [
-                                { value: 'default', label: 'Default', description: 'Balanced performance', icon: 'cube-outline' },
-                                { value: 'adaptiveUsage', label: 'Adaptive Usage', description: 'Automatically choose model', icon: 'analytics-outline' },
-                                { value: 'sonnet', label: 'Sonnet', description: 'Fast and efficient', icon: 'speedometer-outline' },
-                                { value: 'opus', label: 'Opus', description: 'Most capable model', icon: 'diamond-outline' },
+                                { value: 'default', label: 'Default', description: 'Use CLI settings', icon: 'cube-outline' },
+                                { value: 'claude-opus-4-5', label: 'Claude Opus 4.5', description: 'Most capable', icon: 'diamond-outline' },
+                                { value: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5', description: 'Fast and capable', icon: 'speedometer-outline' },
+                                { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5', description: 'Fastest', icon: 'flash-outline' },
                             ] as const : [
                                 { value: 'gpt-5-codex-high', label: 'GPT-5 Codex High', description: 'Best for complex coding', icon: 'diamond-outline' },
                                 { value: 'gpt-5-codex-medium', label: 'GPT-5 Codex Medium', description: 'Balanced coding assistance', icon: 'cube-outline' },

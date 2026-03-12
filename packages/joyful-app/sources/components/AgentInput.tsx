@@ -40,6 +40,9 @@ interface AgentInputProps {
     modelMode?: ModelMode | null;
     availableModels?: ModelMode[];
     onModelModeChange?: (mode: ModelMode) => void;
+    effortLevel?: ModelMode | null;
+    availableEffortLevels?: ModelMode[];
+    onEffortLevelChange?: (level: ModelMode) => void;
     metadata?: Metadata | null;
     onAbort?: () => void | Promise<void>;
     showAbortButton?: boolean;
@@ -314,6 +317,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
         hackModes(props.availableModes ?? [])
     ), [props.availableModes]);
     const availableModels = props.availableModels ?? [];
+    const availableEffortLevels = props.availableEffortLevels ?? [];
+    const displayEffortLevel = props.effortLevel && props.effortLevel.key !== 'default' ? props.effortLevel : null;
     const isSandboxEnabled = React.useMemo(() => {
         const sandbox = props.metadata?.sandbox as unknown;
         if (!sandbox) {
@@ -712,13 +717,96 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                         </Text>
                                     )}
                                 </View>
+
+                                {/* Effort Level Section */}
+                                {availableEffortLevels.length > 0 && (
+                                    <>
+                                        {/* Divider */}
+                                        <View style={{
+                                            height: 1,
+                                            backgroundColor: theme.colors.divider,
+                                            marginHorizontal: 16
+                                        }} />
+
+                                        <View style={{ paddingVertical: 8 }}>
+                                            <Text style={{
+                                                fontSize: 12,
+                                                fontWeight: '600',
+                                                color: theme.colors.textSecondary,
+                                                paddingHorizontal: 16,
+                                                paddingBottom: 4,
+                                                ...Typography.default('semiBold')
+                                            }}>
+                                                {t('agentInput.effort.title')}
+                                            </Text>
+                                            {availableEffortLevels.map((level) => {
+                                                const isSelected = (props.effortLevel?.key ?? 'default') === level.key;
+
+                                                return (
+                                                    <Pressable
+                                                        key={level.key}
+                                                        onPress={() => {
+                                                            hapticsLight();
+                                                            props.onEffortLevelChange?.(level);
+                                                        }}
+                                                        style={({ pressed }) => ({
+                                                            flexDirection: 'row',
+                                                            alignItems: 'center',
+                                                            paddingHorizontal: 16,
+                                                            paddingVertical: 8,
+                                                            backgroundColor: pressed ? theme.colors.surfacePressed : 'transparent'
+                                                        })}
+                                                    >
+                                                        <View style={{
+                                                            width: 16,
+                                                            height: 16,
+                                                            borderRadius: 8,
+                                                            borderWidth: 2,
+                                                            borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            marginRight: 12
+                                                        }}>
+                                                            {isSelected && (
+                                                                <View style={{
+                                                                    width: 6,
+                                                                    height: 6,
+                                                                    borderRadius: 3,
+                                                                    backgroundColor: theme.colors.radio.dot
+                                                                }} />
+                                                            )}
+                                                        </View>
+                                                        <View>
+                                                            <Text style={{
+                                                                fontSize: 14,
+                                                                color: isSelected ? theme.colors.radio.active : theme.colors.text,
+                                                                ...Typography.default()
+                                                            }}>
+                                                                {level.name}
+                                                            </Text>
+                                                            {!!level.description && (
+                                                                <Text style={{
+                                                                    fontSize: 11,
+                                                                    color: theme.colors.textSecondary,
+                                                                    ...Typography.default()
+                                                                }}>
+                                                                    {level.description}
+                                                                </Text>
+                                                            )}
+                                                        </View>
+                                                    </Pressable>
+                                                );
+                                            })}
+                                        </View>
+                                    </>
+                                )}
                             </FloatingOverlay>
                         </View>
                     </>
                 )}
 
                 {/* Connection status, context warning, and permission mode */}
-                {(props.connectionStatus || contextWarning || displayPermissionMode || props.modelMode) && (
+                {(props.connectionStatus || contextWarning || displayPermissionMode || props.modelMode || displayEffortLevel) && (
                     <View style={{
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -852,6 +940,15 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                     ...Typography.default()
                                 }}>
                                     {props.modelMode.name}
+                                </Text>
+                            )}
+                            {displayEffortLevel && (
+                                <Text style={{
+                                    fontSize: 11,
+                                    color: theme.colors.textSecondary,
+                                    ...Typography.default()
+                                }}>
+                                    {t('agentInput.effort.badge', { level: displayEffortLevel.name })}
                                 </Text>
                             )}
                         </View>

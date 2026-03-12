@@ -409,6 +409,16 @@ export const ca: TranslationStructure = {
             title: 'MODEL',
             configureInCli: 'Configura els models a la configuració del CLI',
         },
+        effort: {
+            title: 'ESFORÇ',
+            default: 'Predeterminat',
+            defaultDescription: 'Usar configuració de Claude',
+            low: 'Baix',
+            medium: 'Mitjà',
+            high: 'Alt',
+            max: 'Màxim',
+            badge: ({ level }: { level: string }) => `Esforç: ${level}`,
+        },
         codexPermissionMode: {
             title: 'MODE DE PERMISOS CODEX',
             default: 'Configuració del CLI',

@@ -441,6 +441,16 @@ export const ja: TranslationStructure = {
             title: 'モデル',
             configureInCli: 'CLIの設定でモデルを構成',
         },
+        effort: {
+            title: '処理強度',
+            default: 'デフォルト',
+            defaultDescription: 'Claudeのデフォルト設定を使用',
+            low: '低',
+            medium: '中',
+            high: '高',
+            max: '最大',
+            badge: ({ level }: { level: string }) => `強度: ${level}`,
+        },
         codexPermissionMode: {
             title: 'CODEX権限モード',
             default: 'CLI設定',

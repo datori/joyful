@@ -6,7 +6,7 @@ import React from "react";
 import { claudeRemote } from "./claudeRemote";
 import { PermissionHandler } from "./utils/permissionHandler";
 import { Future } from "@/utils/future";
-import { SDKAssistantMessage, SDKMessage, SDKUserMessage } from "./sdk";
+import { SDKAssistantMessage, SDKMessage, SDKSystemMessage, SDKUserMessage } from "./sdk";
 import { formatClaudeMessageForInk } from "@/ui/messageFormatterInk";
 import { logger } from "@/ui/logger";
 import { SDKToLogConverter } from "./utils/sdkToLogConverter";
@@ -96,6 +96,21 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
     session.client.rpcHandlerManager.registerHandler('switch', doSwitch); // When switch clicked
     // Removed catch-all stdin handler - now handled by RemoteModeDisplay keyboard handlers
 
+    // Canonical Claude model and effort level lists (mirrors claudeRemote.ts constants)
+    const CLAUDE_MODELS = [
+        { code: 'claude-opus-4-6', value: 'Claude Opus 4.6', description: 'Most capable' },
+        { code: 'claude-opus-4-6[1m]', value: 'Claude Opus 4.6 (1M)', description: 'Most capable, 1M context' },
+        { code: 'claude-sonnet-4-6', value: 'Claude Sonnet 4.6', description: 'Fast and capable' },
+        { code: 'claude-sonnet-4-6[1m]', value: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
+        { code: 'claude-haiku-4-5', value: 'Claude Haiku 4.5', description: 'Fastest' },
+    ];
+    const EFFORT_LEVELS = [
+        { code: 'low', value: 'Low', description: 'Fastest, minimal reasoning' },
+        { code: 'medium', value: 'Medium', description: 'Balanced reasoning' },
+        { code: 'high', value: 'High', description: 'More thorough reasoning' },
+        { code: 'max', value: 'Max', description: 'Maximum reasoning' },
+    ];
+
     // Create permission handler
     const permissionHandler = new PermissionHandler(session);
 
@@ -117,11 +132,26 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
     }, permissionHandler.getResponses());
 
 
+    // Track current session effort level (set when a message is dequeued with a mode)
+    let currentSessionEffortLevel: string | undefined = undefined;
+
     // Handle messages
     let planModeToolCalls = new Set<string>();
     let ongoingToolCalls = new Map<string, { parentToolCallId: string | null }>();
 
     function onMessage(message: SDKMessage) {
+
+        // Capture actual model from SDK init message and populate session metadata
+        if (message.type === 'system' && (message as any).subtype === 'init') {
+            const initMsg = message as SDKSystemMessage;
+            session.client.updateMetadata((metadata) => ({
+                ...metadata,
+                models: CLAUDE_MODELS,
+                thoughtLevels: EFFORT_LEVELS,
+                ...(initMsg.model ? { currentModelCode: initMsg.model } : {}),
+                ...(currentSessionEffortLevel ? { currentThoughtLevelCode: currentSessionEffortLevel } : {}),
+            }));
+        }
 
         // Write to message log
         formatClaudeMessageForInk(message, messageBuffer);
@@ -339,6 +369,7 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
                         if (pending) {
                             let p = pending;
                             pending = null;
+                            currentSessionEffortLevel = p.mode.effortLevel;
                             permissionHandler.handleModeChange(p.mode.permissionMode);
                             return p;
                         }
@@ -354,6 +385,7 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
                             }
                             modeHash = msg.hash;
                             mode = msg.mode;
+                            currentSessionEffortLevel = mode.effortLevel;
                             permissionHandler.handleModeChange(mode.permissionMode);
                             return {
                                 message: msg.message,

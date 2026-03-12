@@ -12,6 +12,8 @@ import { logger } from '@/ui/logger';
 
 export interface ClaudeSettings {
   includeCoAuthoredBy?: boolean;
+  model?: string;
+  effortLevel?: string;
   [key: string]: any;
 }
 

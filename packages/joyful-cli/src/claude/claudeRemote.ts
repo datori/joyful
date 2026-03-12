@@ -111,6 +111,23 @@ export async function claudeRemote(opts: {
         }
     }
 
+    // Canonical Claude model list — CLI owns this list and sends it to the app via Metadata.models[]
+    const CLAUDE_MODELS = [
+        { code: 'claude-opus-4-6', value: 'Claude Opus 4.6', description: 'Most capable' },
+        { code: 'claude-opus-4-6[1m]', value: 'Claude Opus 4.6 (1M)', description: 'Most capable, 1M context' },
+        { code: 'claude-sonnet-4-6', value: 'Claude Sonnet 4.6', description: 'Fast and capable' },
+        { code: 'claude-sonnet-4-6[1m]', value: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
+        { code: 'claude-haiku-4-5', value: 'Claude Haiku 4.5', description: 'Fastest' },
+    ];
+
+    // Canonical effort level list
+    const EFFORT_LEVELS = [
+        { code: 'low', value: 'Low', description: 'Fastest, minimal reasoning' },
+        { code: 'medium', value: 'Medium', description: 'Balanced reasoning' },
+        { code: 'high', value: 'High', description: 'More thorough reasoning' },
+        { code: 'max', value: 'Max', description: 'Maximum reasoning' },
+    ];
+
     // Prepare SDK options
     let mode = initial.mode;
     const sdkOptions: QueryOptions = {
@@ -131,6 +148,7 @@ export async function claudeRemote(opts: {
             return resolve(join(projectPath(), 'scripts', 'claude_remote_launcher.cjs'));
         })(),
         settingsPath: opts.hookSettingsPath,
+        effortLevel: initial.mode.effortLevel,
     }
 
     // Track thinking state
