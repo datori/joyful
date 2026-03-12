@@ -5,9 +5,9 @@
   "author": "Kirill Dubovitskiy",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://github.com/slopus/happy/tree/main/packages/happy-agent",
-  "bugs": "https://github.com/slopus/happy/issues",
-  "repository": "slopus/happy",
+  "homepage": "https://github.com/slopus/joyful/tree/main/packages/joyful-agent",
+  "bugs": "https://github.com/slopus/joyful/issues",
+  "repository": "slopus/joyful",
   "bin": {
     "joyful-agent": "./bin/joyful-agent.mjs"
   },
