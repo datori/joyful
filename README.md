@@ -1,3 +1,5 @@
+> **This is a fork of [Happy Coder](https://github.com/slopus/happy) — an active fork with a focus on orchestrating Claude Code instances, including more frequent feature additions and bug fixes than the upstream project.**
+
 <div align="center"><img src="/.github/logotype-dark.png" width="400" title="Joyful Coder" alt="Joyful Coder"/></div>
 
 <h1 align="center">
