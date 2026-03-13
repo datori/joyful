@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useShallow } from 'zustand/react/shallow'
+import { config } from '@/config';
 import { Session, Machine, GitStatus } from "./storageTypes";
 import { createReducer, reducer, ReducerState } from "./reducer/reducer";
 import { Message } from "./typesMessage";
@@ -1257,4 +1258,28 @@ export function useRequestedFriends() {
         // Filter friends to get sent requests (where status is 'requested')
         return Object.values(state.friends).filter(friend => friend.status === 'requested');
     }));
+}
+
+/**
+ * Returns true if voice is configured via any source:
+ * local settings agent ID, EXPO_PUBLIC env var, or build-time baked config.
+ * Reactive to settings changes.
+ */
+export function useIsVoiceConfigured(): boolean {
+    const settingsAgentId = storage((state) => state.settings.elevenLabsAgentId);
+    if (settingsAgentId) return true;
+    const staticId = __DEV__ ? config.elevenLabsAgentIdDev : config.elevenLabsAgentIdProd;
+    return !!staticId;
+}
+
+/**
+ * Returns the effective ElevenLabs agent ID, checking sources in priority order:
+ * 1. Local settings (runtime-configurable by user)
+ * 2. EXPO_PUBLIC env var / build-time baked config
+ * Returns undefined if not configured.
+ */
+export function getEffectiveElevenLabsAgentId(): string | undefined {
+    const settingsAgentId = storage.getState().settings.elevenLabsAgentId;
+    if (settingsAgentId) return settingsAgentId;
+    return (__DEV__ ? config.elevenLabsAgentIdDev : config.elevenLabsAgentIdProd) ?? undefined;
 }

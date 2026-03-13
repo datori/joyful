@@ -224,6 +224,10 @@ export const en = {
         sessionNotFound: 'Session not found',
         voiceSessionFailed: 'Failed to start voice session',
         voiceServiceUnavailable: 'Voice service is temporarily unavailable',
+        voiceNotConfigured: 'Voice not configured',
+        voiceNotConfiguredDetail: 'Voice requires an ElevenLabs agent ID. Go to Settings → Voice to configure it.',
+        voiceServerNotConfigured: 'Voice not available on this server',
+        voiceServerNotConfiguredDetail: 'The server administrator needs to set ELEVENLABS_API_KEY to enable voice.',
         oauthInitializationFailed: 'Failed to initialize OAuth flow',
         tokenStorageFailed: 'Failed to store authentication tokens',
         oauthStateMismatch: 'Security validation failed. Please try again',
@@ -606,7 +610,13 @@ export const en = {
             title: 'Languages',
             footer: ({ count }: { count: number }) => `${count} ${plural({ count, singular: 'language', plural: 'languages' })} available`,
             autoDetect: 'Auto-detect',
-        }
+        },
+        configurationTitle: 'Voice Configuration',
+        agentId: 'ElevenLabs Agent ID',
+        agentIdPlaceholder: 'Enter agent ID...',
+        agentIdFooter: 'Enter your ElevenLabs Conversational AI agent ID. To use voice, you also need ELEVENLABS_API_KEY set on your server and an agent configured with the messageClaudeCode and processPermissionRequest tools.',
+        configuredStatus: 'Configured',
+        notConfiguredStatus: 'Not configured — tap to set up',
     },
 
     settingsAccount: {

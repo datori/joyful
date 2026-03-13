@@ -224,6 +224,28 @@ JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 npx yarn c
 - If port 3007 is stuck (e.g. after a crash), `yarn dev:stack:stop` handles cleanup automatically.
 - Manual fix: `lsof -ti :3007 | xargs kill` (SIGTERM first, only use `-9` as last resort).
 
+### Voice Setup (self-hosted)
+
+Voice uses ElevenLabs Conversational AI. Three things are required:
+
+**1. Server: set `ELEVENLABS_API_KEY`**
+```bash
+ELEVENLABS_API_KEY=sk_... PORT=3007 ... npx tsx sources/standalone.ts serve
+```
+Without this, the server returns 503 and the app shows a clear error.
+
+**2. App: configure your ElevenLabs agent ID**
+In the app: Settings → Voice → Voice Configuration → paste your agent ID.
+No rebuild required — stored in local settings.
+
+**3. ElevenLabs agent configuration**
+Create a Conversational AI agent at elevenlabs.io and configure it with:
+- **Client tools**: `messageClaudeCode` (sends a message to Claude) and `processPermissionRequest` (approves/denies tool use)
+- **Dynamic variables**: `sessionId` and `initialConversationContext`
+- A system prompt that describes its role as a voice proxy for Claude Code sessions
+
+The agent ID and `ELEVENLABS_API_KEY` are your own — no upstream Happy Coder credentials needed.
+
 ## Documentation
 
 Internal architecture docs live in `/docs/` covering protocol, API, encryption, backend architecture, deployment, CLI/daemon, session protocol, and permissions. See `docs/README.md` for the index.

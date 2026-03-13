@@ -1,11 +1,10 @@
 import type { VoiceSession } from './types';
 import { fetchVoiceToken } from '@/sync/apiVoice';
-import { storage } from '@/sync/storage';
+import { storage, getEffectiveElevenLabsAgentId } from '@/sync/storage';
 import { sync } from '@/sync/sync';
 import { Modal } from '@/modal';
 import { TokenStorage } from '@/auth/tokenStorage';
 import { t } from '@/text';
-import { config } from '@/config';
 import { requestMicrophonePermission, showMicrophonePermissionDeniedAlert } from '@/utils/microphonePermissions';
 
 let voiceSession: VoiceSession | null = null;
@@ -27,10 +26,19 @@ export async function startRealtimeSession(sessionId: string, initialContext?: s
     }
 
     const experimentsEnabled = storage.getState().settings.experiments;
-    const agentId = __DEV__ ? config.elevenLabsAgentIdDev : config.elevenLabsAgentIdProd;
-    
+    const agentId = getEffectiveElevenLabsAgentId();
+
     if (!agentId) {
-        console.error('Agent ID not configured');
+        Modal.alert(t('common.error'), t('errors.voiceNotConfiguredDetail'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+                text: t('settingsVoice.configurationTitle'),
+                onPress: () => {
+                    const { router } = require('expo-router') as typeof import('expo-router');
+                    router.push('/settings/voice');
+                }
+            }
+        ]);
         return;
     }
     
@@ -90,7 +98,8 @@ export async function startRealtimeSession(sessionId: string, initialContext?: s
         console.error('Failed to start realtime session:', error);
         currentSessionId = null;
         voiceSessionStarted = false;
-        Modal.alert(t('common.error'), t('errors.voiceServiceUnavailable'));
+        const errorMessage = error instanceof Error ? error.message : t('errors.voiceServiceUnavailable');
+        Modal.alert(t('common.error'), errorMessage);
     }
 }
 

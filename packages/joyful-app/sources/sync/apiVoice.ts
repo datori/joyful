@@ -45,6 +45,12 @@ export async function fetchVoiceToken(
         if (response.status === 400) {
             return { allowed: true };
         }
+        // 503 means the server is configured but missing ELEVENLABS_API_KEY.
+        // Surface the server's error message directly so the user knows what to fix.
+        if (response.status === 503) {
+            const body = await response.json().catch(() => ({})) as { error?: string };
+            throw new Error(body.error ?? 'Voice not available on this server');
+        }
         throw new Error(`Voice token request failed: ${response.status}`);
     }
 

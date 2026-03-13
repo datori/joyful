@@ -19,6 +19,10 @@ export function voiceRoutes(app: Fastify) {
                 400: z.object({
                     allowed: z.boolean(),
                     error: z.string()
+                }),
+                503: z.object({
+                    allowed: z.boolean(),
+                    error: z.string()
                 })
             }
         }
@@ -76,7 +80,7 @@ export function voiceRoutes(app: Fastify) {
         const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
         if (!elevenLabsApiKey) {
             log({ module: 'voice' }, 'Missing 11Labs API key');
-            return reply.code(400).send({ allowed: false, error: 'Missing 11Labs API key on the server' });
+            return reply.code(503).send({ allowed: false, error: 'Voice not available: set ELEVENLABS_API_KEY on the server' });
         }
 
         // Get 11Labs conversation token
