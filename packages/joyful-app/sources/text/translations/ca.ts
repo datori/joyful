@@ -17,15 +17,15 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 export const ca: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: 'Safata',
+        inbox: 'Actualitzacions',
         sessions: 'Terminals',
         settings: 'Configuració',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: 'Safata buida',
-        emptyDescription: 'Connecta\'t amb amics per començar a compartir sessions',
+        emptyTitle: 'Sense actualitzacions',
+        emptyDescription: 'Estàs al dia. Torna més tard.',
         updates: 'Actualitzacions',
     },
 

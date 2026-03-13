@@ -32,15 +32,15 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 export const en: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: 'Inbox',
+        inbox: 'Updates',
         sessions: 'Terminals',
         settings: 'Settings',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: 'Empty Inbox',
-        emptyDescription: 'Connect with friends to start sharing sessions',
+        emptyTitle: 'No Updates',
+        emptyDescription: 'You\'re all caught up. Check back later for updates.',
         updates: 'Updates',
     },
 

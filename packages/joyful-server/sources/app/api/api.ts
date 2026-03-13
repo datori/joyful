@@ -19,7 +19,6 @@ import { enableMonitoring } from "./utils/enableMonitoring";
 import { enableErrorHandlers } from "./utils/enableErrorHandlers";
 import { enableAuthentication } from "./utils/enableAuthentication";
 import { userRoutes } from "./routes/userRoutes";
-import { feedRoutes } from "./routes/feedRoutes";
 import { kvRoutes } from "./routes/kvRoutes";
 import { v3SessionRoutes } from "./routes/v3SessionRoutes";
 import { isLocalStorage, getLocalFilesDir } from "@/storage/files";
@@ -104,7 +103,6 @@ export async function startApi() {
     versionRoutes(typed);
     voiceRoutes(typed);
     userRoutes(typed);
-    feedRoutes(typed);
     kvRoutes(typed);
     v3SessionRoutes(typed);
 

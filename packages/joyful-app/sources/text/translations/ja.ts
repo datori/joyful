@@ -20,15 +20,15 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 export const ja: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: '受信トレイ',
+        inbox: 'アップデート',
         sessions: 'ターミナル',
         settings: '設定',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: '受信トレイは空です',
-        emptyDescription: '友達と接続してセッションを共有しましょう',
+        emptyTitle: 'アップデートはありません',
+        emptyDescription: '最新の状態です。後でまた確認してください。',
         updates: '更新',
     },
 

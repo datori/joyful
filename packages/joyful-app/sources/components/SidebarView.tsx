@@ -1,4 +1,4 @@
-import { useSocketStatus, useFriendRequests, useSettings, useAllMachines } from '@/sync/storage';
+import { useSocketStatus, useSettings, useAllMachines } from '@/sync/storage';
 import { isMachineOnline } from '@/utils/machineUtils';
 import { NativeSessionResumePicker } from './NativeSessionResumePicker';
 import * as React from 'react';
@@ -139,7 +139,6 @@ export const SidebarView = React.memo(() => {
     const headerHeight = useHeaderHeight();
     const socketStatus = useSocketStatus();
     const realtimeStatus = useRealtimeStatus();
-    const friendRequests = useFriendRequests();
     const inboxHasContent = useInboxHasContent();
     const settings = useSettings();
     const allMachines = useAllMachines();
@@ -253,14 +252,7 @@ export const SidebarView = React.memo(() => {
                                 style={[{ width: 32, height: 32 }]}
                                 tintColor={theme.colors.header.tint}
                             />
-                            {friendRequests.length > 0 && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>
-                                        {friendRequests.length > 99 ? '99+' : friendRequests.length}
-                                    </Text>
-                                </View>
-                            )}
-                            {inboxHasContent && friendRequests.length === 0 && (
+                            {inboxHasContent && (
                                 <View style={styles.indicatorDot} />
                             )}
                         </Pressable>

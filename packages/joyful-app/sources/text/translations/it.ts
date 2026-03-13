@@ -17,15 +17,15 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 export const it: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: 'Posta',
+        inbox: 'Aggiornamenti',
         sessions: 'Terminali',
         settings: 'Impostazioni',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: 'Posta vuota',
-        emptyDescription: 'Connettiti con amici per iniziare a condividere sessioni',
+        emptyTitle: 'Nessun aggiornamento',
+        emptyDescription: 'Sei aggiornato. Torna più tardi.',
         updates: 'Aggiornamenti',
     },
 

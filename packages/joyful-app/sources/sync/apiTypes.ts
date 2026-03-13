@@ -8,7 +8,6 @@ import {
 } from 'joyful-wire';
 import { GitHubProfileSchema, ImageRefSchema } from './profile';
 import { RelationshipStatusSchema, UserProfileSchema } from './friendTypes';
-import { FeedBodySchema } from './feedTypes';
 
 export {
     ApiMessageSchema,
@@ -91,16 +90,6 @@ export const ApiRelationshipUpdatedSchema = z.object({
     timestamp: z.number()
 });
 
-// Feed update schema
-export const ApiNewFeedPostSchema = z.object({
-    t: z.literal('new-feed-post'),
-    id: z.string(),
-    body: FeedBodySchema,
-    cursor: z.string(),
-    createdAt: z.number(),
-    repeatKey: z.string().nullable()
-});
-
 // KV batch update schema for real-time KV updates
 export const ApiKvBatchUpdateSchema = z.object({
     t: z.literal('kv-batch-update'),
@@ -124,7 +113,6 @@ export const ApiUpdateSchema = z.union([
     ApiUpdateArtifactSchema,
     ApiDeleteArtifactSchema,
     ApiRelationshipUpdatedSchema,
-    ApiNewFeedPostSchema,
     ApiKvBatchUpdateSchema
 ]);
 

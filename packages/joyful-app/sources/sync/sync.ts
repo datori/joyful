@@ -35,9 +35,7 @@ import { systemPrompt } from './prompt/systemPrompt';
 import { fetchArtifact, fetchArtifacts, createArtifact, updateArtifact } from './apiArtifacts';
 import { DecryptedArtifact, Artifact, ArtifactCreateRequest, ArtifactUpdateRequest } from './artifactTypes';
 import { ArtifactEncryption } from './encryption/artifactEncryption';
-import { getFriendsList, getUserProfile } from './apiFriends';
-import { fetchFeed } from './apiFeed';
-import { FeedItem } from './feedTypes';
+import { getUserProfile } from './apiFriends';
 import { UserProfile } from './friendTypes';
 import { resolveMessageModeMeta } from './messageMeta';
 import { perfMark, setForegroundTs, flushPerfBuffer } from '@/utils/perfBuffer';
@@ -99,9 +97,6 @@ class Sync {
     private pushTokenSync: InvalidateSync;
     private nativeUpdateSync: InvalidateSync;
     private artifactsSync: InvalidateSync;
-    private friendsSync: InvalidateSync;
-    private friendRequestsSync: InvalidateSync;
-    private feedSync: InvalidateSync;
     private activityAccumulator: ActivityUpdateAccumulator;
     private pendingSettings: Partial<Settings> = loadPendingSettings();
     private appState: AppStateStatus = AppState.currentState;
@@ -123,9 +118,7 @@ class Sync {
         this.machinesSync = new InvalidateSync(this.fetchMachines);
         this.nativeUpdateSync = new InvalidateSync(this.fetchNativeUpdate);
         this.artifactsSync = new InvalidateSync(this.fetchArtifactsList);
-        this.friendsSync = new InvalidateSync(this.fetchFriends);
-        this.friendRequestsSync = new InvalidateSync(this.fetchFriendRequests);
-        this.feedSync = new InvalidateSync(this.fetchFeed);
+
 
         const registerPushToken = async () => {
             if (__DEV__) {
@@ -161,9 +154,6 @@ class Sync {
                 this.nativeUpdateSync.invalidate();
                 log.log('📱 App became active: Invalidating artifacts sync');
                 this.artifactsSync.invalidate();
-                this.friendsSync.invalidate();
-                this.friendRequestsSync.invalidate();
-                this.feedSync.invalidate();
                 const sessionsCount = Object.keys(storage.getState().sessions ?? {}).length;
                 perfMark('app.synced', { dur_ms: Date.now() - foregroundTs, sessions_count: sessionsCount });
             } else {
@@ -225,10 +215,7 @@ class Sync {
         this.machinesSync.invalidate();
         this.pushTokenSync.invalidate();
         this.nativeUpdateSync.invalidate();
-        this.friendsSync.invalidate();
-        this.friendRequestsSync.invalidate();
         this.artifactsSync.invalidate();
-        this.feedSync.invalidate();
         log.log('🔄 #init: All syncs invalidated, including artifacts');
 
         // Wait for both sessions and machines to load, then mark as ready
@@ -1187,110 +1174,6 @@ class Sync {
         log.log(`🖥️ fetchMachines completed - processed ${decryptedMachines.length} machines`);
     }
 
-    private fetchFriends = async () => {
-        if (!this.credentials) return;
-        
-        try {
-            log.log('👥 Fetching friends list...');
-            const friendsList = await getFriendsList(this.credentials);
-            storage.getState().applyFriends(friendsList);
-            log.log(`👥 fetchFriends completed - processed ${friendsList.length} friends`);
-        } catch (error) {
-            console.error('Failed to fetch friends:', error);
-            // Silently handle error - UI will show appropriate state
-        }
-    }
-
-    private fetchFriendRequests = async () => {
-        // Friend requests are now included in the friends list with status='pending'
-        // This method is kept for backward compatibility but does nothing
-        log.log('👥 fetchFriendRequests called - now handled by fetchFriends');
-    }
-
-    private fetchFeed = async () => {
-        if (!this.credentials) return;
-
-        try {
-            log.log('📰 Fetching feed...');
-            const state = storage.getState();
-            const existingItems = state.feedItems;
-            const head = state.feedHead;
-            
-            // Load feed items - if we have a head, load newer items
-            let allItems: FeedItem[] = [];
-            let hasMore = true;
-            let cursor = head ? { after: head } : undefined;
-            let loadedCount = 0;
-            const maxItems = 500;
-            
-            // Keep loading until we reach known items or hit max limit
-            while (hasMore && loadedCount < maxItems) {
-                const response = await fetchFeed(this.credentials, {
-                    limit: 100,
-                    ...cursor
-                });
-                
-                // Check if we reached known items
-                const foundKnown = response.items.some(item => 
-                    existingItems.some(existing => existing.id === item.id)
-                );
-                
-                allItems.push(...response.items);
-                loadedCount += response.items.length;
-                hasMore = response.hasMore && !foundKnown;
-                
-                // Update cursor for next page
-                if (response.items.length > 0) {
-                    const lastItem = response.items[response.items.length - 1];
-                    cursor = { after: lastItem.cursor };
-                }
-            }
-            
-            // If this is initial load (no head), also load older items
-            if (!head && allItems.length < 100) {
-                const response = await fetchFeed(this.credentials, {
-                    limit: 100
-                });
-                allItems.push(...response.items);
-            }
-            
-            // Collect user IDs from friend-related feed items
-            const userIds = new Set<string>();
-            allItems.forEach(item => {
-                if (item.body && (item.body.kind === 'friend_request' || item.body.kind === 'friend_accepted')) {
-                    userIds.add(item.body.uid);
-                }
-            });
-            
-            // Fetch missing users
-            if (userIds.size > 0) {
-                await this.assumeUsers(Array.from(userIds));
-            }
-            
-            // Filter out items where user is not found (404)
-            const users = storage.getState().users;
-            const compatibleItems = allItems.filter(item => {
-                // Keep text items
-                if (item.body.kind === 'text') return true;
-                
-                // For friend-related items, check if user exists and is not null (404)
-                if (item.body.kind === 'friend_request' || item.body.kind === 'friend_accepted') {
-                    const userProfile = users[item.body.uid];
-                    // Keep item only if user exists and is not null
-                    return userProfile !== null && userProfile !== undefined;
-                }
-                
-                return true;
-            });
-            
-            // Apply only compatible items to storage
-            storage.getState().applyFeedItems(compatibleItems);
-            log.log(`📰 fetchFeed completed - loaded ${compatibleItems.length} compatible items (${allItems.length - compatibleItems.length} filtered)`);
-        } catch (error) {
-            console.error('Failed to fetch feed:', error);
-        }
-    }
-
     private syncSettings = async () => {
         if (!this.credentials) return;
 
@@ -1808,9 +1691,6 @@ class Sync {
             this.machinesSync.invalidate();
             log.log('🔌 Socket reconnected: Invalidating artifacts sync');
             this.artifactsSync.invalidate();
-            this.friendsSync.invalidate();
-            this.friendRequestsSync.invalidate();
-            this.feedSync.invalidate();
             const sessionsData = storage.getState().sessionsData;
             if (sessionsData) {
                 for (const item of sessionsData) {
@@ -2172,10 +2052,6 @@ class Sync {
                 timestamp: relationshipUpdate.timestamp
             });
             
-            // Invalidate friends data to refresh with latest changes
-            this.friendsSync.invalidate();
-            this.friendRequestsSync.invalidate();
-            this.feedSync.invalidate();
         } else if (updateData.body.t === 'new-artifact') {
             log.log('📦 Received new-artifact update');
             const artifactUpdate = updateData.body;
@@ -2287,36 +2163,6 @@ class Sync {
             
             // Remove encryption key from memory
             this.artifactDataKeys.delete(artifactId);
-        } else if (updateData.body.t === 'new-feed-post') {
-            log.log('📰 Received new-feed-post update');
-            const feedUpdate = updateData.body;
-            
-            // Convert to FeedItem with counter from cursor
-            const feedItem: FeedItem = {
-                id: feedUpdate.id,
-                body: feedUpdate.body,
-                cursor: feedUpdate.cursor,
-                createdAt: feedUpdate.createdAt,
-                repeatKey: feedUpdate.repeatKey,
-                counter: parseInt(feedUpdate.cursor.substring(2), 10)
-            };
-            
-            // Check if we need to fetch user for friend-related items
-            if (feedItem.body && (feedItem.body.kind === 'friend_request' || feedItem.body.kind === 'friend_accepted')) {
-                await this.assumeUsers([feedItem.body.uid]);
-                
-                // Check if user fetch failed (404) - don't store item if user not found
-                const users = storage.getState().users;
-                const userProfile = users[feedItem.body.uid];
-                if (userProfile === null || userProfile === undefined) {
-                    // User was not found or 404, don't store this item
-                    log.log(`📰 Skipping feed item ${feedItem.id} - user ${feedItem.body.uid} not found`);
-                    return;
-                }
-            }
-            
-            // Apply to storage (will handle repeatKey replacement)
-            storage.getState().applyFeedItems([feedItem]);
         }
     }
 

@@ -19,15 +19,15 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 export const zhHans: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: '收件箱',
+        inbox: '更新',
         sessions: '终端',
         settings: '设置',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: '收件箱为空',
-        emptyDescription: '与好友建立连接，开始共享会话',
+        emptyTitle: '暂无更新',
+        emptyDescription: '您已是最新状态，稍后再查看。',
         updates: '更新',
     },
 

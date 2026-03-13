@@ -28,15 +28,15 @@ function plural({ count, one, few, many }: { count: number; one: string; few: st
 export const ru: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: 'Входящие',
+        inbox: 'Обновления',
         sessions: 'Терминалы',
         settings: 'Настройки',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: 'Входящие пусты',
-        emptyDescription: 'Подключитесь к друзьям, чтобы начать делиться сессиями',
+        emptyTitle: 'Нет обновлений',
+        emptyDescription: 'Вы всё просмотрели. Загляните позже.',
         updates: 'Обновления',
     },
 

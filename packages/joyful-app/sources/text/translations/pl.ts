@@ -28,15 +28,15 @@ function plural({ count, one, few, many }: { count: number; one: string; few: st
 export const pl: TranslationStructure = {
     tabs: {
         // Tab navigation labels
-        inbox: 'Skrzynka',
+        inbox: 'Aktualizacje',
         sessions: 'Terminale',
         settings: 'Ustawienia',
     },
 
     inbox: {
         // Inbox screen
-        emptyTitle: 'Pusta skrzynka',
-        emptyDescription: 'Połącz się z przyjaciółmi, aby zacząć udostępniać sesje',
+        emptyTitle: 'Brak aktualizacji',
+        emptyDescription: 'Wszystko przejrzane. Wróć później.',
         updates: 'Aktualizacje',
     },
 

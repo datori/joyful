@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useFriendRequests, useSocketStatus, useRealtimeStatus, useAllMachines } from '@/sync/storage';
+import { useSocketStatus, useRealtimeStatus, useAllMachines } from '@/sync/storage';
 import { isMachineOnline } from '@/utils/machineUtils';
 import { NativeSessionResumePicker } from './NativeSessionResumePicker';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
@@ -23,7 +23,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
 import { isServerConfigured } from '@/sync/serverConfig';
-import { trackFriendsSearch } from '@/track';
 
 interface MainViewProps {
     variant: 'phone' | 'sidebar';
@@ -192,21 +191,6 @@ const HeaderRight = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
         );
     }
 
-    if (activeTab === 'inbox') {
-        return (
-            <Pressable
-                onPress={() => {
-                    trackFriendsSearch();
-                    router.push('/friends/search');
-                }}
-                hitSlop={15}
-                style={styles.headerButton}
-            >
-                <Ionicons name="person-add-outline" size={24} color={theme.colors.header.tint} />
-            </Pressable>
-        );
-    }
-
     if (activeTab === 'settings') {
         if (!isCustomServer) {
             // Empty view to maintain header centering
@@ -231,7 +215,6 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const sessionListViewData = useVisibleSessionListViewData();
     const isTablet = useIsTablet();
     const router = useRouter();
-    const friendRequests = useFriendRequests();
     const realtimeStatus = useRealtimeStatus();
 
     // Tab state management
@@ -320,7 +303,6 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
             <TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                inboxBadgeCount={friendRequests.length}
             />
             <NativeSessionResumePicker
                 visible={resumePickerVisible}
