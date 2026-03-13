@@ -193,8 +193,8 @@ export const pl: TranslationStructure = {
         },
         showFlavorIcons: 'Pokaż ikony dostawcy AI',
         showFlavorIconsDescription: 'Wyświetlaj ikony dostawcy AI na awatarach sesji',
-        compactSessionView: 'Kompaktowy widok sesji',
-        compactSessionViewDescription: 'Pokazuj aktywne sesje w bardziej zwartym układzie',
+        expandedSessionView: 'Rozszerzony widok sesji',
+        expandedSessionViewDescription: 'Pokazuj aktywne sesje w rozszerzonym układzie',
     },
 
     settingsFeatures: {
@@ -236,6 +236,10 @@ export const pl: TranslationStructure = {
         sessionNotFound: 'Sesja nie została znaleziona',
         voiceSessionFailed: 'Nie udało się uruchomić sesji głosowej',
         voiceServiceUnavailable: 'Usługa głosowa jest tymczasowo niedostępna',
+        voiceNotConfigured: 'Głos nie jest skonfigurowany',
+        voiceNotConfiguredDetail: 'Funkcja głosu wymaga ID agenta ElevenLabs. Przejdź do Ustawienia → Głos, aby go skonfigurować.',
+        voiceServerNotConfigured: 'Głos niedostępny na tym serwerze',
+        voiceServerNotConfiguredDetail: 'Administrator serwera musi ustawić ELEVENLABS_API_KEY, aby włączyć głos.',
         oauthInitializationFailed: 'Nie udało się zainicjować przepływu OAuth',
         tokenStorageFailed: 'Nie udało się zapisać tokenów uwierzytelniania',
         oauthStateMismatch: 'Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie',
@@ -617,7 +621,13 @@ export const pl: TranslationStructure = {
             title: 'Języki',
             footer: ({ count }: { count: number }) => `Dostępnych ${count} ${plural({ count, one: 'język', few: 'języki', many: 'języków' })}`,
             autoDetect: 'Automatyczne wykrywanie',
-        }
+        },
+        configurationTitle: 'Konfiguracja głosu',
+        agentId: 'ID agenta ElevenLabs',
+        agentIdPlaceholder: 'Wprowadź ID agenta...',
+        agentIdFooter: 'Wprowadź ID swojego agenta ElevenLabs Conversational AI. Aby korzystać z głosu, musisz też ustawić ELEVENLABS_API_KEY na serwerze i skonfigurować agenta z narzędziami messageClaudeCode i processPermissionRequest.',
+        configuredStatus: 'Skonfigurowano',
+        notConfiguredStatus: 'Nie skonfigurowano — dotknij, aby skonfigurować',
     },
 
     settingsAccount: {

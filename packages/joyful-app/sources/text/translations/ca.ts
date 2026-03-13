@@ -182,8 +182,8 @@ export const ca: TranslationStructure = {
         },
         showFlavorIcons: "Mostrar icones de proveïdors d'IA",
         showFlavorIconsDescription: "Mostrar icones del proveïdor d'IA als avatars de sessió",
-        compactSessionView: 'Vista compacta de sessions',
-        compactSessionViewDescription: 'Mostra les sessions actives en un disseny més compacte',
+        expandedSessionView: 'Vista ampliada de sessions',
+        expandedSessionViewDescription: 'Mostra les sessions actives en un disseny ampliat',
     },
 
     settingsFeatures: {
@@ -225,6 +225,10 @@ export const ca: TranslationStructure = {
         sessionNotFound: 'Sessió no trobada',
         voiceSessionFailed: 'Ha fallat l\'inici de la sessió de veu',
         voiceServiceUnavailable: 'El servei de veu no està disponible temporalment',
+        voiceNotConfigured: 'Veu no configurada',
+        voiceNotConfiguredDetail: 'La funció de veu requereix un ID d\'agent ElevenLabs. Vés a Configuració → Veu per configurar-lo.',
+        voiceServerNotConfigured: 'Veu no disponible en aquest servidor',
+        voiceServerNotConfiguredDetail: 'L\'administrador del servidor ha de configurar ELEVENLABS_API_KEY per habilitar la veu.',
         oauthInitializationFailed: 'Ha fallat la inicialització del flux OAuth',
         tokenStorageFailed: 'Ha fallat l\'emmagatzematge dels tokens d\'autenticació',
         oauthStateMismatch: 'Ha fallat la validació de seguretat. Si us plau, torna-ho a provar',
@@ -607,7 +611,13 @@ export const ca: TranslationStructure = {
             title: 'Idiomes',
             footer: ({ count }: { count: number }) => `${count} ${plural({ count, singular: 'idioma', plural: 'idiomes' })} disponibles`,
             autoDetect: 'Detecta automàticament',
-        }
+        },
+        configurationTitle: 'Configuració de veu',
+        agentId: 'ID d\'agent ElevenLabs',
+        agentIdPlaceholder: 'Introdueix l\'ID de l\'agent...',
+        agentIdFooter: 'Introdueix l\'ID del teu agent ElevenLabs Conversational AI. Per usar la veu, també cal configurar ELEVENLABS_API_KEY al servidor i un agent amb les eines messageClaudeCode i processPermissionRequest.',
+        configuredStatus: 'Configurat',
+        notConfiguredStatus: 'No configurat — toca per configurar',
     },
 
     settingsAccount: {

@@ -164,8 +164,8 @@ export const ru: TranslationStructure = {
         },
         showFlavorIcons: 'Показывать иконки провайдеров ИИ',
         showFlavorIconsDescription: 'Отображать иконки провайдеров ИИ на аватарах сессий',
-        compactSessionView: 'Компактный вид сессий',
-        compactSessionViewDescription: 'Отображать активные сессии в более компактном виде',
+        expandedSessionView: 'Расширенный вид сессий',
+        expandedSessionViewDescription: 'Отображать активные сессии в расширенном виде',
     },
 
     settingsFeatures: {
@@ -207,6 +207,10 @@ export const ru: TranslationStructure = {
         sessionNotFound: 'Сессия не найдена',
         voiceSessionFailed: 'Не удалось запустить голосовую сессию',
         voiceServiceUnavailable: 'Голосовой сервис временно недоступен',
+        voiceNotConfigured: 'Голос не настроен',
+        voiceNotConfiguredDetail: 'Голосовой функции требуется ID агента ElevenLabs. Перейдите в Настройки → Голос для настройки.',
+        voiceServerNotConfigured: 'Голос недоступен на этом сервере',
+        voiceServerNotConfiguredDetail: 'Администратору сервера необходимо установить ELEVENLABS_API_KEY для включения голоса.',
         oauthInitializationFailed: 'Не удалось инициализировать процесс OAuth',
         tokenStorageFailed: 'Не удалось сохранить токены аутентификации',
         oauthStateMismatch: 'Ошибка проверки безопасности. Попробуйте снова',
@@ -617,7 +621,13 @@ export const ru: TranslationStructure = {
             title: 'Языки',
             footer: ({ count }: { count: number }) => `Доступно ${count} ${plural({ count, one: 'язык', few: 'языка', many: 'языков' })}`,
             autoDetect: 'Автоопределение',
-        }
+        },
+        configurationTitle: 'Настройка голоса',
+        agentId: 'ID агента ElevenLabs',
+        agentIdPlaceholder: 'Введите ID агента...',
+        agentIdFooter: 'Введите ID вашего разговорного агента ElevenLabs. Для использования голоса также необходимо установить ELEVENLABS_API_KEY на сервере и настроить агента с инструментами messageClaudeCode и processPermissionRequest.',
+        configuredStatus: 'Настроено',
+        notConfiguredStatus: 'Не настроено — нажмите для настройки',
     },
 
     settingsAccount: {

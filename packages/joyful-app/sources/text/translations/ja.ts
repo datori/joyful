@@ -214,8 +214,8 @@ export const ja: TranslationStructure = {
         },
         showFlavorIcons: 'AIプロバイダーアイコンを表示',
         showFlavorIconsDescription: 'セッションアバターにAIプロバイダーアイコンを表示',
-        compactSessionView: 'コンパクトセッション表示',
-        compactSessionViewDescription: 'アクティブなセッションをコンパクトなレイアウトで表示',
+        expandedSessionView: '拡張セッション表示',
+        expandedSessionViewDescription: 'アクティブなセッションを拡張レイアウトで表示',
     },
 
     settingsFeatures: {
@@ -257,6 +257,10 @@ export const ja: TranslationStructure = {
         sessionNotFound: 'セッションが見つかりません',
         voiceSessionFailed: '音声セッションの開始に失敗しました',
         voiceServiceUnavailable: '音声サービスは一時的に利用できません',
+        voiceNotConfigured: '音声が設定されていません',
+        voiceNotConfiguredDetail: '音声機能にはElevenLabsエージェントIDが必要です。設定 → 音声に移動して設定してください。',
+        voiceServerNotConfigured: 'このサーバーでは音声が利用できません',
+        voiceServerNotConfiguredDetail: 'サーバー管理者が音声を有効にするためにELEVENLABS_API_KEYを設定する必要があります。',
         oauthInitializationFailed: 'OAuth フローの初期化に失敗しました',
         tokenStorageFailed: '認証トークンの保存に失敗しました',
         oauthStateMismatch: 'セキュリティ検証に失敗しました。再試行してください',
@@ -639,7 +643,13 @@ export const ja: TranslationStructure = {
             title: '言語',
             footer: ({ count }: { count: number }) => `${count}言語が利用可能`,
             autoDetect: '自動検出',
-        }
+        },
+        configurationTitle: '音声設定',
+        agentId: 'ElevenLabsエージェントID',
+        agentIdPlaceholder: 'エージェントIDを入力...',
+        agentIdFooter: 'ElevenLabs会話AIエージェントIDを入力してください。音声を使用するには、サーバーにELEVENLABS_API_KEYを設定し、messageClaudeCodeとprocessPermissionRequestツールでエージェントを構成する必要があります。',
+        configuredStatus: '設定済み',
+        notConfiguredStatus: '未設定 — タップして設定',
     },
 
     settingsAccount: {

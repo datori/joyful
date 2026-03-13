@@ -182,8 +182,8 @@ export const es: TranslationStructure = {
         },
         showFlavorIcons: 'Mostrar íconos de proveedor de IA',
         showFlavorIconsDescription: 'Mostrar íconos del proveedor de IA en los avatares de sesión',
-        compactSessionView: 'Vista compacta de sesiones',
-        compactSessionViewDescription: 'Mostrar sesiones activas en un diseño más compacto',
+        expandedSessionView: 'Vista ampliada de sesiones',
+        expandedSessionViewDescription: 'Mostrar sesiones activas en un diseño ampliado',
     },
 
     settingsFeatures: {
@@ -225,6 +225,10 @@ export const es: TranslationStructure = {
         sessionNotFound: 'Sesión no encontrada',
         voiceSessionFailed: 'Falló al iniciar sesión de voz',
         voiceServiceUnavailable: 'El servicio de voz no está disponible temporalmente',
+        voiceNotConfigured: 'Voz no configurada',
+        voiceNotConfiguredDetail: 'La función de voz requiere un ID de agente ElevenLabs. Ve a Ajustes → Voz para configurarlo.',
+        voiceServerNotConfigured: 'Voz no disponible en este servidor',
+        voiceServerNotConfiguredDetail: 'El administrador del servidor debe configurar ELEVENLABS_API_KEY para habilitar la voz.',
         oauthInitializationFailed: 'Falló al inicializar el flujo OAuth',
         tokenStorageFailed: 'Falló al almacenar los tokens de autenticación',
         oauthStateMismatch: 'Falló la validación de seguridad. Inténtalo de nuevo',
@@ -607,7 +611,13 @@ export const es: TranslationStructure = {
             title: 'Idiomas',
             footer: ({ count }: { count: number }) => `${count} ${plural({ count, singular: 'idioma', plural: 'idiomas' })} disponibles`,
             autoDetect: 'Detectar automáticamente',
-        }
+        },
+        configurationTitle: 'Configuración de voz',
+        agentId: 'ID de agente ElevenLabs',
+        agentIdPlaceholder: 'Introduce el ID del agente...',
+        agentIdFooter: 'Introduce el ID de tu agente de ElevenLabs Conversational AI. Para usar la voz, también necesitas configurar ELEVENLABS_API_KEY en tu servidor y un agente con las herramientas messageClaudeCode y processPermissionRequest.',
+        configuredStatus: 'Configurado',
+        notConfiguredStatus: 'No configurado — toca para configurar',
     },
 
     settingsAccount: {

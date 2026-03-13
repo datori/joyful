@@ -122,13 +122,13 @@ export default function AppearanceSettingsScreen() {
             {/* Display Settings */}
             <ItemGroup title={t('settingsAppearance.display')} footer={t('settingsAppearance.displayDescription')}>
                 <Item
-                    title={t('settingsAppearance.compactSessionView')}
-                    subtitle={t('settingsAppearance.compactSessionViewDescription')}
+                    title={t('settingsAppearance.expandedSessionView')}
+                    subtitle={t('settingsAppearance.expandedSessionViewDescription')}
                     icon={<Ionicons name="albums-outline" size={29} color="#5856D6" />}
                     rightElement={
                         <Switch
-                            value={compactSessionView}
-                            onValueChange={setCompactSessionView}
+                            value={!compactSessionView}
+                            onValueChange={(value) => setCompactSessionView(!value)}
                         />
                     }
                 />

@@ -183,8 +183,8 @@ export const zhHant: TranslationStructure = {
         },
         showFlavorIcons: '顯示 AI 提供者圖示',
         showFlavorIconsDescription: '在工作階段頭像上顯示 AI 提供者圖示',
-        compactSessionView: '緊湊工作階段檢視',
-        compactSessionViewDescription: '以更緊湊的版面配置顯示活躍工作階段',
+        expandedSessionView: '展開工作階段檢視',
+        expandedSessionViewDescription: '以展開的版面配置顯示活躍工作階段',
     },
 
     settingsFeatures: {
@@ -226,6 +226,10 @@ export const zhHant: TranslationStructure = {
         sessionNotFound: '工作階段未找到',
         voiceSessionFailed: '啟動語音工作階段失敗',
         voiceServiceUnavailable: '語音服務暫時無法使用',
+        voiceNotConfigured: '語音未配置',
+        voiceNotConfiguredDetail: '語音功能需要 ElevenLabs 代理 ID。請前往設定 → 語音進行配置。',
+        voiceServerNotConfigured: '此伺服器上語音不可用',
+        voiceServerNotConfiguredDetail: '伺服器管理員需要設定 ELEVENLABS_API_KEY 以啟用語音。',
         oauthInitializationFailed: '初始化 OAuth 流程失敗',
         tokenStorageFailed: '儲存驗證權杖失敗',
         oauthStateMismatch: '安全驗證失敗。請重試',
@@ -608,7 +612,13 @@ export const zhHant: TranslationStructure = {
             title: '語言',
             footer: ({ count }: { count: number }) => `${count} 種可用語言`,
             autoDetect: '自動偵測',
-        }
+        },
+        configurationTitle: '語音配置',
+        agentId: 'ElevenLabs 代理 ID',
+        agentIdPlaceholder: '輸入代理 ID...',
+        agentIdFooter: '輸入您的 ElevenLabs 對話式 AI 代理 ID。要使用語音，還需要在伺服器上設定 ELEVENLABS_API_KEY，並配置帶有 messageClaudeCode 和 processPermissionRequest 工具的代理。',
+        configuredStatus: '已配置',
+        notConfiguredStatus: '未配置 — 點擊設定',
     },
 
     settingsAccount: {

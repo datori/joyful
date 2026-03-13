@@ -184,8 +184,8 @@ export const zhHans: TranslationStructure = {
         },
         showFlavorIcons: '显示 AI 提供商图标',
         showFlavorIconsDescription: '在会话头像上显示 AI 提供商图标',
-        compactSessionView: '紧凑会话视图',
-        compactSessionViewDescription: '以更紧凑的布局显示活跃会话',
+        expandedSessionView: '展开会话视图',
+        expandedSessionViewDescription: '以展开的布局显示活跃会话',
     },
 
     settingsFeatures: {
@@ -227,6 +227,10 @@ export const zhHans: TranslationStructure = {
         sessionNotFound: '会话未找到',
         voiceSessionFailed: '启动语音会话失败',
         voiceServiceUnavailable: '语音服务暂时不可用',
+        voiceNotConfigured: '语音未配置',
+        voiceNotConfiguredDetail: '语音功能需要 ElevenLabs 代理 ID。请转到设置 → 语音进行配置。',
+        voiceServerNotConfigured: '此服务器上语音不可用',
+        voiceServerNotConfiguredDetail: '服务器管理员需要设置 ELEVENLABS_API_KEY 以启用语音。',
         oauthInitializationFailed: '初始化 OAuth 流程失败',
         tokenStorageFailed: '存储认证令牌失败',
         oauthStateMismatch: '安全验证失败。请重试',
@@ -609,7 +613,13 @@ export const zhHans: TranslationStructure = {
             title: '语言',
             footer: ({ count }: { count: number }) => `${count} 种可用语言`,
             autoDetect: '自动检测',
-        }
+        },
+        configurationTitle: '语音配置',
+        agentId: 'ElevenLabs 代理 ID',
+        agentIdPlaceholder: '输入代理 ID...',
+        agentIdFooter: '输入您的 ElevenLabs 对话式 AI 代理 ID。要使用语音，还需要在服务器上设置 ELEVENLABS_API_KEY，并配置带有 messageClaudeCode 和 processPermissionRequest 工具的代理。',
+        configuredStatus: '已配置',
+        notConfiguredStatus: '未配置 — 点击设置',
     },
 
     settingsAccount: {

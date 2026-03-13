@@ -181,8 +181,8 @@ export const en = {
         },
         showFlavorIcons: 'Show AI Provider Icons',
         showFlavorIconsDescription: 'Display AI provider icons on session avatars',
-        compactSessionView: 'Compact Session View',
-        compactSessionViewDescription: 'Show active sessions in a more compact layout',
+        expandedSessionView: 'Expanded Session View',
+        expandedSessionViewDescription: 'Show active sessions in an expanded layout',
     },
 
     settingsFeatures: {
