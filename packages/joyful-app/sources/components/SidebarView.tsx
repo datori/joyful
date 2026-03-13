@@ -12,7 +12,6 @@ import { FABWide } from './FABWide';
 import { VoiceAssistantStatusBar } from './VoiceAssistantStatusBar';
 import { useRealtimeStatus } from '@/sync/storage';
 import { MainView } from './MainView';
-import { Image } from 'expo-image';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
 import { useInboxHasContent } from '@/hooks/useInboxHasContent';
@@ -36,9 +35,11 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     logoContainer: {
         width: 32,
     },
-    logo: {
-        height: 24,
-        width: 24,
+    logoLetter: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: theme.colors.header.tint,
+        lineHeight: 24,
     },
     titleContainer: {
         position: 'absolute',
@@ -225,11 +226,7 @@ export const SidebarView = React.memo(() => {
                 <View style={[styles.header, { height: headerHeight }]}>
                     {/* Logo - always first */}
                     <View style={styles.logoContainer}>
-                        <Image
-                            source={theme.dark ? require('@/assets/images/logo-white.png') : require('@/assets/images/logo-black.png')}
-                            contentFit="contain"
-                            style={[styles.logo, { height: 24, width: 24 }]}
-                        />
+                        <Text style={styles.logoLetter}>J</Text>
                     </View>
 
                     {/* Left-justified title - in document flow, prevents overlap */}
@@ -246,12 +243,7 @@ export const SidebarView = React.memo(() => {
                             hitSlop={15}
                             style={styles.notificationButton}
                         >
-                            <Image
-                                source={require('@/assets/images/brutalist/Brutalism 27.png')}
-                                contentFit="contain"
-                                style={[{ width: 32, height: 32 }]}
-                                tintColor={theme.colors.header.tint}
-                            />
+                            <Ionicons name="notifications-outline" size={20} color={theme.colors.header.tint} />
                             {inboxHasContent && (
                                 <View style={styles.indicatorDot} />
                             )}
@@ -260,18 +252,13 @@ export const SidebarView = React.memo(() => {
                             onPress={() => router.push('/settings')}
                             hitSlop={15}
                         >
-                            <Image
-                                source={require('@/assets/images/brutalist/Brutalism 9.png')}
-                                contentFit="contain"
-                                style={[{ width: 32, height: 32 }]}
-                                tintColor={theme.colors.header.tint}
-                            />
+                            <Ionicons name="settings-outline" size={20} color={theme.colors.header.tint} />
                         </Pressable>
                         <Pressable
                             onPress={handleNewSession}
                             hitSlop={15}
                         >
-                            <Ionicons name="add-outline" size={28} color={theme.colors.header.tint} />
+                            <Ionicons name="add-outline" size={20} color={theme.colors.header.tint} />
                         </Pressable>
                     </View>
 

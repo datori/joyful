@@ -20,7 +20,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     },
     singleButton: {
         borderRadius: 12,
-        paddingVertical: 16,
+        paddingVertical: 11,
         paddingHorizontal: 20,
         shadowColor: theme.colors.shadow.color,
         shadowOffset: { width: 0, height: 2 },
@@ -42,7 +42,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     },
     newButton: {
         flex: 3,
-        paddingVertical: 16,
+        paddingVertical: 11,
         paddingHorizontal: 20,
         alignItems: 'center',
         justifyContent: 'center',
@@ -58,7 +58,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     },
     resumeButton: {
         flex: 2,
-        paddingVertical: 16,
+        paddingVertical: 11,
         paddingHorizontal: 12,
         alignItems: 'center',
         justifyContent: 'center',
@@ -77,11 +77,6 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         backgroundColor: theme.colors.fab.backgroundPressed,
     },
     text: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: theme.colors.fab.icon,
-    },
-    resumeText: {
         fontSize: 14,
         fontWeight: '600',
         color: theme.colors.fab.icon,
@@ -130,7 +125,7 @@ export const FABWide = React.memo(({ onPress, onResume, resumeDisabled, bottomOf
                     onPress={resumeDisabled ? undefined : onResume}
                     disabled={resumeDisabled}
                 >
-                    <Text style={styles.resumeText}>{t('newSession.resumeNative')}</Text>
+                    <Text style={styles.text}>{t('newSession.resumeNative')}</Text>
                 </Pressable>
             </View>
         </View>

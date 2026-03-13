@@ -93,7 +93,7 @@ export const TabBar = React.memo(({ activeTab, onTabPress, inboxBadgeCount = 0 }
     const tabs: TabDef[] = React.useMemo(() => {
         // NOTE: Zen tab removed - the feature never got to a useful state
         return [
-            { key: 'inbox', kind: 'image', icon: require('@/assets/images/brutalist/Brutalism 27.png'), label: t('tabs.inbox') },
+            { key: 'inbox', kind: 'ionicon', icon: 'notifications-outline', label: t('tabs.inbox') },
             { key: 'sessions', kind: 'ionicon', icon: 'add-circle-outline', label: t('tabs.sessions') },
             { key: 'settings', kind: 'ionicon', icon: 'settings-outline', label: t('tabs.settings') },
         ];
@@ -123,7 +123,7 @@ export const TabBar = React.memo(({ activeTab, onTabPress, inboxBadgeCount = 0 }
                                 ) : (
                                     <Ionicons
                                         name={tab.icon}
-                                        size={24}
+                                        size={17}
                                         color={isActive ? theme.colors.text : theme.colors.textSecondary}
                                     />
                                 )}
