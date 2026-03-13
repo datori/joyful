@@ -1,5 +1,5 @@
 /**
- * Chinese (Traditional) translations for the Happy app
+ * Chinese (Traditional) translations for the Joyful app
  * Values can be:
  * - String constants for static text
  * - Functions with typed object parameters for dynamic text
@@ -118,7 +118,7 @@ export const zhHant: TranslationStructure = {
         developer: '開發者',
         developerTools: '開發者工具',
         about: '關於',
-        aboutFooter: 'Happy Coder 是一個 Codex 和 Claude Code 行動用戶端。它採用端對端加密，您的帳戶僅儲存在本機裝置上。與 Anthropic 無關聯。',
+        aboutFooter: 'Joyful Coder 是一個 Codex 和 Claude Code 行動用戶端。它採用端對端加密，您的帳戶僅儲存在本機裝置上。與 Anthropic 無關聯。',
         whatsNew: '更新日誌',
         whatsNewSubtitle: '查看最新更新和改進',
         reportIssue: '回報問題',
@@ -313,7 +313,7 @@ export const zhHant: TranslationStructure = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: '伺服器設定',
         enterServerUrl: '請輸入伺服器 URL',
-        notValidHappyServer: '不是有效的 Happy 伺服器',
+        notValidHappyServer: '不是有效的 Joyful 伺服器',
         changeServer: '更改伺服器',
         continueWithServer: '繼續使用此伺服器？',
         resetToDefault: '重設為預設',
@@ -366,7 +366,7 @@ export const zhHant: TranslationStructure = {
         path: '路徑',
         operatingSystem: '作業系統',
         processId: '處理程序 ID',
-        joyfulHome: 'Happy 主目錄',
+        joyfulHome: 'Joyful 主目錄',
         copyMetadata: '複製中繼資料',
         agentState: 'Agent 狀態',
         controlledByUser: '使用者控制',
@@ -392,7 +392,7 @@ export const zhHant: TranslationStructure = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: '準備開始寫程式？',
-            installCli: '安裝 Happy CLI',
+            installCli: '安裝 Joyful CLI',
             runIt: '執行它',
             scanQrCode: '掃描 QR Code',
             openCamera: '開啟相機',
@@ -498,7 +498,7 @@ export const zhHant: TranslationStructure = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: '機器',
     },
 
@@ -688,7 +688,7 @@ export const zhHant: TranslationStructure = {
         invalidConnectionLink: '無效的連線連結',
         invalidConnectionLinkDescription: '連線連結缺失或無效。請檢查 URL 並重試。',
         connectTerminal: '連線終端',
-        terminalRequestDescription: '有終端正在請求連線到您的 Happy Coder 帳戶。這將允許終端安全地傳送和接收訊息。',
+        terminalRequestDescription: '有終端正在請求連線到您的 Joyful Coder 帳戶。這將允許終端安全地傳送和接收訊息。',
         connectionDetails: '連線詳情',
         publicKey: '公鑰',
         encryption: '加密',

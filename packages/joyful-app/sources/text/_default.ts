@@ -116,7 +116,7 @@ export const en = {
         developer: 'Developer',
         developerTools: 'Developer Tools',
         about: 'About',
-        aboutFooter: 'Happy Coder is a Codex and Claude Code mobile client. It\'s fully end-to-end encrypted and your account is stored only on your device. Not affiliated with Anthropic.',
+        aboutFooter: 'Joyful Coder is a Codex and Claude Code mobile client. It\'s fully end-to-end encrypted and your account is stored only on your device. Not affiliated with Anthropic.',
         whatsNew: 'What\'s New',
         whatsNewSubtitle: 'See the latest updates and improvements',
         reportIssue: 'Report an Issue',
@@ -260,7 +260,7 @@ export const en = {
         // Used by new-session screen and launch flows
         title: 'Start New Session',
         resumeNative: 'Resume',
-        noMachinesFound: 'No machines found. Start a Happy session on your computer first.',
+        noMachinesFound: 'No machines found. Start a Joyful session on your computer first.',
         allMachinesOffline: 'All machines appear offline',
         machineDetails: 'View machine details →',
         directoryDoesNotExist: 'Directory Not Found',
@@ -311,7 +311,7 @@ export const en = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: 'Server Configuration',
         enterServerUrl: 'Please enter a server URL',
-        notValidHappyServer: 'Not a valid Happy Server',
+        notValidHappyServer: 'Not a valid Joyful Server',
         changeServer: 'Change Server',
         continueWithServer: 'Continue with this server?',
         resetToDefault: 'Reset to Default',
@@ -340,7 +340,7 @@ export const en = {
         archiveSession: 'Archive Session',
         archiveSessionConfirm: 'Are you sure you want to archive this session?',
         joyfulSessionIdCopied: 'Joyful Session ID copied to clipboard',
-        failedToCopySessionId: 'Failed to copy Happy Session ID',
+        failedToCopySessionId: 'Failed to copy Joyful Session ID',
         joyfulSessionId: 'Joyful Session ID',
         claudeCodeSessionId: 'Claude Code Session ID',
         claudeCodeSessionIdCopied: 'Claude Code Session ID copied to clipboard',
@@ -390,7 +390,7 @@ export const en = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: 'Ready to code?',
-            installCli: 'Install the Happy CLI',
+            installCli: 'Install the Joyful CLI',
             runIt: 'Run it',
             scanQrCode: 'Scan the QR code',
             openCamera: 'Open Camera',
@@ -496,7 +496,7 @@ export const en = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: 'Machines',
     },
 
@@ -686,7 +686,7 @@ export const en = {
         invalidConnectionLink: 'Invalid Connection Link',
         invalidConnectionLinkDescription: 'The connection link is missing or invalid. Please check the URL and try again.',
         connectTerminal: 'Connect Terminal',
-        terminalRequestDescription: 'A terminal is requesting to connect to your Happy Coder account. This will allow the terminal to send and receive messages securely.',
+        terminalRequestDescription: 'A terminal is requesting to connect to your Joyful Coder account. This will allow the terminal to send and receive messages securely.',
         connectionDetails: 'Connection Details',
         publicKey: 'Public Key',
         encryption: 'Encryption',

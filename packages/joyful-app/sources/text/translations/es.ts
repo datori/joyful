@@ -11,7 +11,7 @@ function plural({ count, singular, plural }: { count: number; singular: string; 
 }
 
 /**
- * Spanish translations for the Happy app
+ * Spanish translations for the Joyful app
  * Must match the exact structure of the English translations
  */
 export const es: TranslationStructure = {
@@ -117,7 +117,7 @@ export const es: TranslationStructure = {
         developer: 'Desarrollador',
         developerTools: 'Herramientas de desarrollador',
         about: 'Acerca de',
-        aboutFooter: 'Happy Coder es un cliente móvil para Codex y Claude Code. Todo está cifrado de extremo a extremo y tu cuenta se guarda solo en tu dispositivo. No está afiliado con Anthropic.',
+        aboutFooter: 'Joyful Coder es un cliente móvil para Codex y Claude Code. Todo está cifrado de extremo a extremo y tu cuenta se guarda solo en tu dispositivo. No está afiliado con Anthropic.',
         whatsNew: 'Novedades',
         whatsNewSubtitle: 'Ve las últimas actualizaciones y mejoras',
         reportIssue: 'Reportar un problema',
@@ -312,7 +312,7 @@ export const es: TranslationStructure = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: 'Configuración del servidor',
         enterServerUrl: 'Ingresa una URL de servidor',
-        notValidHappyServer: 'No es un servidor Happy válido',
+        notValidHappyServer: 'No es un servidor Joyful válido',
         changeServer: 'Cambiar servidor',
         continueWithServer: '¿Continuar con este servidor?',
         resetToDefault: 'Restablecer por defecto',
@@ -365,7 +365,7 @@ export const es: TranslationStructure = {
         path: 'Ruta',
         operatingSystem: 'Sistema operativo',
         processId: 'ID del proceso',
-        joyfulHome: 'Directorio de Happy',
+        joyfulHome: 'Directorio de Joyful',
         copyMetadata: 'Copiar metadatos',
         agentState: 'Estado del agente',
         controlledByUser: 'Controlado por el usuario',
@@ -391,7 +391,7 @@ export const es: TranslationStructure = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: '¿Listo para programar?',
-            installCli: 'Instale el Happy CLI',
+            installCli: 'Instale el Joyful CLI',
             runIt: 'Ejecútelo',
             scanQrCode: 'Escanee el código QR',
             openCamera: 'Abrir cámara',
@@ -497,7 +497,7 @@ export const es: TranslationStructure = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: 'Máquinas',
     },
 
@@ -687,7 +687,7 @@ export const es: TranslationStructure = {
         invalidConnectionLink: 'Enlace de conexión inválido',
         invalidConnectionLinkDescription: 'El enlace de conexión falta o es inválido. Verifica la URL e intenta nuevamente.',
         connectTerminal: 'Conectar terminal',
-        terminalRequestDescription: 'Un terminal está solicitando conectarse a tu cuenta de Happy Coder. Esto permitirá al terminal enviar y recibir mensajes de forma segura.',
+        terminalRequestDescription: 'Un terminal está solicitando conectarse a tu cuenta de Joyful Coder. Esto permitirá al terminal enviar y recibir mensajes de forma segura.',
         connectionDetails: 'Detalles de conexión',
         publicKey: 'Clave pública',
         encryption: 'Cifrado',

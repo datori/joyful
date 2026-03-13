@@ -22,7 +22,7 @@ function plural({ count, one, few, many }: { count: number; one: string; few: st
 }
 
 /**
- * Russian translations for the Happy app
+ * Russian translations for the Joyful app
  * Must match the exact structure of the English translations
  */
 export const ru: TranslationStructure = {
@@ -99,7 +99,7 @@ export const ru: TranslationStructure = {
         developer: 'Разработчик',
         developerTools: 'Инструменты разработчика',
         about: 'О программе',
-        aboutFooter: 'Happy Coder — мобильное приложение для работы с Codex и Claude Code. Использует сквозное шифрование, все данные аккаунта хранятся только на вашем устройстве. Не связано с Anthropic.',
+        aboutFooter: 'Joyful Coder — мобильное приложение для работы с Codex и Claude Code. Использует сквозное шифрование, все данные аккаунта хранятся только на вашем устройстве. Не связано с Anthropic.',
         whatsNew: 'Что нового',
         whatsNewSubtitle: 'Посмотреть последние обновления и улучшения',
         reportIssue: 'Сообщить о проблеме',
@@ -243,7 +243,7 @@ export const ru: TranslationStructure = {
         // Used by new-session screen and launch flows
         title: 'Начать новую сессию',
         resumeNative: 'Возобновить',
-        noMachinesFound: 'Машины не найдены. Сначала запустите сессию Happy на вашем компьютере.',
+        noMachinesFound: 'Машины не найдены. Сначала запустите сессию Joyful на вашем компьютере.',
         allMachinesOffline: 'Все машины находятся offline',
         machineDetails: 'Посмотреть детали машины →',
         directoryDoesNotExist: 'Директория не найдена',
@@ -286,7 +286,7 @@ export const ru: TranslationStructure = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: 'Настройка сервера',
         enterServerUrl: 'Пожалуйста, введите URL сервера',
-        notValidHappyServer: 'Это не валидный сервер Happy',
+        notValidHappyServer: 'Это не валидный сервер Joyful',
         changeServer: 'Изменить сервер',
         continueWithServer: 'Продолжить с этим сервером?',
         resetToDefault: 'Сбросить по умолчанию',
@@ -339,7 +339,7 @@ export const ru: TranslationStructure = {
         path: 'Путь',
         operatingSystem: 'Операционная система',
         processId: 'ID процесса',
-        joyfulHome: 'Домашний каталог Happy',
+        joyfulHome: 'Домашний каталог Joyful',
         copyMetadata: 'Копировать метаданные',
         agentState: 'Состояние агента',
         controlledByUser: 'Управляется пользователем',
@@ -364,7 +364,7 @@ export const ru: TranslationStructure = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: 'Готовы к программированию?',
-            installCli: 'Установите Happy CLI',
+            installCli: 'Установите Joyful CLI',
             runIt: 'Запустите его',
             scanQrCode: 'Отсканируйте QR-код',
             openCamera: 'Открыть камеру',
@@ -507,7 +507,7 @@ export const ru: TranslationStructure = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: 'Компьютеры',
     },
 
@@ -685,7 +685,7 @@ export const ru: TranslationStructure = {
         invalidConnectionLink: 'Неверная ссылка подключения',
         invalidConnectionLinkDescription: 'Ссылка подключения отсутствует или неверна. Проверьте URL и попробуйте снова.',
         connectTerminal: 'Подключить терминал',
-        terminalRequestDescription: 'Терминал запрашивает подключение к вашему аккаунту Happy Coder. Это позволит терминалу безопасно отправлять и получать сообщения.',
+        terminalRequestDescription: 'Терминал запрашивает подключение к вашему аккаунту Joyful Coder. Это позволит терминалу безопасно отправлять и получать сообщения.',
         connectionDetails: 'Детали подключения',
         publicKey: 'Публичный ключ',
         encryption: 'Шифрование',

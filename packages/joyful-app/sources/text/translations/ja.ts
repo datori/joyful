@@ -1,5 +1,5 @@
 /**
- * Japanese translations for the Happy app
+ * Japanese translations for the Joyful app
  * Values can be:
  * - String constants for static text
  * - Functions with typed object parameters for dynamic text
@@ -149,7 +149,7 @@ export const ja: TranslationStructure = {
         developer: '開発者',
         developerTools: '開発者ツール',
         about: 'このアプリについて',
-        aboutFooter: 'Happy CoderはCodexとClaude Codeのモバイルクライアントです。完全なエンドツーエンド暗号化を採用し、アカウントはデバイスにのみ保存されます。Anthropicとは提携していません。',
+        aboutFooter: 'Joyful CoderはCodexとClaude Codeのモバイルクライアントです。完全なエンドツーエンド暗号化を採用し、アカウントはデバイスにのみ保存されます。Anthropicとは提携していません。',
         whatsNew: '新機能',
         whatsNewSubtitle: '最新のアップデートと改善を確認',
         reportIssue: '問題を報告',
@@ -293,7 +293,7 @@ export const ja: TranslationStructure = {
         // Used by new-session screen and launch flows
         title: '新しいセッションを開始',
         resumeNative: '再開',
-        noMachinesFound: 'マシンが見つかりません。まずコンピューターでHappyセッションを起動してください。',
+        noMachinesFound: 'マシンが見つかりません。まずコンピューターでJoyfulセッションを起動してください。',
         allMachinesOffline: 'すべてのマシンがオフラインです',
         machineDetails: 'マシンの詳細を表示 →',
         directoryDoesNotExist: 'ディレクトリが見つかりません',
@@ -344,7 +344,7 @@ export const ja: TranslationStructure = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: 'サーバー設定',
         enterServerUrl: 'サーバーURLを入力してください',
-        notValidHappyServer: '有効なHappy Serverではありません',
+        notValidHappyServer: '有効なJoyful Serverではありません',
         changeServer: 'サーバーを変更',
         continueWithServer: 'このサーバーで続行しますか？',
         resetToDefault: 'デフォルトにリセット',
@@ -423,7 +423,7 @@ export const ja: TranslationStructure = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: 'コーディングを始めますか？',
-            installCli: 'Happy CLIをインストール',
+            installCli: 'Joyful CLIをインストール',
             runIt: '実行する',
             scanQrCode: 'QRコードをスキャン',
             openCamera: 'カメラを開く',
@@ -529,7 +529,7 @@ export const ja: TranslationStructure = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: 'マシン',
     },
 
@@ -719,7 +719,7 @@ export const ja: TranslationStructure = {
         invalidConnectionLink: '無効な接続リンク',
         invalidConnectionLinkDescription: '接続リンクが見つからないか無効です。URLを確認して再試行してください。',
         connectTerminal: 'ターミナルを接続',
-        terminalRequestDescription: 'ターミナルがHappy Coderアカウントへの接続を要求しています。これにより、ターミナルは安全にメッセージを送受信できるようになります。',
+        terminalRequestDescription: 'ターミナルがJoyful Coderアカウントへの接続を要求しています。これにより、ターミナルは安全にメッセージを送受信できるようになります。',
         connectionDetails: '接続の詳細',
         publicKey: '公開鍵',
         encryption: '暗号化',

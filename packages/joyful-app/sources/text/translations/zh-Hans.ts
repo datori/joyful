@@ -1,5 +1,5 @@
 /**
- * Chinese (Simplified) translations for the Happy app
+ * Chinese (Simplified) translations for the Joyful app
  * Values can be:
  * - String constants for static text
  * - Functions with typed object parameters for dynamic text
@@ -119,7 +119,7 @@ export const zhHans: TranslationStructure = {
         developer: '开发者',
         developerTools: '开发者工具',
         about: '关于',
-        aboutFooter: 'Happy Coder 是一个 Codex 和 Claude Code 移动客户端。它采用端到端加密，您的账户仅存储在本地设备上。与 Anthropic 无关联。',
+        aboutFooter: 'Joyful Coder 是一个 Codex 和 Claude Code 移动客户端。它采用端到端加密，您的账户仅存储在本地设备上。与 Anthropic 无关联。',
         whatsNew: '更新日志',
         whatsNewSubtitle: '查看最新更新和改进',
         reportIssue: '报告问题',
@@ -314,7 +314,7 @@ export const zhHans: TranslationStructure = {
         // Used by Server Configuration screen (app/(app)/server.tsx)
         serverConfiguration: '服务器配置',
         enterServerUrl: '请输入服务器 URL',
-        notValidHappyServer: '不是有效的 Happy 服务器',
+        notValidHappyServer: '不是有效的 Joyful 服务器',
         changeServer: '更改服务器',
         continueWithServer: '继续使用此服务器？',
         resetToDefault: '重置为默认',
@@ -367,7 +367,7 @@ export const zhHans: TranslationStructure = {
         path: '路径',
         operatingSystem: '操作系统',
         processId: '进程 ID',
-        joyfulHome: 'Happy 主目录',
+        joyfulHome: 'Joyful 主目录',
         copyMetadata: '复制元数据',
         agentState: 'Agent 状态',
         controlledByUser: '用户控制',
@@ -393,7 +393,7 @@ export const zhHans: TranslationStructure = {
         emptyMainScreen: {
             // Used by EmptyMainScreen component
             readyToCode: '准备开始编程？',
-            installCli: '安装 Happy CLI',
+            installCli: '安装 Joyful CLI',
             runIt: '运行它',
             scanQrCode: '扫描二维码',
             openCamera: '打开相机',
@@ -499,7 +499,7 @@ export const zhHans: TranslationStructure = {
     },
 
     sidebar: {
-        sessionsTitle: 'Happy',
+        sessionsTitle: 'Joyful',
         machines: '机器',
     },
 
@@ -689,7 +689,7 @@ export const zhHans: TranslationStructure = {
         invalidConnectionLink: '无效的连接链接',
         invalidConnectionLinkDescription: '连接链接缺失或无效。请检查 URL 并重试。',
         connectTerminal: '连接终端',
-        terminalRequestDescription: '有终端正在请求连接到您的 Happy Coder 账户。这将允许终端安全地发送和接收消息。',
+        terminalRequestDescription: '有终端正在请求连接到您的 Joyful Coder 账户。这将允许终端安全地发送和接收消息。',
         connectionDetails: '连接详情',
         publicKey: '公钥',
         encryption: '加密',
