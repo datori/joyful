@@ -6,6 +6,15 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 <!-- changelog-summary: 2026-03-12 (fork base: d343330c) -->
 
+#### UI & UX
+- **Ionicons icon set** — tab bar and sidebar icons replaced with Ionicons; sidebar logo replaced with a bold "J" text label; settings page logotype removed; FAB buttons tightened
+- **Compact session view by default** — compact layout is the default; expanded layout is opt-in via Appearance settings
+- **Settings chips** — permissions, model, and effort selectors in the session overlay replaced with horizontal chip rows, eliminating the need to scroll
+- **Inbox tab → Updates** — friend/feed system removed; Inbox repurposed as an Updates tab showing app and changelog notifications
+
+#### Voice
+- **Self-hosted ElevenLabs config** — agent ID can be set directly in Settings → Voice without rebuilding; mic button shows a clear prompt when unconfigured; server returns 503 with an actionable message when `ELEVENLABS_API_KEY` is absent
+
 #### Session management
 - **Native session browser** — discover and resume existing Claude Code sessions (JSONL files in `~/.claude/projects/`) directly from the app, without starting a new session
 - **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session" on the sessions list; pick machine, working directory, and native session in one flow
