@@ -6,6 +6,11 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 <!-- changelog-summary: 2026-03-12 (fork base: d343330c) -->
 
+- **Archived sessions section** — inactive sessions grouped under a collapsible "Archived (N)" header at the bottom of the sessions list, collapsed by default, rendered at reduced opacity
+- **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and on the machine detail screen
+- **Slash command autocomplete on new session screen** — typing `/` surfaces recently-seen commands from past sessions, with a "Recent commands" label; more commands now visible (auth, config, review, diagnostic commands no longer suppressed)
+- **Reconnect performance** — single batched `POST /v3/messages/batch` replaces one HTTP fetch per session on reconnect (~92% fewer requests); selective invalidation skips sessions already up-to-date
+- **Streaming performance** — seq allocation batched per-message-group in both REST and socket paths, eliminating seq gaps that caused 35% of streaming messages to hit the slow REST fallback
 - **Native session browser** — discover and resume existing Claude Code sessions (JSONL files in `~/.claude/projects/`) directly from the app, without starting a new session
 - **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session" on the sessions list screen; pick machine, working directory, and native session in one flow
 - **Claude Code model & effort integration** — CLI reads `~/.claude/settings.json` at startup and surfaces default model and effort level to the app; effort picker added to session creation and session view; actual running model captured from the SDK and kept in sync
