@@ -1,6 +1,6 @@
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import * as React from 'react';
-import { View, Platform, useWindowDimensions, ViewStyle, Text, ActivityIndicator, TouchableWithoutFeedback, Image as RNImage, Pressable } from 'react-native';
+import { View, Platform, useWindowDimensions, ViewStyle, Text, ActivityIndicator, TouchableWithoutFeedback, Image as RNImage, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { layout } from './layout';
 import { MultiTextInput, KeyPressEvent } from './MultiTextInput';
@@ -139,20 +139,57 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         zIndex: 999,
     },
     overlaySection: {
-        paddingVertical: 8,
+        paddingVertical: 5,
     },
     overlaySectionTitle: {
         fontSize: 12,
         fontWeight: '600',
         color: theme.colors.textSecondary,
         paddingHorizontal: 16,
-        paddingBottom: 4,
+        paddingBottom: 2,
         ...Typography.default('semiBold'),
     },
     overlayDivider: {
         height: 1,
         backgroundColor: theme.colors.divider,
         marginHorizontal: 16,
+    },
+    chipRowContent: {
+        flexDirection: 'row',
+        gap: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 2,
+    },
+    chip: {
+        borderWidth: 1,
+        borderColor: theme.colors.radio.inactive,
+        borderRadius: 14,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        minHeight: 30,
+        justifyContent: 'center',
+    },
+    chipSelected: {
+        borderColor: theme.colors.radio.active,
+        backgroundColor: theme.colors.radio.active,
+    },
+    chipPressed: {
+        opacity: 0.7,
+    },
+    chipText: {
+        fontSize: 13,
+        color: theme.colors.text,
+        ...Typography.default(),
+    },
+    chipTextSelected: {
+        color: theme.colors.button.primary.tint,
+    },
+    chipRowEmpty: {
+        fontSize: 13,
+        color: theme.colors.textSecondary,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        ...Typography.default(),
     },
 
     // Selection styles
@@ -567,155 +604,76 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             styles.settingsOverlay,
                             { paddingHorizontal: screenWidth > 700 ? 0 : 8 }
                         ]}>
-                            <FloatingOverlay maxHeight={400} keyboardShouldPersistTaps="always">
+                            <FloatingOverlay maxHeight={220} keyboardShouldPersistTaps="always">
                                 {/* Permission Mode Section */}
                                 <View style={styles.overlaySection}>
                                     <Text style={styles.overlaySectionTitle}>
                                         {isCodex ? t('agentInput.codexPermissionMode.title') : isGemini ? t('agentInput.geminiPermissionMode.title') : t('agentInput.permissionMode.title')}
                                     </Text>
-                                    {availableModes.map((mode) => {
-                                        const isSelected = permissionModeKey === mode.key;
-
-                                        return (
-                                            <Pressable
-                                                key={mode.key}
-                                                onPress={() => handleSettingsSelect(mode)}
-                                                style={({ pressed }) => ({
-                                                    flexDirection: 'row',
-                                                    alignItems: 'center',
-                                                    paddingHorizontal: 16,
-                                                    paddingVertical: 8,
-                                                    backgroundColor: pressed ? theme.colors.surfacePressed : 'transparent'
-                                                })}
-                                            >
-                                                <View style={{
-                                                    width: 16,
-                                                    height: 16,
-                                                    borderRadius: 8,
-                                                    borderWidth: 2,
-                                                    borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    marginRight: 12
-                                                }}>
-                                                    {isSelected && (
-                                                        <View style={{
-                                                            width: 6,
-                                                            height: 6,
-                                                            borderRadius: 3,
-                                                            backgroundColor: theme.colors.radio.dot
-                                                        }} />
-                                                    )}
-                                                </View>
-                                                <View style={{ flex: 1 }}>
-                                                    <Text style={{
-                                                        fontSize: 14,
-                                                        color: isSelected ? theme.colors.radio.active : theme.colors.text,
-                                                        ...Typography.default()
-                                                    }}>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        contentContainerStyle={styles.chipRowContent}
+                                    >
+                                        {availableModes.map((mode) => {
+                                            const isSelected = permissionModeKey === mode.key;
+                                            return (
+                                                <Pressable
+                                                    key={mode.key}
+                                                    onPress={() => handleSettingsSelect(mode)}
+                                                    style={({ pressed }) => [
+                                                        styles.chip,
+                                                        isSelected && styles.chipSelected,
+                                                        pressed && styles.chipPressed,
+                                                    ]}
+                                                >
+                                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                                                         {withSandboxSuffix(mode.name, mode.key)}
                                                     </Text>
-                                                    {!!mode.description && (
-                                                        <Text style={{
-                                                            fontSize: 11,
-                                                            color: theme.colors.textSecondary,
-                                                            ...Typography.default()
-                                                        }}>
-                                                            {mode.description}
-                                                        </Text>
-                                                    )}
-                                                </View>
-                                            </Pressable>
-                                        );
-                                    })}
+                                                </Pressable>
+                                            );
+                                        })}
+                                    </ScrollView>
                                 </View>
 
                                 {/* Divider */}
-                                <View style={{
-                                    height: 1,
-                                    backgroundColor: theme.colors.divider,
-                                    marginHorizontal: 16
-                                }} />
+                                <View style={styles.overlayDivider} />
 
                                 {/* Model Section */}
-                                <View style={{ paddingVertical: 8 }}>
-                                    <Text style={{
-                                        fontSize: 12,
-                                        fontWeight: '600',
-                                        color: theme.colors.textSecondary,
-                                        paddingHorizontal: 16,
-                                        paddingBottom: 4,
-                                        ...Typography.default('semiBold')
-                                    }}>
+                                <View style={styles.overlaySection}>
+                                    <Text style={styles.overlaySectionTitle}>
                                         {t('agentInput.model.title')}
                                     </Text>
                                     {availableModels.length > 0 ? (
-                                        availableModels.map((model) => {
-                                            const isSelected = props.modelMode?.key === model.key;
-
-                                            return (
-                                                <Pressable
-                                                    key={model.key}
-                                                    onPress={() => {
-                                                        hapticsLight();
-                                                        props.onModelModeChange?.(model);
-                                                    }}
-                                                    style={({ pressed }) => ({
-                                                        flexDirection: 'row',
-                                                        alignItems: 'center',
-                                                        paddingHorizontal: 16,
-                                                        paddingVertical: 8,
-                                                        backgroundColor: pressed ? theme.colors.surfacePressed : 'transparent'
-                                                    })}
-                                                >
-                                                    <View style={{
-                                                        width: 16,
-                                                        height: 16,
-                                                        borderRadius: 8,
-                                                        borderWidth: 2,
-                                                        borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        marginRight: 12
-                                                    }}>
-                                                        {isSelected && (
-                                                            <View style={{
-                                                                width: 6,
-                                                                height: 6,
-                                                                borderRadius: 3,
-                                                                backgroundColor: theme.colors.radio.dot
-                                                            }} />
-                                                        )}
-                                                    </View>
-                                                    <View>
-                                                        <Text style={{
-                                                            fontSize: 14,
-                                                            color: isSelected ? theme.colors.radio.active : theme.colors.text,
-                                                            ...Typography.default()
-                                                        }}>
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            contentContainerStyle={styles.chipRowContent}
+                                        >
+                                            {availableModels.map((model) => {
+                                                const isSelected = props.modelMode?.key === model.key;
+                                                return (
+                                                    <Pressable
+                                                        key={model.key}
+                                                        onPress={() => {
+                                                            hapticsLight();
+                                                            props.onModelModeChange?.(model);
+                                                        }}
+                                                        style={({ pressed }) => [
+                                                            styles.chip,
+                                                            isSelected && styles.chipSelected,
+                                                            pressed && styles.chipPressed,
+                                                        ]}
+                                                    >
+                                                        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                                                             {model.name}
                                                         </Text>
-                                                        {!!model.description && (
-                                                            <Text style={{
-                                                                fontSize: 11,
-                                                                color: theme.colors.textSecondary,
-                                                                ...Typography.default()
-                                                            }}>
-                                                                {model.description}
-                                                            </Text>
-                                                        )}
-                                                    </View>
-                                                </Pressable>
-                                            );
-                                        })
+                                                    </Pressable>
+                                                );
+                                            })}
+                                        </ScrollView>
                                     ) : (
-                                        <Text style={{
-                                            fontSize: 13,
-                                            color: theme.colors.textSecondary,
-                                            paddingHorizontal: 16,
-                                            paddingVertical: 8,
-                                            ...Typography.default()
-                                        }}>
+                                        <Text style={styles.chipRowEmpty}>
                                             {t('agentInput.model.configureInCli')}
                                         </Text>
                                     )}
@@ -724,82 +682,38 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 {/* Effort Level Section */}
                                 {availableEffortLevels.length > 0 && (
                                     <>
-                                        {/* Divider */}
-                                        <View style={{
-                                            height: 1,
-                                            backgroundColor: theme.colors.divider,
-                                            marginHorizontal: 16
-                                        }} />
-
-                                        <View style={{ paddingVertical: 8 }}>
-                                            <Text style={{
-                                                fontSize: 12,
-                                                fontWeight: '600',
-                                                color: theme.colors.textSecondary,
-                                                paddingHorizontal: 16,
-                                                paddingBottom: 4,
-                                                ...Typography.default('semiBold')
-                                            }}>
+                                        <View style={styles.overlayDivider} />
+                                        <View style={styles.overlaySection}>
+                                            <Text style={styles.overlaySectionTitle}>
                                                 {t('agentInput.effort.title')}
                                             </Text>
-                                            {availableEffortLevels.map((level) => {
-                                                const isSelected = (props.effortLevel?.key ?? 'default') === level.key;
-
-                                                return (
-                                                    <Pressable
-                                                        key={level.key}
-                                                        onPress={() => {
-                                                            hapticsLight();
-                                                            props.onEffortLevelChange?.(level);
-                                                        }}
-                                                        style={({ pressed }) => ({
-                                                            flexDirection: 'row',
-                                                            alignItems: 'center',
-                                                            paddingHorizontal: 16,
-                                                            paddingVertical: 8,
-                                                            backgroundColor: pressed ? theme.colors.surfacePressed : 'transparent'
-                                                        })}
-                                                    >
-                                                        <View style={{
-                                                            width: 16,
-                                                            height: 16,
-                                                            borderRadius: 8,
-                                                            borderWidth: 2,
-                                                            borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            marginRight: 12
-                                                        }}>
-                                                            {isSelected && (
-                                                                <View style={{
-                                                                    width: 6,
-                                                                    height: 6,
-                                                                    borderRadius: 3,
-                                                                    backgroundColor: theme.colors.radio.dot
-                                                                }} />
-                                                            )}
-                                                        </View>
-                                                        <View>
-                                                            <Text style={{
-                                                                fontSize: 14,
-                                                                color: isSelected ? theme.colors.radio.active : theme.colors.text,
-                                                                ...Typography.default()
-                                                            }}>
+                                            <ScrollView
+                                                horizontal
+                                                showsHorizontalScrollIndicator={false}
+                                                contentContainerStyle={styles.chipRowContent}
+                                            >
+                                                {availableEffortLevels.map((level) => {
+                                                    const isSelected = (props.effortLevel?.key ?? 'default') === level.key;
+                                                    return (
+                                                        <Pressable
+                                                            key={level.key}
+                                                            onPress={() => {
+                                                                hapticsLight();
+                                                                props.onEffortLevelChange?.(level);
+                                                            }}
+                                                            style={({ pressed }) => [
+                                                                styles.chip,
+                                                                isSelected && styles.chipSelected,
+                                                                pressed && styles.chipPressed,
+                                                            ]}
+                                                        >
+                                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                                                                 {level.name}
                                                             </Text>
-                                                            {!!level.description && (
-                                                                <Text style={{
-                                                                    fontSize: 11,
-                                                                    color: theme.colors.textSecondary,
-                                                                    ...Typography.default()
-                                                                }}>
-                                                                    {level.description}
-                                                                </Text>
-                                                            )}
-                                                        </View>
-                                                    </Pressable>
-                                                );
-                                            })}
+                                                        </Pressable>
+                                                    );
+                                                })}
+                                            </ScrollView>
                                         </View>
                                     </>
                                 )}
