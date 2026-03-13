@@ -58,22 +58,59 @@ Step 1: Download App
 </div>
 
 <h3 align="center">
-Step 2: Install CLI on your computer
+Step 2: Run from Source
 </h3>
 
-```bash
-npm install -g joyful
-```
+> **Note:** This is a fork — the CLI has not been published to npm. You need to run everything from this repository.
 
-<h3 align="center">
-Run From Source (Repo Checkout)
-</h3>
+**Prerequisites:** Node.js 20+, Yarn 1.22.22, and [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed.
 
 ```bash
-# from repository root
-yarn cli --help
-yarn cli codex
+# 1. Clone and install dependencies
+git clone https://github.com/datori/joyful.git
+cd joyful
+yarn install
+
+# 2. Build the CLI
+yarn workspace joyful build
+
+# 3. Start the local server + daemon (handles migrations automatically)
+yarn dev:stack:start
+
+# 4. Get your seed to link the web app
+yarn dev:stack:seed
 ```
+
+The web app connects to the local server at `http://localhost:3007`:
+
+```bash
+# In a separate terminal — starts Expo web on http://localhost:8081
+EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 yarn web
+```
+
+Open `http://localhost:8081` → Settings → Restore with Secret Key → paste the **base32** seed printed by `yarn dev:stack:seed`.
+
+**Running the CLI:**
+
+```bash
+# Run against the local dev stack
+JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 yarn cli
+
+# Or use the built binary directly
+JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 ./packages/joyful-cli/bin/joyful.mjs
+```
+
+**Dev stack commands:**
+
+```bash
+yarn dev:stack:start    # Start server + daemon
+yarn dev:stack:stop     # Gracefully stop everything
+yarn dev:stack:status   # Show what's running
+yarn dev:stack:nuke     # Full reset: wipe DB, re-bootstrap, restart
+yarn dev:stack:seed     # Print seed in base64url and base32 formats
+```
+
+> ⚠️ **PGlite warning:** Never `kill -9` the server — it uses an embedded WASM database that corrupts on hard kills. Always use `yarn dev:stack:stop`.
 
 <h3 align="center">
 Release (Maintainers)
