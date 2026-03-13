@@ -47,6 +47,17 @@ type V3GetSessionMessagesResponse = {
     hasMore: boolean;
 };
 
+type V3BatchMessagesRequest = {
+    sessions: Array<{ sessionId: string; afterSeq: number; limit?: number }>;
+};
+
+type V3BatchMessagesResponse = {
+    sessions: Record<string, {
+        messages: ApiMessage[];
+        hasMore: boolean;
+    }>;
+};
+
 type V3PostSessionMessagesResponse = {
     messages: Array<{
         id: string;
@@ -97,6 +108,7 @@ class Sync {
     private backgroundSendTimeout: ReturnType<typeof setTimeout> | null = null;
     private backgroundSendNotificationId: string | null = null;
     private backgroundSendStartedAt: number | null = null;
+    private reconnectCleanup: (() => void) | null = null;
     revenueCatInitialized = false;
 
     // Generic locking mechanism
@@ -1662,6 +1674,90 @@ class Sync {
         });
     }
 
+    /**
+     * Fetches messages for multiple sessions in a single HTTP request and dispatches
+     * results to per-session message queues. Returns session IDs that need follow-up
+     * pagination (hasMore: true).
+     */
+    private batchFetchAndDispatch = async (serverSessions: Record<string, number>): Promise<Set<string>> => {
+        const sessionsData = storage.getState().sessionsData;
+        if (!sessionsData) {
+            return new Set();
+        }
+
+        const batchEntries: V3BatchMessagesRequest['sessions'] = [];
+        for (const item of sessionsData) {
+            if (typeof item === 'string') continue;
+            const serverSeq = serverSessions[item.id];
+            const clientSeq = this.sessionLastSeq.get(item.id) ?? -1;
+            if (serverSeq === undefined || serverSeq > clientSeq) {
+                batchEntries.push({
+                    sessionId: item.id,
+                    afterSeq: Math.max(clientSeq, 0)
+                });
+            }
+        }
+
+        if (batchEntries.length === 0) {
+            return new Set();
+        }
+
+        const fetchStart = Date.now();
+        const response = await apiSocket.request('/v3/messages/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessions: batchEntries })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Batch fetch failed: ${response.status}`);
+        }
+
+        const data = await response.json() as V3BatchMessagesResponse;
+        const hasMoreSessions = new Set<string>();
+
+        for (const [sessionId, sessionData] of Object.entries(data.sessions)) {
+            if (sessionData.hasMore) {
+                hasMoreSessions.add(sessionId);
+            }
+
+            const encryption = this.encryption.getSessionEncryption(sessionId);
+            if (!encryption) {
+                continue;
+            }
+
+            const messages = Array.isArray(sessionData.messages) ? sessionData.messages : [];
+            if (messages.length === 0) {
+                continue;
+            }
+
+            let maxSeq = this.sessionLastSeq.get(sessionId) ?? 0;
+            for (const msg of messages) {
+                if (msg.seq > maxSeq) {
+                    maxSeq = msg.seq;
+                }
+            }
+
+            const decrypted = await encryption.decryptMessages(messages);
+            const normalized: NormalizedMessage[] = [];
+            for (const d of decrypted) {
+                if (!d) continue;
+                const n = normalizeRawMessage(d.id, d.localId, d.createdAt, d.content);
+                if (n) normalized.push(n);
+            }
+
+            if (normalized.length > 0) {
+                this.enqueueMessages(sessionId, normalized);
+            }
+            this.sessionLastSeq.set(sessionId, maxSeq);
+            storage.getState().applyMessagesLoaded(sessionId);
+            perfMark('fetch_msgs', { session_id: sessionId.slice(0, 8), count: normalized.length, pages: 1, dur_ms: Date.now() - fetchStart, batch: true });
+        }
+
+        log.log(`💬 batchFetchAndDispatch: ${batchEntries.length} requested, ${Object.keys(data.sessions).length} returned, ${hasMoreSessions.size} need pagination, ${Date.now() - fetchStart}ms`);
+        return hasMoreSessions;
+    }
+
     private registerPushToken = async () => {
         log.log('registerPushToken');
         // Only register on mobile platforms
@@ -1728,6 +1824,12 @@ class Sync {
                 sync.invalidate();
             }
 
+            // Clean up any previous reconnect's listener/timeout to prevent leaks
+            if (this.reconnectCleanup) {
+                this.reconnectCleanup();
+                this.reconnectCleanup = null;
+            }
+
             // Fallback: if connect-state doesn't arrive within 3s, invalidate all sessions
             let connectStateReceived = false;
             const fallbackTimeout = setTimeout(() => {
@@ -1748,21 +1850,34 @@ class Sync {
                 connectStateReceived = true;
                 clearTimeout(fallbackTimeout);
                 unsubscribe();
-                log.log('🔌 connect-state received, selective invalidation');
-                const sessionsData = storage.getState().sessionsData;
-                if (sessionsData) {
-                    for (const item of sessionsData) {
-                        if (typeof item !== 'string') {
-                            const serverSeq = serverSessions[item.id];
-                            const clientSeq = this.sessionLastSeq.get(item.id) ?? -1;
-                            if (serverSeq === undefined || serverSeq > clientSeq) {
+                this.reconnectCleanup = null;
+                log.log('🔌 connect-state received, batch fetch');
+                void this.batchFetchAndDispatch(serverSessions).then((hasMoreSessions) => {
+                    // Sessions that have more messages need per-session pagination
+                    for (const sessionId of hasMoreSessions) {
+                        this.getMessagesSync(sessionId).invalidate();
+                        perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: sessionId.slice(0, 8) });
+                    }
+                }).catch((error) => {
+                    // Batch fetch failed — fall back to per-session invalidation
+                    log.log('🔌 batch fetch failed, falling back to per-session: ' + String(error));
+                    const sessionsData = storage.getState().sessionsData;
+                    if (sessionsData) {
+                        for (const item of sessionsData) {
+                            if (typeof item !== 'string') {
                                 this.getMessagesSync(item.id).invalidate();
                                 perfMark('ws.msg.slow', { seq: -1, reason: 'reconnect', session_id: item.id.slice(0, 8) });
                             }
                         }
                     }
-                }
+                });
             });
+
+            // Store cleanup function for this reconnect cycle
+            this.reconnectCleanup = () => {
+                clearTimeout(fallbackTimeout);
+                unsubscribe();
+            };
         });
     }
 

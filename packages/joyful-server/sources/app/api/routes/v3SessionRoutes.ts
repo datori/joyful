@@ -10,6 +10,14 @@ const getMessagesQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(500).default(100)
 });
 
+const batchMessagesBodySchema = z.object({
+    sessions: z.array(z.object({
+        sessionId: z.string().min(1),
+        afterSeq: z.coerce.number().int().min(0),
+        limit: z.coerce.number().int().min(1).max(500).default(100)
+    })).min(0).max(50)
+});
+
 const sendMessagesBodySchema = z.object({
     messages: z.array(z.object({
         content: z.string(),
@@ -219,5 +227,87 @@ export function v3SessionRoutes(app: Fastify) {
         return reply.send({
             messages: txResult.responseMessages.map(toSendResponseMessage)
         });
+    });
+
+    app.post('/v3/messages/batch', {
+        preHandler: app.authenticate,
+        schema: {
+            body: batchMessagesBodySchema
+        }
+    }, async (request, reply) => {
+        const userId = request.userId;
+        const { sessions: requested } = request.body;
+
+        if (requested.length === 0) {
+            return reply.send({ sessions: {} });
+        }
+
+        const GLOBAL_CAP = 500;
+        const sessionIds = requested.map(s => s.sessionId);
+
+        // Single ownership check for all sessions
+        const ownedSessions = await db.session.findMany({
+            where: {
+                id: { in: sessionIds },
+                accountId: userId
+            },
+            select: { id: true }
+        });
+        const ownedIds = new Set(ownedSessions.map(s => s.id));
+
+        const result: Record<string, { messages: ReturnType<typeof toResponseMessage>[]; hasMore: boolean }> = {};
+        let globalRemaining = GLOBAL_CAP;
+
+        for (const entry of requested) {
+            if (!ownedIds.has(entry.sessionId)) {
+                continue;
+            }
+
+            if (globalRemaining <= 0) {
+                // Check if this session has any messages at all
+                const count = await db.sessionMessage.count({
+                    where: {
+                        sessionId: entry.sessionId,
+                        seq: { gt: entry.afterSeq }
+                    }
+                });
+                if (count > 0) {
+                    result[entry.sessionId] = { messages: [], hasMore: true };
+                }
+                continue;
+            }
+
+            const take = Math.min(entry.limit, globalRemaining);
+            const messages = await db.sessionMessage.findMany({
+                where: {
+                    sessionId: entry.sessionId,
+                    seq: { gt: entry.afterSeq }
+                },
+                orderBy: { seq: 'asc' },
+                take: take + 1,
+                select: {
+                    id: true,
+                    seq: true,
+                    content: true,
+                    localId: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            });
+
+            if (messages.length === 0) {
+                continue;
+            }
+
+            const hasMore = messages.length > take;
+            const page = hasMore ? messages.slice(0, take) : messages;
+            result[entry.sessionId] = {
+                messages: page.map(toResponseMessage),
+                hasMore
+            };
+            globalRemaining -= page.length;
+        }
+
+        return reply.send({ sessions: result });
     });
 }

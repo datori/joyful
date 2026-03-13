@@ -1,15 +1,4 @@
-## ADDED Requirements
-
-### Requirement: Server emits connect-state on socket connect
-On every user-scoped socket connection, the server SHALL emit a `connect-state` event to the connecting socket containing the current `seq` value for each of the user's sessions. The payload SHALL be `{ sessions: Record<string, number> }` where keys are session IDs and values are the session's latest message seq.
-
-#### Scenario: connect-state emitted after connect
-- **WHEN** a user-scoped socket connects (fresh connect or reconnect)
-- **THEN** the server emits a `connect-state` event to that socket with `{ sessions: { [sessionId]: seq, … } }` for all sessions belonging to that user
-
-#### Scenario: User with no sessions
-- **WHEN** a user with zero sessions connects
-- **THEN** the server emits `connect-state` with `{ sessions: {} }`
+## MODIFIED Requirements
 
 ### Requirement: App skips REST refetch for up-to-date sessions on reconnect
 On reconnect, when `connect-state` arrives, the app SHALL use the batch message fetch endpoint (`POST /v3/messages/batch`) to fetch messages for all sessions whose server-reported seq exceeds the client's cached `sessionLastSeq`. The app SHALL build a single batch request from these sessions, dispatch the returned messages to per-session message queues, and invalidate per-session `InvalidateSync` only for sessions that have `hasMore: true` in the batch response (to continue pagination via the existing per-session endpoint). Sessions where `serverSeq <= clientSeq` SHALL NOT be included in the batch request.
@@ -29,13 +18,6 @@ On reconnect, when `connect-state` arrives, the app SHALL use the batch message 
 #### Scenario: Unknown session triggers batch inclusion
 - **WHEN** `connect-state` contains a session ID not present in the client's `sessionLastSeq` map
 - **THEN** that session is included in the batch request with `afterSeq: 0`
-
-### Requirement: Non-session data always invalidated on reconnect
-On reconnect the app SHALL continue to unconditionally invalidate machines, artifacts, friends, friend requests, feed, and pending sends, regardless of `connect-state` content.
-
-#### Scenario: Non-session invalidations are unconditional
-- **WHEN** a reconnect occurs and `connect-state` indicates all sessions are up-to-date
-- **THEN** machines, artifacts, friends, friend requests, and feed syncs are still invalidated
 
 ### Requirement: Fallback to full session invalidation if connect-state absent
 If the `connect-state` event does not arrive within 3 seconds of `onReconnected` firing, the app SHALL fall back to invalidating all sessions unconditionally using per-session `InvalidateSync` (not the batch endpoint), since it does not know which sessions need data.

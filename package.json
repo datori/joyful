@@ -6,7 +6,14 @@
         "release": "node ./scripts/release.cjs",
         "web": "yarn workspace joyful-app web",
         "postinstall": "node ./scripts/postinstall.cjs",
-        "dev:daemon:restart": "yarn workspace joyful dev:daemon:rebuild-restart"
+        "dev:daemon:restart": "yarn workspace joyful dev:daemon:rebuild-restart",
+        "dev:stack": "./scripts/dev-stack.sh",
+        "dev:stack:start": "./scripts/dev-stack.sh start",
+        "dev:stack:stop": "./scripts/dev-stack.sh stop",
+        "dev:stack:restart": "./scripts/dev-stack.sh restart",
+        "dev:stack:status": "./scripts/dev-stack.sh status",
+        "dev:stack:nuke": "./scripts/dev-stack.sh nuke",
+        "dev:stack:seed": "./scripts/dev-stack.sh seed"
     },
     "workspaces": {
         "packages": [

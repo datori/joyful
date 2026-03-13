@@ -137,7 +137,19 @@ joyful-dev:webapp   ← expo web (port 8081)
 joyful-dev:logs     ← tail -f daemon log
 ```
 
-### Starting the stack (if stopped)
+### Dev stack script (recommended)
+
+The `dev-stack.sh` script handles safe startup, shutdown, and reset of the full dev stack:
+```bash
+yarn dev:stack:start     # Start server + daemon (with migrate)
+yarn dev:stack:stop      # Gracefully stop daemon + server
+yarn dev:stack:restart   # Stop then start
+yarn dev:stack:status    # Show what's running
+yarn dev:stack:nuke      # Full reset: wipe DB, re-bootstrap, restart
+yarn dev:stack:seed      # Print current seed in both formats (base64url + base32)
+```
+
+### Starting the stack manually (if needed)
 
 **1. Server** — must run `migrate` first, then `serve` (two separate subcommands):
 ```bash
@@ -170,21 +182,47 @@ EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 npx yarn web
 ```
 
 ### Linking the web app to the CLI account
-The bootstrap seed (one-time setup, already done):
+
+Get the current seed in both formats:
+```bash
+yarn dev:stack:seed
 ```
-9Tc4K47QSXltFaffZ0QCTyuI76Qi90nm3rMQgoduzRg
-```
-Open `http://localhost:8081` → Settings → Restore with Secret Key → paste seed.
+
+The web app's restore screen expects **base32 format** (5-char groups with dashes, e.g. `65IYU-TQ7R3-LALQ4-...`). The CLI outputs base64url format. Use the seed command above to get the correct format.
+
+Open `http://localhost:8081` → Settings → Restore with Secret Key → paste the **base32** seed.
 
 To create a fresh account (if needed):
 ```bash
 JOYFUL_SERVER_URL=http://localhost:3007 JOYFUL_HOME_DIR=~/.joyful-dev npx yarn cli dev bootstrap --force
 ```
+⚠️ **After re-bootstrapping**, you must stop the daemon and restart it so it registers the machine under the new account. Use `yarn dev:stack:restart` or `yarn dev:stack:nuke` (which does this automatically).
 
 ### Running the CLI against the dev stack
 ```bash
 JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 npx yarn cli
 ```
+
+### Dev stack troubleshooting
+
+#### PGlite (embedded PostgreSQL)
+- **Never `kill -9` the server process.** PGlite is an embedded WASM database that corrupts on hard kills. Always use `Ctrl+C`, `SIGTERM`, or `yarn dev:stack:stop`.
+- **PGlite is single-connection.** You cannot query it from a separate process while the server is running. Stop the server first if you need direct DB access.
+- **If PGlite is corrupted** (errors like `RuntimeError: Aborted()` or `postmaster.pid` lock errors): delete `packages/joyful-server/data/pglite/` and re-bootstrap. Or just run `yarn dev:stack:nuke`.
+
+#### Bootstrap and account identity
+- **`bootstrap --force` creates a NEW account every time.** The old account's machine registration persists in the DB. The daemon tries to re-register the same machine ID under the new account, hits a unique constraint, and silently fails (500). The web app then sees no machine.
+- **Fix: always use `yarn dev:stack:nuke`** for a full reset — it wipes the DB, re-bootstraps, and restarts the daemon in the correct order.
+- **Ordering matters:** after a re-bootstrap, the daemon must be stopped BEFORE the bootstrap and started AFTER, so it registers the machine under the correct account.
+
+#### Seed format for web app restore
+- The CLI outputs seeds in **base64url** format (contains `-` and `_` characters).
+- The web app's `normalizeSecretKey()` interprets strings with dashes as **base32** formatted keys, not base64url.
+- Use `yarn dev:stack:seed` to get the seed in both formats. Use the **base32** format for the web app.
+
+#### Port conflicts
+- If port 3007 is stuck (e.g. after a crash), `yarn dev:stack:stop` handles cleanup automatically.
+- Manual fix: `lsof -ti :3007 | xargs kill` (SIGTERM first, only use `-9` as last resort).
 
 ## Documentation
 
