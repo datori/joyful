@@ -66,9 +66,9 @@ export function calculateHeaderHeight(params: {
         return 56; // Mac Catalyst: 52 points (slightly taller than iOS for desktop feel)
     }
     
-    // Web platform: Use Material Design height
+    // Web platform: compact height for mobile web/PWA
     if (platform === 'web') {
-        return 56; // Web: 64px for consistency with Material Design
+        return 36;
     }
     
     if (platform === 'android') {
