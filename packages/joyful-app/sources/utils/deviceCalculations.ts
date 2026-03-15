@@ -68,7 +68,7 @@ export function calculateHeaderHeight(params: {
     
     // Web platform: compact height for mobile web/PWA
     if (platform === 'web') {
-        return 32;
+        return 40;
     }
     
     if (platform === 'android') {
