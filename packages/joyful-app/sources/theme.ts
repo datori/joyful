@@ -293,9 +293,9 @@ export const darkTheme = {
             sectionTitle: Platform.select({ ios: '#8E8E93', default: '#CAC4D0' }),
         },
         fab: {
-            background: '#FFFFFF',
-            backgroundPressed: '#f0f0f0',
-            icon: '#000000',
+            background: '#3A3A3C',
+            backgroundPressed: '#48484A',
+            icon: '#FFFFFF',
         },
         radio: {
             active: '#0A84FF',
