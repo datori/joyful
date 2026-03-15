@@ -255,15 +255,15 @@ export const darkTheme = {
         warningCritical: '#FF453A',
         warning: '#8E8E93',
         success: '#32D74B',
-        surface: Platform.select({ ios: '#18171C', default: '#212121' }),
+        surface: Platform.select({ ios: '#18171C', default: '#18171C' }),
         surfaceRipple: 'rgba(255, 255, 255, 0.08)',
         surfacePressed: '#2C2C2E',
         surfaceSelected: '#2C2C2E',
         surfacePressedOverlay: Platform.select({ ios: '#2C2C2E', default: 'transparent' }),
         // iOS dark theme is #1c1c1e for items, and #000 for the background
-        surfaceHigh: Platform.select({ ios: '#2C2C2E', default: '#171717' }),
-        surfaceHighest: Platform.select({ ios: '#38383A', default: '#292929' }),
-        divider: Platform.select({ ios: '#38383A', default: '#292929' }),
+        surfaceHigh: Platform.select({ ios: '#2C2C2E', default: '#2C2C2E' }),
+        surfaceHighest: Platform.select({ ios: '#38383A', default: '#38383A' }),
+        divider: Platform.select({ ios: '#38383A', default: '#38383A' }),
         shadow: {
             color: Platform.select({ default: '#000000', web: 'rgba(0, 0, 0, 0.1)' }),
             opacity: 0.1,
@@ -274,7 +274,7 @@ export const darkTheme = {
         //
 
         header: {
-            background: Platform.select({ ios: '#18171C', default: '#212121' }),
+            background: Platform.select({ ios: '#18171C', default: '#18171C' }),
             tint: '#ffffff'
         },
         switch: {
@@ -288,7 +288,7 @@ export const darkTheme = {
             },
         },
         groupped: {
-            background: Platform.select({ ios: '#1C1C1E', default: '#1e1e1e' }),
+            background: Platform.select({ ios: '#1C1C1E', default: '#1C1C1E' }),
             chevron: Platform.select({ ios: '#48484A', default: '#CAC4D0' }),
             sectionTitle: Platform.select({ ios: '#8E8E93', default: '#CAC4D0' }),
         },
@@ -316,7 +316,7 @@ export const darkTheme = {
             }
         },
         input: {
-            background: Platform.select({ ios: '#1C1C1E', default: '#303030' }),
+            background: Platform.select({ ios: '#1C1C1E', default: '#1C1C1E' }),
             text: '#FFFFFF',
             placeholder: '#8E8E93',
         },
