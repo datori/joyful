@@ -178,6 +178,7 @@ export const en = {
             pixelated: 'Pixelated',
             gradient: 'Gradient',
             brutalist: 'Brutalist',
+            plasma: 'Plasma',
         },
         showFlavorIcons: 'Show AI Provider Icons',
         showFlavorIconsDescription: 'Display AI provider icons on session avatars',

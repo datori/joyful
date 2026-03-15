@@ -336,7 +336,7 @@ export const settingsDefaults: Settings = {
     useEnhancedSessionWizard: false,
     alwaysShowContextSize: false,
     agentInputEnterToSend: true,
-    avatarStyle: 'brutalist',
+    avatarStyle: 'plasma',
     showFlavorIcons: false,
     compactSessionView: true,
     hideInactiveSessions: false,

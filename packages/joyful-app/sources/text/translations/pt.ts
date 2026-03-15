@@ -179,6 +179,7 @@ export const pt: TranslationStructure = {
             pixelated: 'Pixelizado',
             gradient: 'Gradiente',
             brutalist: 'Brutalista',
+            plasma: 'Plasma',
         },
         showFlavorIcons: 'Mostrar ícones de provedores de IA',
         showFlavorIconsDescription: 'Exibir ícones do provedor de IA nos avatares de sessão',

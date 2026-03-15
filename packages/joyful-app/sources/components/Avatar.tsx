@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { AvatarSkia } from "./AvatarSkia";
 import { AvatarGradient } from "./AvatarGradient";
 import { AvatarBrutalist } from "./AvatarBrutalist";
+import { AvatarPlasma } from "./AvatarPlasma";
 import { useSetting } from '@/sync/storage';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -105,6 +106,8 @@ export const Avatar = React.memo((props: AvatarProps) => {
         AvatarComponent = AvatarSkia;
     } else if (avatarStyle === 'brutalist') {
         AvatarComponent = AvatarBrutalist;
+    } else if (avatarStyle === 'plasma') {
+        AvatarComponent = AvatarPlasma;
     } else {
         AvatarComponent = AvatarGradient;
     }

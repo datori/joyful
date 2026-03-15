@@ -211,6 +211,7 @@ export const ja: TranslationStructure = {
             pixelated: 'ピクセル',
             gradient: 'グラデーション',
             brutalist: 'ブルータリスト',
+            plasma: 'プラズマ',
         },
         showFlavorIcons: 'AIプロバイダーアイコンを表示',
         showFlavorIconsDescription: 'セッションアバターにAIプロバイダーアイコンを表示',

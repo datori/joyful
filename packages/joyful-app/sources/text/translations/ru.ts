@@ -161,6 +161,7 @@ export const ru: TranslationStructure = {
             pixelated: 'Пиксельная',
             gradient: 'Градиентная',
             brutalist: 'Бруталистская',
+            plasma: 'Плазменная',
         },
         showFlavorIcons: 'Показывать иконки провайдеров ИИ',
         showFlavorIconsDescription: 'Отображать иконки провайдеров ИИ на аватарах сессий',

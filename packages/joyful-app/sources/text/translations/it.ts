@@ -208,6 +208,7 @@ export const it: TranslationStructure = {
             pixelated: 'Pixelato',
             gradient: 'Gradiente',
             brutalist: 'Brutalista',
+            plasma: 'Plasma',
         },
         showFlavorIcons: 'Mostra icone provider IA',
         showFlavorIconsDescription: 'Mostra le icone del provider IA sugli avatar di sessione',

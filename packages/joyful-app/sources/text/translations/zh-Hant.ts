@@ -180,6 +180,7 @@ export const zhHant: TranslationStructure = {
             pixelated: '像素化',
             gradient: '漸層',
             brutalist: '粗獷風格',
+            plasma: '電漿',
         },
         showFlavorIcons: '顯示 AI 提供者圖示',
         showFlavorIconsDescription: '在工作階段頭像上顯示 AI 提供者圖示',
