@@ -389,7 +389,7 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder }: { sessi
                             styles.sessionTitle,
                             sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected
                         ]}
-                        numberOfLines={2}
+                        numberOfLines={1}
                     >
                         {sessionName}
                     </Text>

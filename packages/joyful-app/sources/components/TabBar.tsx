@@ -35,7 +35,7 @@ const styles = StyleSheet.create((theme) => ({
         flex: 1,
         alignItems: 'center',
         paddingTop: 8,
-        paddingBottom: 4,
+        paddingBottom: 8,
     },
     tabContent: {
         alignItems: 'center',

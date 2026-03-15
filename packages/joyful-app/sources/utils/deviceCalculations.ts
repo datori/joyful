@@ -83,5 +83,5 @@ export function calculateHeaderHeight(params: {
     if (isPad) {
         return 50; // iPad (iOS 12+): 50 points
     }
-    return 44; // iPhone: 44 points
+    return 40; // iPhone: slightly compact header height
 }
