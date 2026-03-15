@@ -30,7 +30,7 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Streaming** — seq allocation batched per-message-group in both REST and socket paths, eliminating seq gaps that caused 35% of streaming messages to hit the slow REST fallback
 
 #### Monitoring
-- **Claude quota widget** — persistent sidebar panel above Machines showing 5h and 7d rolling-window utilization bars with a time-cursor tick, colour-coded fill (on-pace/amber/red), reset countdown, staleness hint, and a manual refresh button; data sourced from local Claude Code JSONL session files (works for all Pro/Max subscription tiers)
+- **Claude quota widget** — persistent sidebar panel above Machines showing 5h and 7d rolling-window utilization bars with a time-cursor tick, colour-coded fill (on-pace/amber/red), reset countdown, staleness hint, and a manual refresh button; data sourced from Anthropic's authoritative `anthropic-ratelimit-unified-*` response headers via a minimal OAuth Messages API ping (works for all Pro/Max subscription tiers)
 - **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and on the machine detail screen
 
 #### Infrastructure

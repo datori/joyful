@@ -18,10 +18,10 @@ The `DaemonState` wire schema SHALL include three optional numeric fields for ma
 ### Requirement: DaemonState includes optional Claude quota fields
 The `DaemonStateSchema` in `joyful-cli/src/api/types.ts` SHALL include five additional optional fields for Claude API quota reporting:
 
-- `claudeQuota5hUtil` (`number`, optional): Utilization of the 5-hour rolling window as a fraction 0–1, computed from local JSONL session files.
-- `claudeQuota5hReset` (`string`, optional): ISO 8601 timestamp of when the 5-hour window resets.
-- `claudeQuota7dUtil` (`number`, optional): Utilization of the 7-day rolling window as a fraction 0–1, computed from local JSONL session files.
-- `claudeQuota7dReset` (`string`, optional): ISO 8601 timestamp of when the 7-day window resets.
+- `claudeQuota5hUtil` (`number`, optional): Utilization of the 5-hour rolling window as a fraction 0–1, as reported in the `anthropic-ratelimit-unified-5h-utilization` response header from the Anthropic Messages API.
+- `claudeQuota5hReset` (`string`, optional): ISO 8601 timestamp of when the 5-hour window resets, derived from the `anthropic-ratelimit-unified-5h-reset` header (Unix seconds).
+- `claudeQuota7dUtil` (`number`, optional): Utilization of the 7-day rolling window as a fraction 0–1, as reported in the `anthropic-ratelimit-unified-7d-utilization` response header from the Anthropic Messages API.
+- `claudeQuota7dReset` (`string`, optional): ISO 8601 timestamp of when the 7-day window resets, derived from the `anthropic-ratelimit-unified-7d-reset` header (Unix seconds).
 - `claudeQuotaFetchedAt` (`number`, optional): Unix epoch milliseconds recording when quota data was last successfully fetched. Used by the app to detect stale data.
 
 #### Scenario: Schema accepts state with quota fields

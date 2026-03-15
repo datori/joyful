@@ -20,19 +20,23 @@ The `DaemonStateSchema` (in `joyful-cli/src/api/types.ts`) already carries dynam
 
 ## Decisions
 
-### Decision 1: Parse local JSONL session files, not an API ping
+### Decision 1: Minimal Messages API ping, not local JSONL files
 
-**Chosen**: Scan `~/.claude/projects/**/*.jsonl` for assistant messages with `usage.input_tokens` / `usage.output_tokens` fields and a `timestamp`. Sum tokens within the last 5h and 7d rolling windows. Normalise against estimated tier limits read from `rateLimitTier` in `~/.claude/.credentials.json`.
+**Chosen**: Make a single minimal `POST https://api.anthropic.com/v1/messages` request (model `claude-haiku-4-5-20251001`, `max_tokens: 1`) authenticated with the OAuth access token from `~/.claude/.credentials.json`. Read the authoritative utilization and reset-time values from the response headers:
+- `anthropic-ratelimit-unified-5h-utilization` (0.0–1.0)
+- `anthropic-ratelimit-unified-5h-reset` (Unix timestamp, seconds)
+- `anthropic-ratelimit-unified-7d-utilization` (0.0–1.0)
+- `anthropic-ratelimit-unified-7d-reset` (Unix timestamp, seconds)
 
-**Why not a Messages API ping**: `api.anthropic.com/v1/messages` returns HTTP 401 `"OAuth authentication is currently not supported."` for all Pro/Max subscription credentials (`sk-ant-oat01-...`). The API only accepts `sk-ant-api...` API keys, which subscription users do not have. Both `Authorization: Bearer` and `x-api-key` headers were tested and rejected. The `/api/oauth/claude_cli/create_api_key` exchange endpoint was also tried but requires `org:create_api_key` scope which the subscription OAuth token does not carry.
+**Why not JSONL parsing**: Local JSONL files only record `input_tokens` and `output_tokens`. Anthropic's unified rate limit also accounts for `cache_creation_input_tokens` (prompt-cache writes, often 100–2000× larger than `input_tokens` per turn). Additionally, when Claude Code resumes a session it copies the full prior-session history into a new JSONL file with the same UUIDs — without deduplication, every resumed session re-counts all historical tokens. Even with both issues fixed the tier-to-limit mapping is a conservative estimate, not the authoritative Anthropic figure.
 
-**Why not the dedicated usage endpoint**: Anthropic disabled `api.anthropic.com/api/oauth/usage`. The `claude.ai` web API is blocked by Cloudflare for non-browser clients.
+**Why not the dedicated usage endpoint**: Anthropic disabled `api.anthropic.com/api/oauth/usage`.
 
-**Why JSONL parsing works**: Claude Code writes a JSONL entry for every assistant message into `~/.claude/projects/<project>/<session>.jsonl`. Each entry carries the model's token usage and an ISO timestamp. This is the same data source used by the open-source Claude-Usage-Tracker project. It requires no network access and works for all subscription tiers.
+**Why the Messages API ping works**: The `anthropic-ratelimit-unified-*` headers are returned on every successful response and reflect the account's exact server-side utilization immediately after the request completes. The OAuth token from `~/.claude/.credentials.json` is accepted with `Authorization: Bearer` + `anthropic-beta: oauth-2025-04-20` headers. This is the same approach used by the open-source Claude-Usage-Tracker project for CLI credential users.
 
-**Accuracy**: Utilization is computed as `tokens_used / estimated_tier_limit`. The tier is read from `rateLimitTier` in `.credentials.json`. Tier-to-limit mapping is a conservative estimate (Anthropic does not publish exact per-tier token budgets). The bars are for directional guidance; the percentage shown matches typical usage closely but is not Anthropic's own authoritative utilization figure.
+**Accuracy**: Server-authoritative — the same figure Anthropic uses to enforce the rate limit.
 
-**Cost**: No API calls, no quota consumed by the widget itself.
+**Cost**: One minimal Haiku call per 5-minute poll cycle (~1 output token). Negligible against any subscription tier.
 
 ### Decision 2: App controls polling, daemon is passive
 
@@ -57,21 +61,13 @@ claudeQuotaFetchedAt:  z.number().optional()  // epoch ms, for staleness display
 
 **Why not joyful-wire**: `DaemonStateSchema` lives in `joyful-cli/src/api/types.ts`, not in the wire package. The app reads it via the decrypted `daemonState` field on the `Machine` object (typed in the app as `any` fields, then validated). This matches how `memTotal`/`memFree` are already consumed in `MachinesSidebarPanel.tsx`.
 
-### Decision 4: Tier detection from credentials file, JSONL files as the usage source
+### Decision 4: OAuth access token from credentials file as the sole credential
 
-**Chosen**: Read `~/.claude/.credentials.json` solely for `claudeAiOauth.rateLimitTier` (e.g. `"default_claude_max_5x"`). Map the tier to estimated limits via a hardcoded table in `quotaFetcher.ts`. Token counts come from `~/.claude/projects/**/*.jsonl`, not from the credentials file.
+**Chosen**: Read `~/.claude/.credentials.json` for `claudeAiOauth.accessToken` only. No tier detection, no JSONL scanning, no estimated limits.
 
 **Why not joyful's own `access.key`**: That file holds joyful server auth credentials (TweetNaCl keypair), not Claude account information.
 
-**Tier-limit mapping** (conservative estimates):
-```
-default_claude_max_5x  → 5M tokens / 5h,  25M tokens / 7d
-default_claude_max     → 1M tokens / 5h,   5M tokens / 7d
-default_claude_pro     → 500k tokens / 5h, 2.5M tokens / 7d
-(default fallback)     → 1M tokens / 5h,   5M tokens / 7d
-```
-
-**Fallback**: If `~/.claude/.credentials.json` is missing or the tier is unknown, the default limits are used. If `~/.claude/projects/` is unreadable, the RPC returns `{ type: 'error', reason: 'no-projects-dir' }` and the widget stays hidden.
+**Fallback**: If `~/.claude/.credentials.json` is missing or contains no `accessToken`, the RPC returns `{ type: 'error', reason: 'no-credentials' }` and the widget stays hidden. If the API returns non-200 (e.g. expired token), the handler returns `{ type: 'error', reason: 'api-error' }` and the widget continues showing last cached values.
 
 ### Decision 5: Widget placement — above Machines, no header, no section title
 
@@ -83,12 +79,10 @@ default_claude_pro     → 500k tokens / 5h, 2.5M tokens / 7d
 
 ## Risks / Trade-offs
 
-- **Estimated limits may be inaccurate** → The tier-to-limit mapping is a conservative estimate; Anthropic does not publish exact per-tier token budgets. The percentage shown is directionally correct but not authoritative. Mitigation: show the bars as ambient guidance, not as a hard threshold.
-- **JSONL file format may change** → Claude Code could change how it writes session files. Mitigation: the parser skips malformed lines; on total parse failure the widget simply shows last cached data or stays hidden.
-- **Only counts input + output tokens** → Cache creation and cache read tokens may or may not count against the unified rate limit. The current implementation counts only `input_tokens + output_tokens` to avoid double-counting.
-- **Credentials file location** → `~/.claude/.credentials.json` path is a Claude Code convention; could change. Mitigation: fall back to default tier limits silently.
+- **OAuth token expiry** → The access token in `.credentials.json` has a finite lifetime. An expired token returns HTTP 401; the handler returns `{ type: 'error', reason: 'api-error' }` and the widget continues showing last cached values. Mitigation: the user re-authenticates with `claude` login as normal; the token file is refreshed automatically by Claude Code.
+- **Credentials file location** → `~/.claude/.credentials.json` path is a Claude Code convention; could change. Mitigation: the fetcher returns `no-credentials` and the widget stays hidden; no crash.
 - **Stale data when app is backgrounded** → Quota may be hours old. Mitigation: show `claudeQuotaFetchedAt` as a staleness hint (e.g. "updated 2h ago") when older than 5 hours.
-- **Scan cost on large histories** → Users with many projects and sessions will have thousands of JSONL files. Mitigation: the scanner skips files whose `mtime` predates the 7d cutoff, keeping most scans fast.
+- **One Haiku call consumed per poll** → Each 5-minute poll consumes a minimal API call. This is negligible against any subscription tier and is the same trade-off made by Claude-Usage-Tracker.
 
 ## Open Questions
 

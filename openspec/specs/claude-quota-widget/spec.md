@@ -81,36 +81,37 @@ The polling effect SHALL NOT re-trigger on daemon state changes. Because a succe
 
 ### Requirement: fetch-quota RPC handler on daemon
 The daemon SHALL register a `fetch-quota` RPC handler. When invoked, the handler SHALL:
-1. Optionally read `~/.claude/.credentials.json` to extract `claudeAiOauth.rateLimitTier`; fall back to a default tier if the file is missing or the field is absent.
-2. Scan all `.jsonl` files under `~/.claude/projects/` whose filesystem `mtime` falls within the last 7 days.
-3. Parse each line; accumulate `input_tokens + output_tokens` from assistant messages whose `timestamp` falls within the last 5 hours and within the last 7 days respectively.
-4. Compute reset timestamps: `oldest_entry_in_window + window_duration` for each window (ISO string).
-5. Compute utilization as `tokens / tier_limit` clamped to [0, 1].
-6. Call `updateDaemonState()` to merge the computed values plus `claudeQuotaFetchedAt: Date.now()`.
+1. Read `~/.claude/.credentials.json` and extract `claudeAiOauth.accessToken`. If the file is missing or the field is absent, return `{ type: 'error', reason: 'no-credentials' }` without modifying daemon state.
+2. Make a `POST https://api.anthropic.com/v1/messages` request with:
+   - `Authorization: Bearer {accessToken}`
+   - `anthropic-version: 2023-06-01`
+   - `anthropic-beta: oauth-2025-04-20`
+   - Body: `{ model: "claude-haiku-4-5-20251001", max_tokens: 1, messages: [{ role: "user", content: "hi" }] }`
+3. On a non-200 HTTP status, return `{ type: 'error', reason: 'api-error' }` without modifying daemon state.
+4. Read the rate-limit headers from the response:
+   - `anthropic-ratelimit-unified-5h-utilization` (0.0–1.0 float)
+   - `anthropic-ratelimit-unified-5h-reset` (Unix timestamp in seconds)
+   - `anthropic-ratelimit-unified-7d-utilization` (0.0–1.0 float)
+   - `anthropic-ratelimit-unified-7d-reset` (Unix timestamp in seconds)
+5. Convert reset timestamps to ISO 8601 strings (`new Date(ts * 1000).toISOString()`). If a header is absent, default to `now + window_duration`.
+6. Call `updateDaemonState()` to merge the parsed values plus `claudeQuotaFetchedAt: Date.now()`.
 7. Return `{ type: 'success' }`.
-On any unrecoverable error (projects directory unreadable), the handler SHALL return `{ type: 'error', reason: string }` without updating daemon state. Malformed JSONL lines SHALL be silently skipped.
 
-**Background**: The Anthropic Messages API (`api.anthropic.com/v1/messages`) returns HTTP 401 "OAuth authentication is currently not supported" for all Pro/Max OAuth credentials (`sk-ant-oat01-...`). The API-ping approach only works for `sk-ant-api...` API key users. JSONL parsing is the universally-working alternative.
-
-#### Scenario: Successful scan updates daemon state
-- **WHEN** `~/.claude/projects/` is readable and contains recent session files
+#### Scenario: Successful API call updates daemon state
+- **WHEN** the OAuth token is present and the Messages API returns 200
 - **THEN** `daemonState` SHALL be updated with `claudeQuota5hUtil`, `claudeQuota5hReset`, `claudeQuota7dUtil`, `claudeQuota7dReset`, and `claudeQuotaFetchedAt`
 
-#### Scenario: Zero usage shows 0% utilization
-- **WHEN** no JSONL entries fall within the 5h or 7d windows
-- **THEN** `claudeQuota5hUtil` and `claudeQuota7dUtil` SHALL both be `0` and reset timestamps SHALL be set to `now + window_duration`
+#### Scenario: Missing credentials returns error
+- **WHEN** `~/.claude/.credentials.json` does not exist or contains no `accessToken`
+- **THEN** the handler SHALL return `{ type: 'error', reason: 'no-credentials' }` and daemon state SHALL NOT be modified
 
-#### Scenario: Projects directory unreadable returns error
-- **WHEN** `~/.claude/projects/` does not exist or is not readable
-- **THEN** the handler SHALL return `{ type: 'error', reason: 'no-projects-dir' }` and daemon state SHALL NOT be modified
+#### Scenario: API error returns error
+- **WHEN** the Messages API returns a non-200 status (e.g. 401 for an expired token)
+- **THEN** the handler SHALL return `{ type: 'error', reason: 'api-error' }` and daemon state SHALL NOT be modified
 
-#### Scenario: Malformed JSONL lines are skipped
-- **WHEN** a session file contains some malformed JSON lines alongside valid ones
-- **THEN** valid lines SHALL be counted and malformed lines SHALL be silently skipped
-
-#### Scenario: Unknown tier falls back to default limits
-- **WHEN** `~/.claude/.credentials.json` is absent or `rateLimitTier` is not in the known mapping
-- **THEN** the handler SHALL use default estimated limits and still return `{ type: 'success' }`
+#### Scenario: Missing rate-limit headers fall back to defaults
+- **WHEN** the API returns 200 but one or more rate-limit headers are absent
+- **THEN** the absent utilization value SHALL default to `0` and the absent reset time SHALL default to `now + window_duration`
 
 ### Requirement: Manual refresh button
 The panel SHALL render a small icon button (Ionicons `refresh-outline`, 13pt) at the top-right of the panel. Tapping the button SHALL immediately trigger a `fetch-quota` RPC to the first online machine (same logic as the automatic poll trigger). The button SHALL only be rendered when an `onRefresh` callback is provided (i.e. when a machine is available).
