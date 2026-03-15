@@ -202,6 +202,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 12,
     borderRadius: 16,
     alignSelf: 'flex-start',
+    maxWidth: '100%',
   },
   agentEventContainer: {
     marginHorizontal: 8,

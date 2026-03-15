@@ -242,7 +242,12 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
                 return <SettingsViewWrapper />;
             case 'sessions':
             default:
-                return <SessionsListWrapper />;
+                return (
+                    <View style={{ flex: 1 }}>
+                        <MachinesSidebarPanel />
+                        <SessionsListWrapper />
+                    </View>
+                );
         }
     }, [activeTab]);
 

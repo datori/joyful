@@ -575,153 +575,6 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                 styles.innerContainer,
                 { maxWidth: layout.maxWidth }
             ]}>
-                {/* Autocomplete suggestions overlay */}
-                {suggestions.length > 0 && (
-                    <View style={[
-                        styles.autocompleteOverlay,
-                        { paddingHorizontal: screenWidth > 700 ? 0 : 8 }
-                    ]}>
-                        <AgentInputAutocomplete
-                            suggestions={suggestions.map(s => {
-                                const Component = s.component;
-                                return <Component key={s.key} />;
-                            })}
-                            selectedIndex={selected}
-                            onSelect={handleSuggestionSelect}
-                            itemHeight={48}
-                            suggestionsLabel={props.autocompleteLabel}
-                        />
-                    </View>
-                )}
-
-                {/* Settings overlay */}
-                {showSettings && (
-                    <>
-                        <TouchableWithoutFeedback onPress={() => setShowSettings(false)}>
-                            <View style={styles.overlayBackdrop} />
-                        </TouchableWithoutFeedback>
-                        <View style={[
-                            styles.settingsOverlay,
-                            { paddingHorizontal: screenWidth > 700 ? 0 : 8 }
-                        ]}>
-                            <FloatingOverlay maxHeight={220} keyboardShouldPersistTaps="always">
-                                {/* Permission Mode Section */}
-                                <View style={styles.overlaySection}>
-                                    <Text style={styles.overlaySectionTitle}>
-                                        {isCodex ? t('agentInput.codexPermissionMode.title') : isGemini ? t('agentInput.geminiPermissionMode.title') : t('agentInput.permissionMode.title')}
-                                    </Text>
-                                    <ScrollView
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        contentContainerStyle={styles.chipRowContent}
-                                    >
-                                        {availableModes.map((mode) => {
-                                            const isSelected = permissionModeKey === mode.key;
-                                            return (
-                                                <Pressable
-                                                    key={mode.key}
-                                                    onPress={() => handleSettingsSelect(mode)}
-                                                    style={({ pressed }) => [
-                                                        styles.chip,
-                                                        isSelected && styles.chipSelected,
-                                                        pressed && styles.chipPressed,
-                                                    ]}
-                                                >
-                                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                                        {withSandboxSuffix(mode.name, mode.key)}
-                                                    </Text>
-                                                </Pressable>
-                                            );
-                                        })}
-                                    </ScrollView>
-                                </View>
-
-                                {/* Divider */}
-                                <View style={styles.overlayDivider} />
-
-                                {/* Model Section */}
-                                <View style={styles.overlaySection}>
-                                    <Text style={styles.overlaySectionTitle}>
-                                        {t('agentInput.model.title')}
-                                    </Text>
-                                    {availableModels.length > 0 ? (
-                                        <ScrollView
-                                            horizontal
-                                            showsHorizontalScrollIndicator={false}
-                                            contentContainerStyle={styles.chipRowContent}
-                                        >
-                                            {availableModels.map((model) => {
-                                                const isSelected = props.modelMode?.key === model.key;
-                                                return (
-                                                    <Pressable
-                                                        key={model.key}
-                                                        onPress={() => {
-                                                            hapticsLight();
-                                                            props.onModelModeChange?.(model);
-                                                        }}
-                                                        style={({ pressed }) => [
-                                                            styles.chip,
-                                                            isSelected && styles.chipSelected,
-                                                            pressed && styles.chipPressed,
-                                                        ]}
-                                                    >
-                                                        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                                            {model.name}
-                                                        </Text>
-                                                    </Pressable>
-                                                );
-                                            })}
-                                        </ScrollView>
-                                    ) : (
-                                        <Text style={styles.chipRowEmpty}>
-                                            {t('agentInput.model.configureInCli')}
-                                        </Text>
-                                    )}
-                                </View>
-
-                                {/* Effort Level Section */}
-                                {availableEffortLevels.length > 0 && (
-                                    <>
-                                        <View style={styles.overlayDivider} />
-                                        <View style={styles.overlaySection}>
-                                            <Text style={styles.overlaySectionTitle}>
-                                                {t('agentInput.effort.title')}
-                                            </Text>
-                                            <ScrollView
-                                                horizontal
-                                                showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={styles.chipRowContent}
-                                            >
-                                                {availableEffortLevels.map((level) => {
-                                                    const isSelected = (props.effortLevel?.key ?? 'default') === level.key;
-                                                    return (
-                                                        <Pressable
-                                                            key={level.key}
-                                                            onPress={() => {
-                                                                hapticsLight();
-                                                                props.onEffortLevelChange?.(level);
-                                                            }}
-                                                            style={({ pressed }) => [
-                                                                styles.chip,
-                                                                isSelected && styles.chipSelected,
-                                                                pressed && styles.chipPressed,
-                                                            ]}
-                                                        >
-                                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                                                {level.name}
-                                                            </Text>
-                                                        </Pressable>
-                                                    );
-                                                })}
-                                            </ScrollView>
-                                        </View>
-                                    </>
-                                )}
-                            </FloatingOverlay>
-                        </View>
-                    </>
-                )}
-
                 {/* Connection status, context warning, and permission mode */}
                 {(props.connectionStatus || contextWarning || displayPermissionMode || props.modelMode || displayEffortLevel) && (
                     <View style={{
@@ -954,7 +807,154 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                 )}
 
                 {/* Box 2: Action Area (Input + Send) */}
-                <View style={styles.unifiedPanel}>
+                <View>
+                    {/* Autocomplete suggestions overlay — anchored to input box */}
+                    {suggestions.length > 0 && (
+                        <View style={[
+                            styles.autocompleteOverlay,
+                            { paddingHorizontal: screenWidth > 700 ? 0 : 8 }
+                        ]}>
+                            <AgentInputAutocomplete
+                                suggestions={suggestions.map(s => {
+                                    const Component = s.component;
+                                    return <Component key={s.key} />;
+                                })}
+                                selectedIndex={selected}
+                                onSelect={handleSuggestionSelect}
+                                itemHeight={48}
+                                suggestionsLabel={props.autocompleteLabel}
+                            />
+                        </View>
+                    )}
+
+                    {/* Settings overlay — anchored to input box */}
+                    {showSettings && (
+                        <>
+                            <TouchableWithoutFeedback onPress={() => setShowSettings(false)}>
+                                <View style={styles.overlayBackdrop} />
+                            </TouchableWithoutFeedback>
+                            <View style={[
+                                styles.settingsOverlay,
+                                { paddingHorizontal: screenWidth > 700 ? 0 : 8 }
+                            ]}>
+                                <FloatingOverlay maxHeight={220} keyboardShouldPersistTaps="always">
+                                    {/* Permission Mode Section */}
+                                    <View style={styles.overlaySection}>
+                                        <Text style={styles.overlaySectionTitle}>
+                                            {isCodex ? t('agentInput.codexPermissionMode.title') : isGemini ? t('agentInput.geminiPermissionMode.title') : t('agentInput.permissionMode.title')}
+                                        </Text>
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            contentContainerStyle={styles.chipRowContent}
+                                        >
+                                            {availableModes.map((mode) => {
+                                                const isSelected = permissionModeKey === mode.key;
+                                                return (
+                                                    <Pressable
+                                                        key={mode.key}
+                                                        onPress={() => handleSettingsSelect(mode)}
+                                                        style={({ pressed }) => [
+                                                            styles.chip,
+                                                            isSelected && styles.chipSelected,
+                                                            pressed && styles.chipPressed,
+                                                        ]}
+                                                    >
+                                                        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                                            {withSandboxSuffix(mode.name, mode.key)}
+                                                        </Text>
+                                                    </Pressable>
+                                                );
+                                            })}
+                                        </ScrollView>
+                                    </View>
+
+                                    {/* Divider */}
+                                    <View style={styles.overlayDivider} />
+
+                                    {/* Model Section */}
+                                    <View style={styles.overlaySection}>
+                                        <Text style={styles.overlaySectionTitle}>
+                                            {t('agentInput.model.title')}
+                                        </Text>
+                                        {availableModels.length > 0 ? (
+                                            <ScrollView
+                                                horizontal
+                                                showsHorizontalScrollIndicator={false}
+                                                contentContainerStyle={styles.chipRowContent}
+                                            >
+                                                {availableModels.map((model) => {
+                                                    const isSelected = props.modelMode?.key === model.key;
+                                                    return (
+                                                        <Pressable
+                                                            key={model.key}
+                                                            onPress={() => {
+                                                                hapticsLight();
+                                                                props.onModelModeChange?.(model);
+                                                            }}
+                                                            style={({ pressed }) => [
+                                                                styles.chip,
+                                                                isSelected && styles.chipSelected,
+                                                                pressed && styles.chipPressed,
+                                                            ]}
+                                                        >
+                                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                                                {model.name}
+                                                            </Text>
+                                                        </Pressable>
+                                                    );
+                                                })}
+                                            </ScrollView>
+                                        ) : (
+                                            <Text style={styles.chipRowEmpty}>
+                                                {t('agentInput.model.configureInCli')}
+                                            </Text>
+                                        )}
+                                    </View>
+
+                                    {/* Effort Level Section */}
+                                    {availableEffortLevels.length > 0 && (
+                                        <>
+                                            <View style={styles.overlayDivider} />
+                                            <View style={styles.overlaySection}>
+                                                <Text style={styles.overlaySectionTitle}>
+                                                    {t('agentInput.effort.title')}
+                                                </Text>
+                                                <ScrollView
+                                                    horizontal
+                                                    showsHorizontalScrollIndicator={false}
+                                                    contentContainerStyle={styles.chipRowContent}
+                                                >
+                                                    {availableEffortLevels.map((level) => {
+                                                        const isSelected = (props.effortLevel?.key ?? 'default') === level.key;
+                                                        return (
+                                                            <Pressable
+                                                                key={level.key}
+                                                                onPress={() => {
+                                                                    hapticsLight();
+                                                                    props.onEffortLevelChange?.(level);
+                                                                }}
+                                                                style={({ pressed }) => [
+                                                                    styles.chip,
+                                                                    isSelected && styles.chipSelected,
+                                                                    pressed && styles.chipPressed,
+                                                                ]}
+                                                            >
+                                                                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                                                    {level.name}
+                                                                </Text>
+                                                            </Pressable>
+                                                        );
+                                                    })}
+                                                </ScrollView>
+                                            </View>
+                                        </>
+                                    )}
+                                </FloatingOverlay>
+                            </View>
+                        </>
+                    )}
+                    <View style={styles.unifiedPanel}>
                     {/* Input field */}
                     <View style={[styles.inputContainer, props.minHeight ? { minHeight: props.minHeight } : undefined]}>
                         <MultiTextInput
@@ -1179,6 +1179,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             </View>
                         </View>
                     </View>
+                </View>
                 </View>
             </View>
         </View>
