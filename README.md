@@ -4,9 +4,10 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-12 (fork base: d343330c) -->
+<!-- changelog-summary: 2026-03-15 (fork base: d343330c) -->
 
 #### UI & UX
+- **Mobile message wrapping** — agent/system messages now correctly wrap on narrow screens; RAM panel shown at the top of the Sessions tab on mobile, mirroring the desktop sidebar; slash command and settings overlays re-anchored to appear directly above the keyboard instead of mid-screen
 - **Ionicons icon set** — tab bar and sidebar icons replaced with Ionicons; sidebar logo replaced with a bold "J" text label; settings page logotype removed; FAB buttons tightened
 - **Compact session view by default** — compact layout is the default; expanded layout is opt-in via Appearance settings
 - **Settings chips** — permissions, model, and effort selectors in the session overlay replaced with horizontal chip rows, eliminating the need to scroll
