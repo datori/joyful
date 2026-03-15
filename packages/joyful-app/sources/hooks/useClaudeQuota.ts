@@ -71,14 +71,22 @@ export function useClaudeQuota(): UseClaudeQuotaResult {
         }
     }, [machines]);
 
-    // Trigger on app foreground, cancel interval on background
+    // Keep a stable ref so the polling effect doesn't re-run when sendFetchQuota
+    // is recreated (which happens every time machines/daemonState changes, which
+    // would create a feedback loop: fetch → state update → re-render → fetch again).
+    const sendFetchQuotaRef = React.useRef(sendFetchQuota);
+    sendFetchQuotaRef.current = sendFetchQuota;
+
+    // Trigger on app foreground, cancel interval on background.
+    // Intentionally uses sendFetchQuotaRef (not sendFetchQuota) so this effect
+    // runs only once on mount and does not re-run on every state update.
     React.useEffect(() => {
         let interval: ReturnType<typeof setInterval> | null = null;
 
         const startInterval = () => {
             if (interval !== null) return;
             interval = setInterval(() => {
-                sendFetchQuota();
+                sendFetchQuotaRef.current();
             }, POLL_INTERVAL_MS);
         };
 
@@ -91,7 +99,7 @@ export function useClaudeQuota(): UseClaudeQuotaResult {
 
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'active') {
-                sendFetchQuota();
+                sendFetchQuotaRef.current();
                 startInterval();
             } else {
                 stopInterval();
@@ -100,7 +108,7 @@ export function useClaudeQuota(): UseClaudeQuotaResult {
 
         // If app is already active when hook mounts, fetch immediately and start interval
         if (AppState.currentState === 'active') {
-            sendFetchQuota();
+            sendFetchQuotaRef.current();
             startInterval();
         }
 
@@ -110,7 +118,7 @@ export function useClaudeQuota(): UseClaudeQuotaResult {
             subscription.remove();
             stopInterval();
         };
-    }, [sendFetchQuota]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return { quota: quotaData, refresh: sendFetchQuota };
 }

@@ -57,6 +57,8 @@ The app SHALL send a `fetch-quota` RPC request to exactly one online machine whe
 - Approximately 5 minutes have elapsed since the last successful fetch while the app remains foregrounded.
 The app SHALL select the first machine for which `isMachineOnline(machine)` returns true. If no machine is online, the app SHALL skip the RPC silently and retry on the next trigger.
 
+The polling effect SHALL NOT re-trigger on daemon state changes. Because a successful `fetch-quota` RPC causes the daemon to update its `daemonState`, and `daemonState` propagates to the app as `machines` state, a naïve implementation that depends on `machines` inside the polling effect creates a feedback loop: fetch → state update → effect re-run → fetch again. The implementation SHALL use a stable ref (updated each render) so the interval/foreground effect runs only once on mount and is not sensitive to `machines` identity changes.
+
 #### Scenario: Quota fetched on app foreground
 - **WHEN** the app transitions from background to active and at least one machine is online
 - **THEN** the app SHALL send a `fetch-quota` RPC to the first online machine within 1 second of becoming active
@@ -72,6 +74,10 @@ The app SHALL select the first machine for which `isMachineOnline(machine)` retu
 #### Scenario: Only one machine polled even when multiple are online
 - **WHEN** three machines are online simultaneously
 - **THEN** the `fetch-quota` RPC SHALL be sent to exactly one machine (the first online machine)
+
+#### Scenario: Successful fetch does not immediately trigger another fetch
+- **WHEN** a `fetch-quota` RPC completes and daemon state is updated
+- **THEN** the app SHALL NOT immediately send another `fetch-quota` RPC as a result of the state update; the next fetch SHALL occur only on the next foreground event or 5-minute interval tick
 
 ### Requirement: fetch-quota RPC handler on daemon
 The daemon SHALL register a `fetch-quota` RPC handler. When invoked, the handler SHALL:
