@@ -520,6 +520,13 @@ export const en: TranslationStructure = {
         machines: 'Machines',
     },
 
+    quota: {
+        fiveHour: '5h',
+        sevenDay: '7d',
+        updatedAgo: ({ age }: { age: string }) => `updated ${age}`,
+        inTime: ({ time }: { time: string }) => `in ${time}`,
+    },
+
     toolView: {
         input: 'Input',
         output: 'Output',

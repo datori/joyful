@@ -537,6 +537,13 @@ export const ja: TranslationStructure = {
         machines: 'マシン',
     },
 
+    quota: {
+        fiveHour: '5時間',
+        sevenDay: '7日',
+        updatedAgo: ({ age }: { age: string }) => `${age}前に更新`,
+        inTime: ({ time }: { time: string }) => `${time}後`,
+    },
+
     toolView: {
         input: '入力',
         output: '出力',

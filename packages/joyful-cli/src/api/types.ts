@@ -160,6 +160,11 @@ export const DaemonStateSchema = z.object({
   memTotal: z.number().optional(),       // os.totalmem() — total installed RAM in bytes
   memFree: z.number().optional(),        // os.freemem()  — available RAM in bytes
   memDaemonRss: z.number().optional(),   // process.memoryUsage().rss — daemon process RSS in bytes
+  claudeQuota5hUtil: z.number().optional(),    // 0–1 utilization from anthropic-ratelimit-unified-5h-utilization
+  claudeQuota5hReset: z.string().optional(),   // ISO 8601 reset timestamp from anthropic-ratelimit-unified-5h-reset
+  claudeQuota7dUtil: z.number().optional(),    // 0–1 utilization from anthropic-ratelimit-unified-7d-utilization
+  claudeQuota7dReset: z.string().optional(),   // ISO 8601 reset timestamp from anthropic-ratelimit-unified-7d-reset
+  claudeQuotaFetchedAt: z.number().optional(), // epoch ms — when quota data was last successfully fetched
 })
 
 export type DaemonState = z.infer<typeof DaemonStateSchema>

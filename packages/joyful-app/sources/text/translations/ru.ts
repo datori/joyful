@@ -515,6 +515,13 @@ export const ru: TranslationStructure = {
         machines: 'Компьютеры',
     },
 
+    quota: {
+        fiveHour: '5ч',
+        sevenDay: '7д',
+        updatedAgo: ({ age }: { age: string }) => `обновлено ${age} назад`,
+        inTime: ({ time }: { time: string }) => `через ${time}`,
+    },
+
     toolView: {
         input: 'Входные данные',
         output: 'Результат',

@@ -507,6 +507,13 @@ export const zhHans: TranslationStructure = {
         machines: '机器',
     },
 
+    quota: {
+        fiveHour: '5小时',
+        sevenDay: '7天',
+        updatedAgo: ({ age }: { age: string }) => `${age}前更新`,
+        inTime: ({ time }: { time: string }) => `${time}后`,
+    },
+
     toolView: {
         input: '输入',
         output: '输出',

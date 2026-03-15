@@ -505,6 +505,13 @@ export const ca: TranslationStructure = {
         machines: 'Màquines',
     },
 
+    quota: {
+        fiveHour: '5h',
+        sevenDay: '7d',
+        updatedAgo: ({ age }: { age: string }) => `actualitzat fa ${age}`,
+        inTime: ({ time }: { time: string }) => `en ${time}`,
+    },
+
     toolView: {
         input: 'Entrada',
         output: 'Sortida',

@@ -505,6 +505,13 @@ export const pt: TranslationStructure = {
         machines: 'Máquinas',
     },
 
+    quota: {
+        fiveHour: '5h',
+        sevenDay: '7d',
+        updatedAgo: ({ age }: { age: string }) => `atualizado há ${age}`,
+        inTime: ({ time }: { time: string }) => `em ${time}`,
+    },
+
     toolView: {
         input: 'Entrada',
         output: 'Saída',

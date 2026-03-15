@@ -14,3 +14,24 @@ The `DaemonState` wire schema SHALL include three optional numeric fields for ma
 #### Scenario: Schema accepts state without memory fields
 - **WHEN** a `DaemonState` object omits `memTotal`, `memFree`, and `memDaemonRss`
 - **THEN** the Zod schema SHALL parse it successfully (fields are optional)
+
+### Requirement: DaemonState includes optional Claude quota fields
+The `DaemonStateSchema` in `joyful-cli/src/api/types.ts` SHALL include five additional optional fields for Claude API quota reporting:
+
+- `claudeQuota5hUtil` (`number`, optional): Utilization of the 5-hour rolling window as a fraction 0–1, computed from local JSONL session files.
+- `claudeQuota5hReset` (`string`, optional): ISO 8601 timestamp of when the 5-hour window resets.
+- `claudeQuota7dUtil` (`number`, optional): Utilization of the 7-day rolling window as a fraction 0–1, computed from local JSONL session files.
+- `claudeQuota7dReset` (`string`, optional): ISO 8601 timestamp of when the 7-day window resets.
+- `claudeQuotaFetchedAt` (`number`, optional): Unix epoch milliseconds recording when quota data was last successfully fetched. Used by the app to detect stale data.
+
+#### Scenario: Schema accepts state with quota fields
+- **WHEN** a `DaemonState` object includes all five quota fields with valid types
+- **THEN** the Zod schema SHALL parse it successfully
+
+#### Scenario: Schema accepts state without quota fields
+- **WHEN** a `DaemonState` object omits all quota fields
+- **THEN** the Zod schema SHALL parse it successfully (all fields are optional)
+
+#### Scenario: Schema accepts state with partial quota fields
+- **WHEN** a `DaemonState` object includes only `claudeQuota5hUtil` and `claudeQuota5hReset`
+- **THEN** the Zod schema SHALL parse it successfully

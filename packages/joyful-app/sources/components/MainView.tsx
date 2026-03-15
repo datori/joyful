@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { EmptySessionsTablet } from './EmptySessionsTablet';
 import { SessionsList } from './SessionsList';
 import { MachinesSidebarPanel } from './MachinesSidebarPanel';
+import { ClaudeQuotaPanel } from './ClaudeQuotaPanel';
+import { useClaudeQuota } from '@/hooks/useClaudeQuota';
 import { FABWide } from './FABWide';
 import { TabBar, TabType } from './TabBar';
 import { InboxView } from './InboxView';
@@ -216,6 +218,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const isTablet = useIsTablet();
     const router = useRouter();
     const realtimeStatus = useRealtimeStatus();
+    const { quota: quotaData, refresh: refreshQuota } = useClaudeQuota();
 
     // Tab state management
     // NOTE: Zen tab removed - the feature never got to a useful state
@@ -244,17 +247,19 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
             default:
                 return (
                     <View style={{ flex: 1 }}>
+                        <ClaudeQuotaPanel quota={quotaData} onRefresh={refreshQuota} />
                         <MachinesSidebarPanel />
                         <SessionsListWrapper />
                     </View>
                 );
         }
-    }, [activeTab]);
+    }, [activeTab, quotaData]);
 
     // Sidebar variant
     if (variant === 'sidebar') {
         return (
             <View style={styles.sidebarContentContainer}>
+                <ClaudeQuotaPanel quota={quotaData} onRefresh={refreshQuota} />
                 <MachinesSidebarPanel />
                 {sessionListViewData === null ? (
                     <View style={styles.tabletLoadingContainer}>

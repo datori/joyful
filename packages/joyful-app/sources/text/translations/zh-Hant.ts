@@ -506,6 +506,13 @@ export const zhHant: TranslationStructure = {
         machines: '機器',
     },
 
+    quota: {
+        fiveHour: '5小時',
+        sevenDay: '7天',
+        updatedAgo: ({ age }: { age: string }) => `${age}前更新`,
+        inTime: ({ time }: { time: string }) => `${time}後`,
+    },
+
     toolView: {
         input: '輸入',
         output: '輸出',

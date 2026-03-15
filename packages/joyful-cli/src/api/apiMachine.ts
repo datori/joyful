@@ -13,6 +13,7 @@ import { listNativeSessions } from '../claude/utils/listNativeSessions';
 import { encodeBase64, decodeBase64, encrypt, decrypt } from './encryption';
 import { backoff } from '@/utils/time';
 import { RpcHandlerManager } from './rpc/RpcHandlerManager';
+import { fetchQuota } from '@/daemon/quotaFetcher';
 
 interface ServerToDaemonEvents {
     update: (data: Update) => void;
@@ -168,6 +169,50 @@ export class ApiMachineClient {
             }, 100);
 
             return { message: 'Daemon stop request acknowledged, starting shutdown sequence...' };
+        });
+
+        // Register mock-quota handler (dev/test only — injects fixed quota values for visual testing)
+        if (process.env.NODE_ENV !== 'production') {
+            this.rpcHandlerManager.registerHandler('mock-quota', async () => {
+                const now = Date.now();
+                const reset5h = new Date(now + 2.5 * 3600 * 1000).toISOString();
+                const reset7d = new Date(now + 3.5 * 86400 * 1000).toISOString();
+                await this.updateDaemonState((state) => ({
+                    ...state,
+                    status: state?.status ?? 'running',
+                    claudeQuota5hUtil: 0.73,
+                    claudeQuota5hReset: reset5h,
+                    claudeQuota7dUtil: 0.31,
+                    claudeQuota7dReset: reset7d,
+                    claudeQuotaFetchedAt: now,
+                }));
+                logger.debug('[API MACHINE] mock-quota: injected test quota data');
+                return { type: 'success' };
+            });
+        }
+
+        // Register fetch-quota handler
+        this.rpcHandlerManager.registerHandler('fetch-quota', async () => {
+            logger.debug('[API MACHINE] Received fetch-quota RPC request');
+            const result = await fetchQuota();
+
+            if (result.type === 'error') {
+                logger.debug(`[API MACHINE] fetch-quota failed: ${result.reason}`);
+                return { type: 'error', reason: result.reason };
+            }
+
+            await this.updateDaemonState((state) => ({
+                ...state,
+                status: state?.status ?? 'running',
+                claudeQuota5hUtil: result.claudeQuota5hUtil,
+                claudeQuota5hReset: result.claudeQuota5hReset,
+                claudeQuota7dUtil: result.claudeQuota7dUtil,
+                claudeQuota7dReset: result.claudeQuota7dReset,
+                claudeQuotaFetchedAt: result.claudeQuotaFetchedAt,
+            }));
+
+            logger.debug('[API MACHINE] fetch-quota succeeded, daemon state updated');
+            return { type: 'success' };
         });
     }
 
