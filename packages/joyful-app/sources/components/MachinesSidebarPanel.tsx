@@ -18,7 +18,8 @@ const stylesheet = StyleSheet.create((theme) => ({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingTop: 8,
+        paddingBottom: 0,
         backgroundColor: theme.colors.groupped.background,
     },
     headerTitle: {

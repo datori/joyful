@@ -103,6 +103,7 @@ const QuotaRow = React.memo(({ windowLabel, util, elapsed, resetLabel, fillColor
 
     return (
         <View style={stylesheet.row}>
+            <Text style={stylesheet.windowLabel} numberOfLines={1}>{windowLabel}</Text>
             {/* Bar */}
             <View
                 style={stylesheet.barTrack}
@@ -125,9 +126,9 @@ const QuotaRow = React.memo(({ windowLabel, util, elapsed, resetLabel, fillColor
                     />
                 )}
             </View>
-            {/* Label */}
+            {/* Stats */}
             <Text style={stylesheet.label} numberOfLines={1}>
-                {`${windowLabel} · ${Math.round(util * 100)}% · ${resetLabel}`}
+                {`${Math.round(util * 100)}% · ${resetLabel}`}
             </Text>
         </View>
     );
@@ -214,9 +215,17 @@ const stylesheet = StyleSheet.create((theme) => ({
         paddingTop: 1,
     },
     row: {
-        gap: 3,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    windowLabel: {
+        fontSize: 11,
+        color: theme.colors.textSecondary,
+        minWidth: 18,
     },
     barTrack: {
+        flex: 1,
         height: 3,
         borderRadius: 1.5,
         backgroundColor: theme.colors.divider,

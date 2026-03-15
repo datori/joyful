@@ -57,7 +57,7 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     projectGroup: {
         paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingVertical: 6,
         backgroundColor: theme.colors.surface,
     },
     projectGroupTitle: {
@@ -73,7 +73,7 @@ const stylesheet = StyleSheet.create((theme) => ({
         ...Typography.default(),
     },
     sessionItem: {
-        height: 88,
+        height: 72,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,

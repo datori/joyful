@@ -67,7 +67,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         flex: 1,
     },
     sessionRow: {
-        height: 56,
+        height: 44,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
