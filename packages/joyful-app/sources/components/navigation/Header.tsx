@@ -42,7 +42,9 @@ export const Header = React.memo((props: HeaderProps) => {
     } = props;
 
     const insets = useSafeAreaInsets();
-    const paddingTop = safeAreaEnabled ? insets.top : 0;
+    // On web/PWA, the viewport already accounts for the iOS status bar via the browser,
+    // so applying insets.top again would double the gap. Use 0 for web.
+    const paddingTop = safeAreaEnabled && Platform.OS !== 'web' ? insets.top : 0;
     const headerHeight = useHeaderHeight();
 
     const containerStyle = [
