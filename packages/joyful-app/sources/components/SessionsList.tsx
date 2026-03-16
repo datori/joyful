@@ -122,7 +122,7 @@ const stylesheet = StyleSheet.create((theme) => ({
         marginBottom: 2,
     },
     sessionTitle: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '500',
         flex: 1,
         ...Typography.default('semiBold'),
@@ -211,8 +211,15 @@ const stylesheet = StyleSheet.create((theme) => ({
     archivedSessionWrapper: {
         opacity: 0.55,
     },
+    sessionItemArchived: {
+        height: 56,
+    },
+    avatarContainerArchived: {
+        width: 40,
+        height: 40,
+    },
     sessionTitleArchived: {
-        fontSize: 14,
+        fontSize: 13,
     },
 }));
 
@@ -417,6 +424,7 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
         <Pressable
             style={[
                 styles.sessionItem,
+                isArchived && styles.sessionItemArchived,
                 selected && styles.sessionItemSelected,
                 isSingle ? styles.sessionItemSingle :
                     isFirst ? styles.sessionItemFirst :
@@ -433,8 +441,8 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
                 }
             }}
         >
-            <View style={styles.avatarContainer}>
-                <Avatar id={avatarId} size={48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
+            <View style={[styles.avatarContainer, isArchived && styles.avatarContainerArchived]}>
+                <Avatar id={avatarId} size={isArchived ? 40 : 48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
                 {session.draft && (
                     <View style={styles.draftIconContainer}>
                         <Ionicons
@@ -458,9 +466,11 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
                 </View>
 
                 {/* Subtitle line */}
-                <Text style={styles.sessionSubtitle} numberOfLines={1}>
-                    {sessionSubtitle}
-                </Text>
+                {!isArchived && (
+                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
+                        {sessionSubtitle}
+                    </Text>
+                )}
 
                 {/* Status line with dot */}
                 <View style={styles.statusRow}>

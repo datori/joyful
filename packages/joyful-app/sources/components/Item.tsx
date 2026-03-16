@@ -46,13 +46,13 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
-        minHeight: Platform.select({ ios: 44, default: 56 }),
+        minHeight: Platform.select({ ios: 44, default: 44 }),
     },
     containerWithSubtitle: {
-        paddingVertical: Platform.select({ ios: 11, default: 16 }),
+        paddingVertical: Platform.select({ ios: 11, default: 10 }),
     },
     containerWithoutSubtitle: {
-        paddingVertical: Platform.select({ ios: 12, default: 16 }),
+        paddingVertical: Platform.select({ ios: 12, default: 10 }),
     },
     iconContainer: {
         marginRight: 12,
