@@ -7,6 +7,11 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 <!-- changelog-summary: 2026-03-15 (fork base: d343330c) -->
 
 #### UI & UX
+- **Plasma avatar style** — new default avatar style (replaces brutalist) using three soft gaussian-blurred blobs in triadic hues with screen blending and a radial center glow; CSS fallback for web where Skia is unavailable
+- **Condensed UI density** — session rows and settings items tightened across mobile and desktop; session titles ellipsize at one line instead of wrapping; sidebar quota bars now inline (label + bar + stats on a single row)
+- **Dark mode consistency** — desktop and web dark surfaces aligned to iOS palette; FAB buttons softened from pure white to an elevated surface tone to reduce harsh contrast
+- **iOS PWA safe-area fix** — eliminated double-counted top spacing when app is saved to the iOS home screen; header height normalized across native and PWA
+- **J branding in mobile header** — H logo replaced with J in the mobile navigation header
 - **Mobile message wrapping** — agent/system messages now correctly wrap on narrow screens; RAM panel shown at the top of the Sessions tab on mobile, mirroring the desktop sidebar; slash command and settings overlays re-anchored to appear directly above the keyboard instead of mid-screen
 - **Ionicons icon set** — tab bar and sidebar icons replaced with Ionicons; sidebar logo replaced with a bold "J" text label; settings page logotype removed; FAB buttons tightened
 - **Compact session view by default** — compact layout is the default; expanded layout is opt-in via Appearance settings
@@ -26,10 +31,12 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Slash command autocomplete on new session screen** — typing `/` surfaces recently-seen commands from past sessions; more commands now visible (auth, config, review, and diagnostic commands no longer suppressed)
 
 #### Performance
+- **Quota polling loop fix** — eliminated a re-entrant feedback loop in `useClaudeQuota` where a successful quota fetch would immediately re-trigger itself 5+ times concurrently, causing the daemon to OOM-crash while scanning thousands of JSONL entries
 - **Reconnect** — single batched `POST /v3/messages/batch` replaces one HTTP fetch per session on reconnect (~92% fewer requests); selective invalidation skips sessions already up-to-date
 - **Streaming** — seq allocation batched per-message-group in both REST and socket paths, eliminating seq gaps that caused 35% of streaming messages to hit the slow REST fallback
 
 #### Monitoring
+- **Quota from API response headers** — Claude quota widget now reads `anthropic-ratelimit-*` headers directly from the Messages API response instead of estimating usage by scanning JSONL files, giving more accurate and up-to-date utilization data
 - **Claude quota widget** — persistent sidebar panel above Machines showing 5h and 7d rolling-window utilization bars with a time-cursor tick, colour-coded fill (on-pace/amber/red), reset countdown, staleness hint, and a manual refresh button; data sourced from Anthropic's authoritative `anthropic-ratelimit-unified-*` response headers via a minimal OAuth Messages API ping (works for all Pro/Max subscription tiers)
 - **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and on the machine detail screen
 
