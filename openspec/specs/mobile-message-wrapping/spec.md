@@ -9,7 +9,7 @@ Agent message containers SHALL constrain their width to the available screen wid
 
 #### Scenario: Normal text message
 - **WHEN** an agent message contains typical prose with natural word boundaries
-- **THEN** the message SHALL display identically to current behavior (shrink to content, left-aligned)
+- **THEN** the message text SHALL be left-aligned and wrap within the available screen width
 
 #### Scenario: Code block in agent message
 - **WHEN** an agent message contains a fenced code block
