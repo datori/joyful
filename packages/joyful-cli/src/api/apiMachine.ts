@@ -4,6 +4,7 @@
  */
 
 import { totalmem, freemem } from 'node:os';
+import { readdir } from 'node:fs/promises';
 import { io, Socket } from 'socket.io-client';
 import { logger } from '@/ui/logger';
 import { configuration } from '@/configuration';
@@ -13,7 +14,7 @@ import { listNativeSessions } from '../claude/utils/listNativeSessions';
 import { encodeBase64, decodeBase64, encrypt, decrypt } from './encryption';
 import { backoff } from '@/utils/time';
 import { RpcHandlerManager } from './rpc/RpcHandlerManager';
-import { fetchQuota } from '@/daemon/quotaFetcher';
+import { fetchQuota, readAccessToken } from '@/daemon/quotaFetcher';
 
 interface ServerToDaemonEvents {
     update: (data: Update) => void;
@@ -191,6 +192,32 @@ export class ApiMachineClient {
             });
         }
 
+        // Register browse-directory handler (machine-level, no path restriction)
+        this.rpcHandlerManager.registerHandler('browse-directory', async (params: any) => {
+            const { path: dirPath } = params || {};
+            if (!dirPath) {
+                return { success: false, error: 'Path is required' };
+            }
+            logger.debug(`[API MACHINE] Browsing directory: ${dirPath}`);
+            try {
+                const dirents = await readdir(dirPath, { withFileTypes: true });
+                const entries = dirents.map((dirent) => {
+                    const isSymlink = dirent.isSymbolicLink();
+                    const isDir = dirent.isDirectory() || (isSymlink && dirent.isDirectory());
+                    const isFile = dirent.isFile();
+                    return {
+                        name: dirent.name,
+                        type: isDir ? 'directory' as const : isFile ? 'file' as const : 'other' as const,
+                        isSymlink,
+                    };
+                });
+                return { success: true, entries };
+            } catch (error) {
+                logger.debug(`[API MACHINE] browse-directory failed for ${dirPath}:`, error);
+                return { success: false, error: error instanceof Error ? error.message : 'Failed to read directory' };
+            }
+        });
+
         // Register fetch-quota handler
         this.rpcHandlerManager.registerHandler('fetch-quota', async () => {
             logger.debug('[API MACHINE] Received fetch-quota RPC request');
@@ -290,8 +317,10 @@ export class ApiMachineClient {
             reconnectionDelayMax: 5000
         });
 
-        this.socket.on('connect', () => {
+        this.socket.on('connect', async () => {
             logger.debug('[API MACHINE] Connected to server');
+
+            const accessToken = await readAccessToken();
 
             // Update daemon state to running
             // We need to override previous state because the daemon (this process)
@@ -305,6 +334,7 @@ export class ApiMachineClient {
                 memTotal: totalmem(),
                 memFree: freemem(),
                 memDaemonRss: process.memoryUsage().rss,
+                hasOAuthCredentials: accessToken !== null,
             }));
 
 

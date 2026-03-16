@@ -165,6 +165,7 @@ export const DaemonStateSchema = z.object({
   claudeQuota7dUtil: z.number().optional(),    // 0–1 utilization from anthropic-ratelimit-unified-7d-utilization
   claudeQuota7dReset: z.string().optional(),   // ISO 8601 reset timestamp from anthropic-ratelimit-unified-7d-reset
   claudeQuotaFetchedAt: z.number().optional(), // epoch ms — when quota data was last successfully fetched
+  hasOAuthCredentials: z.boolean().optional(), // true if daemon found a valid OAuth token in ~/.claude/.credentials.json at startup
 })
 
 export type DaemonState = z.infer<typeof DaemonStateSchema>

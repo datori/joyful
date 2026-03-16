@@ -292,7 +292,13 @@ export const ca: TranslationStructure = {
             notGitRepo: 'Els worktrees requereixen un repositori git',
             failed: ({ error }: { error: string }) => `Error en crear el worktree: ${error}`,
             success: 'Worktree creat amb èxit',
-        }
+        },
+        browseFilesystem: 'Explorar el sistema de fitxers',
+        browseTitle: 'Explorar',
+        parentFolder: 'Carpeta pare',
+        useDirectory: ({ path }: { path: string }) => `Utilitza "${path}"`,
+        hiddenDirsToggle: 'Mostra ocults',
+        browseLoadError: 'No s\'ha pogut carregar el directori',
     },
 
     sessionHistory: {

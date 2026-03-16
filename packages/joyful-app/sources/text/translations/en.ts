@@ -307,7 +307,13 @@ export const en: TranslationStructure = {
             notGitRepo: 'Worktrees require a git repository',
             failed: ({ error }: { error: string }) => `Failed to create worktree: ${error}`,
             success: 'Worktree created successfully',
-        }
+        },
+        browseFilesystem: 'Browse filesystem',
+        browseTitle: 'Browse',
+        parentFolder: 'Parent folder',
+        useDirectory: ({ path }: { path: string }) => `Use "${path}"`,
+        hiddenDirsToggle: 'Show hidden',
+        browseLoadError: 'Could not load directory',
     },
 
     sessionHistory: {

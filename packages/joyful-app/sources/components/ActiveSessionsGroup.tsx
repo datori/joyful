@@ -11,7 +11,7 @@ import { Typography } from '@/constants/Typography';
 import { StatusDot } from './StatusDot';
 import { useAllMachines, useSetting } from '@/sync/storage';
 import { StyleSheet } from 'react-native-unistyles';
-import { isMachineOnline } from '@/utils/machineUtils';
+import { isMachineOnline, getMachineColor } from '@/utils/machineUtils';
 import { machineSpawnNewSession, sessionKill } from '@/sync/ops';
 import { storage } from '@/sync/storage';
 import { Modal } from '@/modal';
@@ -323,6 +323,7 @@ export function ActiveSessionsGroup({ sessions, selectedSessionId }: ActiveSessi
                                                 selected={selectedSessionId === session.id}
                                                 showBorder={index < machineGroup.sessions.length - 1 ||
                                                     Array.from(projectGroup.machines.keys()).indexOf(machineId) < projectGroup.machines.size - 1}
+                                                machineColor={getMachineColor(session.metadata?.machineId, machinesMap)}
                                             />
                                         ))}
                                     </View>
@@ -336,7 +337,7 @@ export function ActiveSessionsGroup({ sessions, selectedSessionId }: ActiveSessi
 }
 
 // Compact session row component with status line
-const CompactSessionRow = React.memo(({ session, selected, showBorder }: { session: Session; selected?: boolean; showBorder?: boolean }) => {
+const CompactSessionRow = React.memo(({ session, selected, showBorder, machineColor }: { session: Session; selected?: boolean; showBorder?: boolean; machineColor?: string }) => {
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
     const sessionName = getSessionName(session);
@@ -377,7 +378,8 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder }: { sessi
             style={[
                 styles.sessionRow,
                 showBorder && styles.sessionRowWithBorder,
-                selected && styles.sessionRowSelected
+                selected && styles.sessionRowSelected,
+                machineColor ? { borderLeftWidth: 3, borderLeftColor: machineColor } : undefined
             ]}
             onPressIn={() => {
                 if (isTablet) {

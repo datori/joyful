@@ -197,6 +197,27 @@ export async function machineSpawnNewSession(options: SpawnSessionOptions): Prom
     }
 }
 
+export interface BrowseDirectoryEntry {
+    name: string;
+    type: 'file' | 'directory' | 'other';
+    isSymlink?: boolean;
+}
+
+/**
+ * Browse a directory on a specific machine (machine-level, no session required)
+ */
+export async function machineBrowseDirectory(machineId: string, path: string): Promise<{
+    success: boolean;
+    entries?: BrowseDirectoryEntry[];
+    error?: string;
+}> {
+    return apiSocket.machineRPC<{ success: boolean; entries?: BrowseDirectoryEntry[]; error?: string }, { path: string }>(
+        machineId,
+        'browse-directory',
+        { path }
+    );
+}
+
 /**
  * Stop the daemon on a specific machine
  */

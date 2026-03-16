@@ -293,7 +293,13 @@ export const zhHant: TranslationStructure = {
             notGitRepo: 'Worktree 需要 git 倉庫',
             failed: ({ error }: { error: string }) => `建立 worktree 失敗：${error}`,
             success: 'Worktree 建立成功',
-        }
+        },
+        browseFilesystem: '瀏覽檔案系統',
+        browseTitle: '瀏覽',
+        parentFolder: '上層資料夾',
+        useDirectory: ({ path }: { path: string }) => `使用「${path}」`,
+        hiddenDirsToggle: '顯示隱藏項目',
+        browseLoadError: '無法載入目錄',
     },
 
     sessionHistory: {

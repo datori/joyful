@@ -56,9 +56,13 @@ export function useClaudeQuota(): UseClaudeQuotaResult {
         return null;
     }, [machines]);
 
-    // Send fetch-quota RPC to the first online machine; silently skip if none online
+    // Send fetch-quota RPC to the first online machine that has OAuth credentials;
+    // silently skip if no such machine is available (API-key-only machines cannot
+    // provide subscription quota data).
     const sendFetchQuota = React.useCallback(async () => {
-        const onlineMachine = machines.find(isMachineOnline);
+        const onlineMachine = machines.find(
+            m => isMachineOnline(m) && (m.daemonState as any)?.hasOAuthCredentials === true
+        );
         if (!onlineMachine) return;
         try {
             await apiSocket.machineRPC<{ type: string }, {}>(

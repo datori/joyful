@@ -81,7 +81,7 @@ export const MachinesSidebarPanel = React.memo(() => {
 
     return (
         <View style={stylesheet.container}>
-            <Pressable style={stylesheet.header} onPress={handleToggle}>
+            <Pressable style={[stylesheet.header, collapsed && { paddingBottom: 8 }]} onPress={handleToggle}>
                 <Text style={stylesheet.headerTitle}>{t('sidebar.machines')}</Text>
                 <Ionicons
                     name={collapsed ? 'chevron-forward' : 'chevron-down'}

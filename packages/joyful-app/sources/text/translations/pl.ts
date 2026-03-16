@@ -303,7 +303,13 @@ export const pl: TranslationStructure = {
             notGitRepo: 'Worktree wymaga repozytorium git',
             failed: ({ error }: { error: string }) => `Nie udało się utworzyć worktree: ${error}`,
             success: 'Worktree został utworzony pomyślnie',
-        }
+        },
+        browseFilesystem: 'Przeglądaj system plików',
+        browseTitle: 'Przeglądaj',
+        parentFolder: 'Folder nadrzędny',
+        useDirectory: ({ path }: { path: string }) => `Użyj „${path}"`,
+        hiddenDirsToggle: 'Pokaż ukryte',
+        browseLoadError: 'Nie można załadować katalogu',
     },
 
     sessionHistory: {

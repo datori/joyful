@@ -294,7 +294,13 @@ export const zhHans: TranslationStructure = {
             notGitRepo: 'Worktree 需要 git 仓库',
             failed: ({ error }: { error: string }) => `创建 worktree 失败：${error}`,
             success: 'Worktree 创建成功',
-        }
+        },
+        browseFilesystem: '浏览文件系统',
+        browseTitle: '浏览',
+        parentFolder: '上级文件夹',
+        useDirectory: ({ path }: { path: string }) => `使用「${path}」`,
+        hiddenDirsToggle: '显示隐藏项',
+        browseLoadError: '无法加载目录',
     },
 
     sessionHistory: {

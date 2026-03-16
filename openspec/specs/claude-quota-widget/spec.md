@@ -52,28 +52,41 @@ The filled portion of each bar SHALL use a colour derived from the relationship 
 - **THEN** the bar fill SHALL use the red destructive colour
 
 ### Requirement: App triggers fetch-quota RPC on foreground and interval
-The app SHALL send a `fetch-quota` RPC request to exactly one online machine when:
+The app SHALL send a `fetch-quota` RPC request to exactly one machine when:
 - The app comes to the foreground (AppState change from background/inactive to active).
 - Approximately 5 minutes have elapsed since the last successful fetch while the app remains foregrounded.
-The app SHALL select the first machine for which `isMachineOnline(machine)` returns true. If no machine is online, the app SHALL skip the RPC silently and retry on the next trigger.
 
-The polling effect SHALL NOT re-trigger on daemon state changes. Because a successful `fetch-quota` RPC causes the daemon to update its `daemonState`, and `daemonState` propagates to the app as `machines` state, a naïve implementation that depends on `machines` inside the polling effect creates a feedback loop: fetch → state update → effect re-run → fetch again. The implementation SHALL use a stable ref (updated each render) so the interval/foreground effect runs only once on mount and is not sensitive to `machines` identity changes.
+The app SHALL select the first machine (from `useAllMachines()`, sorted newest-first) for which **both** conditions hold:
+1. `isMachineOnline(machine)` returns `true`, AND
+2. `(machine.daemonState as any).hasOAuthCredentials === true`
 
-#### Scenario: Quota fetched on app foreground
-- **WHEN** the app transitions from background to active and at least one machine is online
-- **THEN** the app SHALL send a `fetch-quota` RPC to the first online machine within 1 second of becoming active
+If no machine satisfies both conditions, the app SHALL skip the RPC silently and retry on the next trigger. Machines with `hasOAuthCredentials === false` or `hasOAuthCredentials` absent (older daemon) SHALL be skipped entirely as poll targets.
 
-#### Scenario: Quota refreshed on 5-minute interval
-- **WHEN** the app has been foregrounded continuously for 5 minutes since the last fetch
-- **THEN** the app SHALL send another `fetch-quota` RPC to the first online machine
+The polling effect SHALL NOT re-trigger on daemon state changes. The implementation SHALL use a stable ref (updated each render) so the interval/foreground effect runs only once on mount and is not sensitive to `machines` identity changes.
+
+#### Scenario: OAuth machine polled when subscription machine is present
+- **WHEN** two machines are active: machine A (`hasOAuthCredentials: false`, newer) and machine B (`hasOAuthCredentials: true`, older)
+- **THEN** the `fetch-quota` RPC SHALL be sent to machine B, not machine A
+
+#### Scenario: No RPC when all active machines are API-key only
+- **WHEN** all active machines have `hasOAuthCredentials: false`
+- **THEN** no `fetch-quota` RPC SHALL be sent; the widget SHALL continue displaying last cached values (or remain hidden if never fetched)
 
 #### Scenario: No RPC when no machine online
 - **WHEN** the app comes to the foreground and no machine is online
-- **THEN** no `fetch-quota` RPC SHALL be sent and the widget SHALL continue displaying the last cached values
+- **THEN** no `fetch-quota` RPC SHALL be sent
 
-#### Scenario: Only one machine polled even when multiple are online
-- **WHEN** three machines are online simultaneously
-- **THEN** the `fetch-quota` RPC SHALL be sent to exactly one machine (the first online machine)
+#### Scenario: Older daemon (no hasOAuthCredentials) is skipped
+- **WHEN** the only active machine has `hasOAuthCredentials` absent (undefined) in its daemonState
+- **THEN** no `fetch-quota` RPC SHALL be sent
+
+#### Scenario: Quota fetched on app foreground with OAuth machine
+- **WHEN** the app transitions from background to active and at least one machine is online with `hasOAuthCredentials: true`
+- **THEN** the app SHALL send a `fetch-quota` RPC to the first such machine within 1 second of becoming active
+
+#### Scenario: Quota refreshed on 5-minute interval
+- **WHEN** the app has been foregrounded continuously for 5 minutes since the last fetch and an OAuth machine is online
+- **THEN** the app SHALL send another `fetch-quota` RPC to the first OAuth machine
 
 #### Scenario: Successful fetch does not immediately trigger another fetch
 - **WHEN** a `fetch-quota` RPC completes and daemon state is updated

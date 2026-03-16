@@ -324,7 +324,13 @@ export const ja: TranslationStructure = {
             notGitRepo: 'ワークツリーにはGitリポジトリが必要です',
             failed: ({ error }: { error: string }) => `ワークツリーの作成に失敗しました: ${error}`,
             success: 'ワークツリーが正常に作成されました',
-        }
+        },
+        browseFilesystem: 'ファイルシステムを閲覧',
+        browseTitle: '閲覧',
+        parentFolder: '親フォルダ',
+        useDirectory: ({ path }: { path: string }) => `「${path}」を使用`,
+        hiddenDirsToggle: '隠しフォルダを表示',
+        browseLoadError: 'ディレクトリを読み込めませんでした',
     },
 
     sessionHistory: {

@@ -321,7 +321,13 @@ export const it: TranslationStructure = {
             notGitRepo: 'Le worktree richiedono un repository git',
             failed: ({ error }: { error: string }) => `Impossibile creare la worktree: ${error}`,
             success: 'Worktree creata con successo',
-        }
+        },
+        browseFilesystem: 'Sfoglia file system',
+        browseTitle: 'Sfoglia',
+        parentFolder: 'Cartella superiore',
+        useDirectory: ({ path }: { path: string }) => `Usa "${path}"`,
+        hiddenDirsToggle: 'Mostra nascosti',
+        browseLoadError: 'Impossibile caricare la directory',
     },
 
     sessionHistory: {

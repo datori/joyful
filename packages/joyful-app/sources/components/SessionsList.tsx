@@ -343,6 +343,7 @@ export function SessionsList() {
                         isLast={isLast}
                         isSingle={isSingle}
                         isArchived={item.variant === 'archived'}
+                        machineColor={item.machineColor}
                     />
                 );
         }
@@ -376,13 +377,14 @@ export function SessionsList() {
 }
 
 // Sub-component that handles session message logic
-const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, isArchived }: {
+const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, isArchived, machineColor }: {
     session: Session;
     selected?: boolean;
     isFirst?: boolean;
     isLast?: boolean;
     isSingle?: boolean;
     isArchived?: boolean;
+    machineColor?: string;
 }) => {
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
@@ -494,6 +496,7 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
             isFirst ? styles.sessionItemContainerFirst :
                 isLast ? styles.sessionItemContainerLast : {},
         isArchived ? styles.archivedSessionWrapper : undefined,
+        machineColor ? { borderLeftWidth: 3, borderLeftColor: machineColor } : undefined,
     ];
 
     if (!swipeEnabled) {

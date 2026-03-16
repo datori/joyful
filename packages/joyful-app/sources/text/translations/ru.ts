@@ -274,7 +274,13 @@ export const ru: TranslationStructure = {
             notGitRepo: 'Worktree требует наличия git репозитория',
             failed: ({ error }: { error: string }) => `Не удалось создать worktree: ${error}`,
             success: 'Worktree успешно создан',
-        }
+        },
+        browseFilesystem: 'Обзор файловой системы',
+        browseTitle: 'Обзор',
+        parentFolder: 'Родительская папка',
+        useDirectory: ({ path }: { path: string }) => `Использовать «${path}»`,
+        hiddenDirsToggle: 'Показать скрытые',
+        browseLoadError: 'Не удалось загрузить директорию',
     },
 
     sessionHistory: {

@@ -37,7 +37,7 @@ export type QuotaFetchError = {
 
 export type QuotaFetchResult = QuotaFetchSuccess | QuotaFetchError;
 
-async function readAccessToken(): Promise<string | null> {
+export async function readAccessToken(): Promise<string | null> {
     try {
         const path = join(homedir(), '.claude', '.credentials.json');
         const raw = await readFile(path, 'utf8');

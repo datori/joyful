@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { layout } from '@/components/layout';
 import { t } from '@/text';
 import { MultiTextInput, MultiTextInputHandle } from '@/components/MultiTextInput';
+import { isMachineOnline } from '@/utils/machineUtils';
 
 const stylesheet = StyleSheet.create((theme) => ({
     container: {
@@ -71,10 +72,19 @@ export default function PathPickerScreen() {
 
     const [customPath, setCustomPath] = useState(params.selectedPath || '');
 
+    // Sync path set by browse screen back into input
+    useEffect(() => {
+        if (params.selectedPath) {
+            setCustomPath(params.selectedPath);
+        }
+    }, [params.selectedPath]);
+
     // Get the selected machine
     const machine = useMemo(() => {
         return machines.find(m => m.id === params.machineId);
     }, [machines, params.machineId]);
+
+    const isOnline = useMemo(() => machine ? isMachineOnline(machine) : false, [machine]);
 
     // Get recent paths for this machine - prioritize from settings, then fall back to sessions
     const recentPaths = useMemo(() => {
@@ -222,6 +232,28 @@ export default function PathPickerScreen() {
                                     />
                                 </View>
                             </View>
+                        </ItemGroup>
+
+                        <ItemGroup>
+                            <Item
+                                title={t('newSession.browseFilesystem')}
+                                leftElement={
+                                    <Ionicons
+                                        name="folder-open-outline"
+                                        size={18}
+                                        color={isOnline ? theme.colors.header.tint : theme.colors.textSecondary}
+                                    />
+                                }
+                                showChevron={true}
+                                disabled={!isOnline}
+                                onPress={() => {
+                                    const startPath = customPath.trim().startsWith('/')
+                                        ? customPath.trim()
+                                        : (machine?.metadata?.homeDir ?? '/');
+                                    router.push(`/new/pick/browse?machineId=${encodeURIComponent(params.machineId ?? '')}&initialPath=${encodeURIComponent(startPath)}`);
+                                }}
+                                showDivider={false}
+                            />
                         </ItemGroup>
 
                         {recentPaths.length > 0 && (

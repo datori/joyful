@@ -5,7 +5,7 @@ import { Session, Machine, GitStatus } from "./storageTypes";
 import { createReducer, reducer, ReducerState } from "./reducer/reducer";
 import { Message } from "./typesMessage";
 import { NormalizedMessage } from "./typesRaw";
-import { isMachineOnline } from '@/utils/machineUtils';
+import { isMachineOnline, getMachineColor } from '@/utils/machineUtils';
 import { applySettings, Settings } from "./settings";
 import { LocalSettings, applyLocalSettings } from "./localSettings";
 import { Purchases, customerInfoToPurchases } from "./purchases";
@@ -64,7 +64,7 @@ export type SessionListViewItem =
     | { type: 'header'; title: string }
     | { type: 'active-sessions'; sessions: Session[] }
     | { type: 'project-group'; displayPath: string; machine: Machine }
-    | { type: 'session'; session: Session; variant?: 'default' | 'no-path' | 'archived' }
+    | { type: 'session'; session: Session; variant?: 'default' | 'no-path' | 'archived'; machineColor?: string }
     | { type: 'archived-section-header'; count: number };
 
 // Legacy type for backward compatibility - to be removed
@@ -144,7 +144,8 @@ interface StorageState {
 
 // Helper function to build unified list view data from sessions and machines
 function buildSessionListViewData(
-    sessions: Record<string, Session>
+    sessions: Record<string, Session>,
+    machines: Record<string, Machine> = {}
 ): SessionListViewItem[] {
     // Separate active and inactive sessions
     const activeSessions: Session[] = [];
@@ -174,7 +175,8 @@ function buildSessionListViewData(
     if (inactiveSessions.length > 0) {
         listData.push({ type: 'archived-section-header', count: inactiveSessions.length });
         inactiveSessions.forEach(sess => {
-            listData.push({ type: 'session', session: sess, variant: 'archived' });
+            const machineColor = getMachineColor(sess.metadata?.machineId, machines);
+            listData.push({ type: 'session', session: sess, variant: 'archived', machineColor });
         });
     }
 
@@ -385,7 +387,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Build new unified list view data
             const sessionListViewData = buildSessionListViewData(
-                mergedSessions
+                mergedSessions,
+                state.machines
             );
 
             // Update project manager with current sessions and machines
@@ -704,7 +707,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Rebuild sessionListViewData to update the UI immediately
             const sessionListViewData = buildSessionListViewData(
-                updatedSessions
+                updatedSessions,
+                state.machines
             );
 
             return {
@@ -810,7 +814,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Rebuild sessionListViewData to reflect machine changes
             const sessionListViewData = buildSessionListViewData(
-                state.sessions
+                state.sessions,
+                mergedMachines
             );
 
             return {
@@ -883,7 +888,7 @@ export const storage = create<StorageState>()((set, get) => {
             saveSessionPermissionModes(modes);
             
             // Rebuild sessionListViewData without the deleted session
-            const sessionListViewData = buildSessionListViewData(remainingSessions);
+            const sessionListViewData = buildSessionListViewData(remainingSessions, state.machines);
             
             return {
                 ...state,
