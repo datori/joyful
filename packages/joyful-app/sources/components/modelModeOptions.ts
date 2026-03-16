@@ -77,6 +77,9 @@ export function getClaudeModelModes(): ModelMode[] {
         { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', description: 'Fast and capable' },
         { key: 'claude-sonnet-4-6[1m]', name: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
         { key: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', description: 'Fastest' },
+        { key: 'bedrock-claude-opus:latest', name: 'Bedrock Opus', description: 'Most capable (Bedrock)' },
+        { key: 'bedrock-claude-sonnet:latest', name: 'Bedrock Sonnet', description: 'Fast and capable (Bedrock)' },
+        { key: 'bedrock-claude-haiku:latest', name: 'Bedrock Haiku', description: 'Fastest (Bedrock)' },
     ];
 }
 

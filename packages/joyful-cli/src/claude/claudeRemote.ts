@@ -118,6 +118,9 @@ export async function claudeRemote(opts: {
         { code: 'claude-sonnet-4-6', value: 'Claude Sonnet 4.6', description: 'Fast and capable' },
         { code: 'claude-sonnet-4-6[1m]', value: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
         { code: 'claude-haiku-4-5', value: 'Claude Haiku 4.5', description: 'Fastest' },
+        { code: 'bedrock-claude-opus:latest', value: 'Bedrock Opus', description: 'Most capable (Bedrock)' },
+        { code: 'bedrock-claude-sonnet:latest', value: 'Bedrock Sonnet', description: 'Fast and capable (Bedrock)' },
+        { code: 'bedrock-claude-haiku:latest', value: 'Bedrock Haiku', description: 'Fastest (Bedrock)' },
     ];
 
     // Canonical effort level list
