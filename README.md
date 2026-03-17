@@ -4,9 +4,11 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-15 (fork base: d343330c) -->
+<!-- changelog-summary: 2026-03-17 (fork base: d343330c) -->
 
 #### UI & UX
+- **Git history and branch list screen** — branch-name pill in the files view is now tappable, opening a new screen showing all local/remote branches (with ahead/behind counts, current branch highlighted) and the last 30 commits with author and relative time
+- **Code block word wrapping fix on mobile** — agent message container now stretches to a definite width, preventing horizontal scroll-views in code blocks from breaking text wrapping for adjacent content
 - **Plasma avatar style** — new default avatar style (replaces brutalist) using three soft gaussian-blurred blobs in triadic hues with screen blending and a radial center glow; CSS fallback for web where Skia is unavailable
 - **Condensed UI density** — session rows and settings items tightened across mobile and desktop; session titles ellipsize at one line instead of wrapping; sidebar quota bars now inline (label + bar + stats on a single row)
 - **Dark mode consistency** — desktop and web dark surfaces aligned to iOS palette; FAB buttons softened from pure white to an elevated surface tone to reduce harsh contrast
@@ -22,15 +24,18 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Self-hosted ElevenLabs config** — agent ID can be set directly in Settings → Voice without rebuilding; mic button shows a clear prompt when unconfigured; server returns 503 with an actionable message when `ELEVENLABS_API_KEY` is absent
 
 #### Session management
+- **Interactive filesystem browser for working directory** — "Browse filesystem" option in the new-session path picker lets users navigate the remote machine's directory tree interactively, with hidden-dir toggle and breadcrumb navigation; disabled when the machine is offline
 - **Native session browser** — discover and resume existing Claude Code sessions (JSONL files in `~/.claude/projects/`) directly from the app, without starting a new session
 - **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session" on the sessions list; pick machine, working directory, and native session in one flow
 - **Archived sessions section** — inactive sessions grouped under a collapsible "Archived (N)" header at the bottom of the list, collapsed by default, rendered at reduced opacity
 
 #### Claude Code integration
+- **Bedrock model options** — `bedrock-claude-opus`, `bedrock-claude-sonnet`, and `bedrock-claude-haiku` added to both the new-session model picker and the in-session model switcher, enabling use with an `ANTHROPIC_BASE_URL`-backed Bedrock gateway
 - **Model & effort level** — CLI reads `~/.claude/settings.json` at startup and surfaces default model and effort level to the app; effort picker in session creation and session view; actual running model captured from the SDK and kept in sync
 - **Slash command autocomplete on new session screen** — typing `/` surfaces recently-seen commands from past sessions; more commands now visible (auth, config, review, and diagnostic commands no longer suppressed)
 
 #### Performance
+- **Quota polling skips API-key-only machines** — `fetch-quota` RPCs are now sent only to machines with OAuth credentials (`hasOAuthCredentials` flag from daemon state), silently skipping API-key-only machines that can't report subscription quota
 - **Quota polling loop fix** — eliminated a re-entrant feedback loop in `useClaudeQuota` where a successful quota fetch would immediately re-trigger itself 5+ times concurrently, causing the daemon to OOM-crash while scanning thousands of JSONL entries
 - **Reconnect** — single batched `POST /v3/messages/batch` replaces one HTTP fetch per session on reconnect (~92% fewer requests); selective invalidation skips sessions already up-to-date
 - **Streaming** — seq allocation batched per-message-group in both REST and socket paths, eliminating seq gaps that caused 35% of streaming messages to hit the slow REST fallback
@@ -41,6 +46,7 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and on the machine detail screen
 
 #### Infrastructure
+- **Socket.IO polling transport fallback** — daemon now uses `['polling', 'websocket']` transports instead of WebSocket-only, fixing connection failures when a direct WebSocket upgrade is blocked (e.g. macOS LaunchAgent network context)
 - **Safe co-existence with Happy daemon** — joyful daemon runs independently alongside any existing `happy`/`happier` daemon on the same machine
 - **Renamed throughout** — all `happy`/`handy` identifiers, env vars (`JOYFUL_MASTER_SECRET`), and home directory (`~/.joyful-dev`) updated to `joyful`
 
@@ -170,6 +176,18 @@ On your computer, run `joyful` instead of `claude` or `joyful codex` instead of 
 - ⚡ **Switch devices instantly** - Take control from phone or desktop with one keypress
 - 🔐 **End-to-end encrypted** - Your code never leaves your devices unencrypted
 - 🛠️ **Open source** - Audit the code yourself. No telemetry, no tracking
+
+## Screenshots
+
+![Joyful — Sessions](docs/screenshots/sessions-demo.png)
+
+| Chat session | Settings |
+|---|---|
+| ![Chat session](docs/screenshots/chat-demo.png) | ![Settings](docs/screenshots/settings-demo.png) |
+
+| Mobile view | Welcome |
+|---|---|
+| ![Mobile](docs/screenshots/mobile-demo.png) | ![Welcome](docs/screenshots/welcome-demo.png) |
 
 ## 📦 Project Components
 
