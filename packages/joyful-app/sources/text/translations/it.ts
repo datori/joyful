@@ -54,6 +54,7 @@ export const it: TranslationStructure = {
         home: 'Home',
         message: 'Messaggio',
         files: 'File',
+        git: 'Git',
         fileViewer: 'Visualizzatore file',
         loading: 'Caricamento...',
         retry: 'Riprova',
@@ -641,6 +642,22 @@ export const it: TranslationStructure = {
         file: 'File',
         fileEmpty: 'File vuoto',
         noChanges: 'Nessuna modifica da mostrare',
+    },
+
+    gitHistory: {
+        branches: 'Rami',
+        remoteBranches: 'Remoto',
+        recentCommits: 'Commit recenti',
+        detachedHead: '(HEAD staccato)',
+        notRepo: 'Non è un repository git',
+        notRepoDesc: 'Questa directory non si trova in un repository git',
+        loadingBranches: 'Caricamento rami...',
+        loadingCommits: 'Caricamento commit...',
+        noBranches: 'Nessun ramo trovato',
+        noCommits: 'Nessun commit ancora',
+        errorBranches: 'Impossibile caricare i rami',
+        errorCommits: 'Impossibile caricare i commit',
+        retry: 'Riprova',
     },
 
     settingsVoice: {

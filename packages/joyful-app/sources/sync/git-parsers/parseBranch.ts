@@ -95,3 +95,53 @@ export function getBranchStatus(statusChar: string): 'current' | 'remote' | 'nor
             return 'normal';
     }
 }
+
+export interface GitBranchEntry {
+    name: string;
+    isCurrent: boolean;
+    isRemote: boolean;
+    ahead?: number;
+    behind?: number;
+}
+
+// Matches a line from `git branch -vv -a`:
+//   * main        abc1234 [origin/main: ahead 2, behind 1] Commit message
+//     feature/x   def5678 Some commit
+//     remotes/origin/main  abc1234 Commit message
+const BRANCH_VV_REGEX = /^([* ]+)\s*(\S+)\s+[a-f0-9]+(?:\s+\[([^\]]*)\])?/;
+
+/**
+ * Parse `git branch -vv -a` output into a flat list of GitBranchEntry objects.
+ */
+export function parseGitBranchVV(output: string): GitBranchEntry[] {
+    const lines = output.trim().split('\n').filter(line => line.length > 0);
+    const entries: GitBranchEntry[] = [];
+
+    for (const line of lines) {
+        const match = BRANCH_VV_REGEX.exec(line);
+        if (!match) continue;
+
+        const indicator = match[1] ?? '';
+        const name = match[2] ?? '';
+        const trackingInfo = match[3] ?? '';
+
+        if (!name) continue;
+
+        const isCurrent = indicator.includes('*');
+        const isRemote = name.startsWith('remotes/');
+
+        let ahead: number | undefined;
+        let behind: number | undefined;
+
+        if (trackingInfo) {
+            const aheadMatch = /ahead (\d+)/.exec(trackingInfo);
+            const behindMatch = /behind (\d+)/.exec(trackingInfo);
+            if (aheadMatch) ahead = parseInt(aheadMatch[1], 10);
+            if (behindMatch) behind = parseInt(behindMatch[1], 10);
+        }
+
+        entries.push({ name, isCurrent, isRemote, ahead, behind });
+    }
+
+    return entries;
+}

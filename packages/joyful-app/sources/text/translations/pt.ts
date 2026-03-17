@@ -55,6 +55,7 @@ export const pt: TranslationStructure = {
         home: 'Início',
         message: 'Mensagem',
         files: 'Arquivos',
+        git: 'Git',
         fileViewer: 'Visualizador de arquivos',
         loading: 'Carregando...',
         retry: 'Tentar novamente',
@@ -612,6 +613,22 @@ export const pt: TranslationStructure = {
         file: 'Arquivo',
         fileEmpty: 'Arquivo está vazio',
         noChanges: 'Nenhuma alteração para exibir',
+    },
+
+    gitHistory: {
+        branches: 'Ramificações',
+        remoteBranches: 'Remoto',
+        recentCommits: 'Commits recentes',
+        detachedHead: '(HEAD desanexado)',
+        notRepo: 'Não é um repositório git',
+        notRepoDesc: 'Este diretório não está dentro de um repositório git',
+        loadingBranches: 'Carregando ramificações...',
+        loadingCommits: 'Carregando commits...',
+        noBranches: 'Nenhuma ramificação encontrada',
+        noCommits: 'Sem commits ainda',
+        errorBranches: 'Não foi possível carregar ramificações',
+        errorCommits: 'Não foi possível carregar commits',
+        retry: 'Tentar novamente',
     },
 
     settingsVoice: {

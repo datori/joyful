@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ActivityIndicator, Platform, TextInput } from 'react-native';
+import { View, ActivityIndicator, Platform, TextInput, Pressable } from 'react-native';
 import { t } from '@/text';
 import { useRoute } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -195,11 +195,15 @@ export default function FilesScreen() {
                     borderBottomWidth: Platform.select({ ios: 0.33, default: 1 }),
                     borderBottomColor: theme.colors.divider
                 }}>
-                    <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginBottom: 8
-                    }}>
+                    <Pressable
+                        onPress={gitStatusFiles.branch ? () => router.push(`/session/${sessionId}/git`) : undefined}
+                        style={({ pressed }) => ({
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginBottom: 8,
+                            opacity: pressed ? 0.7 : 1,
+                        })}
+                    >
                         <Octicons name="git-branch" size={16} color={theme.colors.textSecondary} style={{ marginRight: 6 }} />
                         <Text style={{
                             fontSize: 16,
@@ -209,7 +213,10 @@ export default function FilesScreen() {
                         }}>
                             {gitStatusFiles.branch || t('files.detachedHead')}
                         </Text>
-                    </View>
+                        {gitStatusFiles.branch && (
+                            <Octicons name="chevron-right" size={14} color={theme.colors.textSecondary} style={{ marginLeft: 4 }} />
+                        )}
+                    </Pressable>
                     <Text style={{
                         fontSize: 12,
                         color: theme.colors.textSecondary,

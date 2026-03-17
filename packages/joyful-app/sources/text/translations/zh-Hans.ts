@@ -57,6 +57,7 @@ export const zhHans: TranslationStructure = {
         home: '主页',
         message: '消息',
         files: '文件',
+        git: 'Git',
         fileViewer: '文件查看器',
         loading: '加载中...',
         retry: '重试',
@@ -614,6 +615,22 @@ export const zhHans: TranslationStructure = {
         file: '文件',
         fileEmpty: '文件为空',
         noChanges: '没有要显示的更改',
+    },
+
+    gitHistory: {
+        branches: '分支',
+        remoteBranches: '远程',
+        recentCommits: '最近提交',
+        detachedHead: '（HEAD 已分离）',
+        notRepo: '不是 git 仓库',
+        notRepoDesc: '此目录不在 git 仓库中',
+        loadingBranches: '加载分支中...',
+        loadingCommits: '加载提交中...',
+        noBranches: '未找到分支',
+        noCommits: '暂无提交',
+        errorBranches: '无法加载分支',
+        errorCommits: '无法加载提交',
+        retry: '重试',
     },
 
     settingsVoice: {

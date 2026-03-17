@@ -55,6 +55,7 @@ export const ca: TranslationStructure = {
         home: 'Inici',
         message: 'Missatge',
         files: 'Fitxers',
+        git: 'Git',
         fileViewer: 'Visualitzador de fitxers',
         loading: 'Carregant...',
         retry: 'Torna-ho a provar',
@@ -612,6 +613,22 @@ export const ca: TranslationStructure = {
         file: 'Fitxer',
         fileEmpty: 'El fitxer està buit',
         noChanges: 'No hi ha canvis a mostrar',
+    },
+
+    gitHistory: {
+        branches: 'Branques',
+        remoteBranches: 'Remot',
+        recentCommits: 'Confirmacions recents',
+        detachedHead: '(HEAD desconnectat)',
+        notRepo: 'No és un repositori git',
+        notRepoDesc: 'Aquest directori no està dins d\'un repositori git',
+        loadingBranches: 'Carregant branques...',
+        loadingCommits: 'Carregant confirmacions...',
+        noBranches: 'No s\'han trobat branques',
+        noCommits: 'Encara no hi ha confirmacions',
+        errorBranches: 'No s\'han pogut carregar les branques',
+        errorCommits: 'No s\'han pogut carregar les confirmacions',
+        retry: 'Reintenta',
     },
 
     settingsVoice: {

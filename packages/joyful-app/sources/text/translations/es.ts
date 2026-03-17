@@ -55,6 +55,7 @@ export const es: TranslationStructure = {
         home: 'Inicio',
         message: 'Mensaje',
         files: 'Archivos',
+        git: 'Git',
         fileViewer: 'Visor de archivos',
         loading: 'Cargando...',
         retry: 'Reintentar',
@@ -612,6 +613,22 @@ export const es: TranslationStructure = {
         file: 'Archivo',
         fileEmpty: 'El archivo está vacío',
         noChanges: 'No hay cambios que mostrar',
+    },
+
+    gitHistory: {
+        branches: 'Ramas',
+        remoteBranches: 'Remoto',
+        recentCommits: 'Confirmaciones recientes',
+        detachedHead: '(HEAD desconectado)',
+        notRepo: 'No es un repositorio git',
+        notRepoDesc: 'Este directorio no está dentro de un repositorio git',
+        loadingBranches: 'Cargando ramas...',
+        loadingCommits: 'Cargando confirmaciones...',
+        noBranches: 'No se encontraron ramas',
+        noCommits: 'Sin confirmaciones todavía',
+        errorBranches: 'No se pudieron cargar las ramas',
+        errorCommits: 'No se pudieron cargar las confirmaciones',
+        retry: 'Reintentar',
     },
 
     settingsVoice: {

@@ -92,6 +92,14 @@ export default function RootLayout() {
                 }}
             />
             <Stack.Screen
+                name="session/[id]/git"
+                options={{
+                    headerShown: true,
+                    headerTitle: t('common.git'),
+                    headerBackTitle: t('common.back'),
+                }}
+            />
+            <Stack.Screen
                 name="session/[id]/file"
                 options={{
                     headerShown: true,

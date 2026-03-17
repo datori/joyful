@@ -55,6 +55,7 @@ export const en = {
         home: 'Home',
         message: 'Message',
         files: 'Files',
+        git: 'Git',
         fileViewer: 'File Viewer',
         loading: 'Loading...',
         retry: 'Retry',
@@ -611,6 +612,22 @@ export const en = {
         file: 'File',
         fileEmpty: 'File is empty',
         noChanges: 'No changes to display',
+    },
+
+    gitHistory: {
+        branches: 'Branches',
+        remoteBranches: 'Remote',
+        recentCommits: 'Recent Commits',
+        detachedHead: '(HEAD detached)',
+        notRepo: 'Not a git repository',
+        notRepoDesc: 'This directory is not inside a git repository',
+        loadingBranches: 'Loading branches...',
+        loadingCommits: 'Loading commits...',
+        noBranches: 'No branches found',
+        noCommits: 'No commits yet',
+        errorBranches: 'Could not load branches',
+        errorCommits: 'Could not load commits',
+        retry: 'Retry',
     },
 
     settingsVoice: {

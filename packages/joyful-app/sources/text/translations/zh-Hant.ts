@@ -57,6 +57,7 @@ export const zhHant: TranslationStructure = {
         home: '首頁',
         message: '訊息',
         files: '檔案',
+        git: 'Git',
         fileViewer: '檔案檢視器',
         loading: '載入中...',
         retry: '重試',
@@ -613,6 +614,22 @@ export const zhHant: TranslationStructure = {
         file: '檔案',
         fileEmpty: '檔案為空',
         noChanges: '沒有要顯示的更改',
+    },
+
+    gitHistory: {
+        branches: '分支',
+        remoteBranches: '遠端',
+        recentCommits: '最近提交',
+        detachedHead: '（HEAD 已分離）',
+        notRepo: '不是 git 儲存庫',
+        notRepoDesc: '此目錄不在 git 儲存庫中',
+        loadingBranches: '載入分支中...',
+        loadingCommits: '載入提交中...',
+        noBranches: '未找到分支',
+        noCommits: '尚無提交',
+        errorBranches: '無法載入分支',
+        errorCommits: '無法載入提交',
+        retry: '重試',
     },
 
     settingsVoice: {

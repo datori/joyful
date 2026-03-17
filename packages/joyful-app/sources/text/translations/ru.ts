@@ -66,6 +66,7 @@ export const ru: TranslationStructure = {
         home: 'Главная',
         message: 'Сообщение',
         files: 'Файлы',
+        git: 'Git',
         fileViewer: 'Просмотр файла',
         loading: 'Загрузка...',
         retry: 'Повторить',
@@ -622,6 +623,22 @@ export const ru: TranslationStructure = {
         file: 'Файл',
         fileEmpty: 'Файл пустой',
         noChanges: 'Нет изменений для отображения',
+    },
+
+    gitHistory: {
+        branches: 'Ветки',
+        remoteBranches: 'Удалённые',
+        recentCommits: 'Последние коммиты',
+        detachedHead: '(HEAD отсоединён)',
+        notRepo: 'Не является git-репозиторием',
+        notRepoDesc: 'Эта директория не является git-репозиторием',
+        loadingBranches: 'Загрузка веток...',
+        loadingCommits: 'Загрузка коммитов...',
+        noBranches: 'Ветки не найдены',
+        noCommits: 'Нет коммитов',
+        errorBranches: 'Не удалось загрузить ветки',
+        errorCommits: 'Не удалось загрузить коммиты',
+        retry: 'Повторить',
     },
 
     settingsVoice: {

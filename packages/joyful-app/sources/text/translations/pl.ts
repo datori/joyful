@@ -66,6 +66,7 @@ export const pl: TranslationStructure = {
         home: 'Główna',
         message: 'Wiadomość',
         files: 'Pliki',
+        git: 'Git',
         fileViewer: 'Przeglądarka plików',
         loading: 'Ładowanie...',
         retry: 'Ponów',
@@ -622,6 +623,22 @@ export const pl: TranslationStructure = {
         file: 'Plik',
         fileEmpty: 'Plik jest pusty',
         noChanges: 'Brak zmian do wyświetlenia',
+    },
+
+    gitHistory: {
+        branches: 'Gałęzie',
+        remoteBranches: 'Zdalne',
+        recentCommits: 'Ostatnie commity',
+        detachedHead: '(HEAD odłączony)',
+        notRepo: 'To nie jest repozytorium git',
+        notRepoDesc: 'Ten katalog nie jest w repozytorium git',
+        loadingBranches: 'Ładowanie gałęzi...',
+        loadingCommits: 'Ładowanie commitów...',
+        noBranches: 'Brak gałęzi',
+        noCommits: 'Brak commitów',
+        errorBranches: 'Nie można załadować gałęzi',
+        errorCommits: 'Nie można załadować commitów',
+        retry: 'Spróbuj ponownie',
     },
 
     settingsVoice: {

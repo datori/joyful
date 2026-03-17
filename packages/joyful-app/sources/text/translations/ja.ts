@@ -57,6 +57,7 @@ export const ja: TranslationStructure = {
         home: 'ホーム',
         message: 'メッセージ',
         files: 'ファイル',
+        git: 'Git',
         fileViewer: 'ファイルビューアー',
         loading: '読み込み中...',
         retry: '再試行',
@@ -644,6 +645,22 @@ export const ja: TranslationStructure = {
         file: 'ファイル',
         fileEmpty: 'ファイルは空です',
         noChanges: '表示する変更はありません',
+    },
+
+    gitHistory: {
+        branches: 'ブランチ',
+        remoteBranches: 'リモート',
+        recentCommits: '最近のコミット',
+        detachedHead: '（HEADが切り離された状態）',
+        notRepo: 'Gitリポジトリではありません',
+        notRepoDesc: 'このディレクトリはGitリポジトリ内にありません',
+        loadingBranches: 'ブランチを読み込み中...',
+        loadingCommits: 'コミットを読み込み中...',
+        noBranches: 'ブランチが見つかりません',
+        noCommits: 'まだコミットはありません',
+        errorBranches: 'ブランチを読み込めませんでした',
+        errorCommits: 'コミットを読み込めませんでした',
+        retry: '再試行',
     },
 
     settingsVoice: {
