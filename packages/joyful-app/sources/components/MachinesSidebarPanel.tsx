@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useAllMachines } from '@/sync/storage';
+import { useAllMachines, useLocalSettingMutable } from '@/sync/storage';
 import { isMachineOnline } from '@/utils/machineUtils';
 import { formatMemory } from '@/utils/stringUtils';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,15 +67,15 @@ export const MachinesSidebarPanel = React.memo(() => {
     const { theme } = useUnistyles();
     const machines = useAllMachines();
     const router = useRouter();
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useLocalSettingMutable('machinesPanelCollapsed');
 
     const handleMachinePress = useCallback((machineId: string) => {
         router.push(`/machine/${machineId}`);
     }, [router]);
 
     const handleToggle = useCallback(() => {
-        setCollapsed(c => !c);
-    }, []);
+        setCollapsed(!collapsed);
+    }, [collapsed, setCollapsed]);
 
     if (machines.length === 0) return null;
 
