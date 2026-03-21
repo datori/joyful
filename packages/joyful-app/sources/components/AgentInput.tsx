@@ -21,7 +21,7 @@ import { useSetting } from '@/sync/storage';
 import { hackMode, hackModes } from '@/sync/modeHacks';
 import { Theme } from '@/theme';
 import { t } from '@/text';
-import { Metadata } from '@/sync/storageTypes';
+import { Metadata, OpenSpecStatus } from '@/sync/storageTypes';
 import { AIBackendProfile, getProfileEnvironmentVariables, validateProfileForAgent } from '@/sync/settings';
 import { getBuiltInProfile } from '@/sync/profileUtils';
 
@@ -81,6 +81,10 @@ interface AgentInputProps {
     minHeight?: number;
     profileId?: string | null;
     onProfileClick?: () => void;
+    exploreModeArmed?: boolean;
+    onExplorePress?: () => void;
+    openspecStatus?: OpenSpecStatus | null;
+    onOpenspecPress?: () => void;
 }
 
 const MAX_CONTEXT_SIZE = 190000;
@@ -976,6 +980,80 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             {/* Row 1: Settings, Profile (FIRST), Agent, Abort, Git Status */}
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <View style={styles.actionButtonsLeft}>
+
+                                {/* Explore Mode toggle button (one-shot) */}
+                                {props.onExplorePress && (
+                                    <Pressable
+                                        onPress={props.onExplorePress}
+                                        hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
+                                        style={(p) => ({
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            borderRadius: Platform.select({ default: 16, android: 20 }),
+                                            paddingHorizontal: 8,
+                                            paddingVertical: 6,
+                                            justifyContent: 'center',
+                                            height: 32,
+                                            opacity: p.pressed ? 0.7 : 1,
+                                            backgroundColor: props.exploreModeArmed ? theme.colors.button.primary.background : 'transparent',
+                                        })}
+                                    >
+                                        <Ionicons
+                                            name={'telescope-outline'}
+                                            size={16}
+                                            color={props.exploreModeArmed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
+                                        />
+                                    </Pressable>
+                                )}
+
+                                {/* OpenSpec status button */}
+                                {props.openspecStatus?.hasOpenspec && props.onOpenspecPress && (
+                                    <Pressable
+                                        onPress={props.onOpenspecPress}
+                                        hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
+                                        style={(p) => ({
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            borderRadius: Platform.select({ default: 16, android: 20 }),
+                                            paddingHorizontal: 8,
+                                            paddingVertical: 6,
+                                            justifyContent: 'center',
+                                            height: 32,
+                                            opacity: p.pressed ? 0.7 : 1,
+                                        })}
+                                    >
+                                        <View style={{ position: 'relative' }}>
+                                            <Octicons
+                                                name={'stack'}
+                                                size={16}
+                                                color={theme.colors.button.secondary.tint}
+                                            />
+                                            {props.openspecStatus.activeChanges.length > 0 && (
+                                                <View style={{
+                                                    position: 'absolute',
+                                                    top: -5,
+                                                    right: -7,
+                                                    backgroundColor: theme.colors.button.primary.background,
+                                                    borderRadius: 6,
+                                                    minWidth: 12,
+                                                    height: 12,
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    paddingHorizontal: 2,
+                                                }}>
+                                                    <Text style={{
+                                                        fontSize: 8,
+                                                        color: theme.colors.button.primary.tint,
+                                                        fontWeight: '700',
+                                                        lineHeight: 12,
+                                                    }}>
+                                                        {props.openspecStatus.activeChanges.length}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </Pressable>
+                                )}
 
                                 {/* Settings button */}
                                 {props.onPermissionModeChange && (

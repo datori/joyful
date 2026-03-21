@@ -313,6 +313,7 @@ export const en = {
 
     session: {
         inputPlaceholder: 'Type a message ...',
+        resumeSessionFailed: 'Failed to resume session. Make sure the daemon is running on the machine.',
     },
 
     commandPalette: {
@@ -1004,6 +1005,17 @@ export const en = {
         // Used by restore/index.tsx (link-new-device QR screen)
         linkDeviceInstructions: '1. Open Joyful on your mobile device\n2. Go to Settings → Account\n3. Tap "Link New Device"\n4. Scan this QR code',
         restoreWithSecretKey: 'Restore with Secret Key Instead',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `Active Changes (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `Main Specs (${count})`,
+        archived: ({ count }: { count: number }) => `Archived (${count})`,
+        noActiveChanges: 'No active changes',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} tasks`,
+        noTasksFile: 'No tasks file',
+        refreshing: 'Refreshing...',
     },
 } as const;
 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { useShallow } from 'zustand/react/shallow'
 import { config } from '@/config';
-import { Session, Machine, GitStatus } from "./storageTypes";
+import { Session, Machine, GitStatus, OpenSpecStatus } from "./storageTypes";
 import { createReducer, reducer, ReducerState } from "./reducer/reducer";
 import { Message } from "./typesMessage";
 import { NormalizedMessage } from "./typesRaw";
@@ -11,7 +11,7 @@ import { LocalSettings, applyLocalSettings } from "./localSettings";
 import { Purchases, customerInfoToPurchases } from "./purchases";
 import { Profile } from "./profile";
 import { UserProfile, RelationshipUpdatedEvent } from "./friendTypes";
-import { loadSettings, loadLocalSettings, saveLocalSettings, saveSettings, loadPurchases, savePurchases, loadProfile, saveProfile, loadSessionDrafts, saveSessionDrafts, loadSessionPermissionModes, saveSessionPermissionModes } from "./persistence";
+import { loadSettings, loadLocalSettings, saveLocalSettings, saveSettings, loadPurchases, savePurchases, loadProfile, saveProfile, loadSessionDrafts, saveSessionDrafts, loadSessionPermissionModes, saveSessionPermissionModes, loadSessionModelModes, saveSessionModelModes, loadSessionEffortLevels, saveSessionEffortLevels } from "./persistence";
 import type { PermissionModeKey } from '@/components/PermissionModeSelector';
 import type { CustomerInfo } from './revenueCat/types';
 import React from "react";
@@ -81,6 +81,7 @@ interface StorageState {
     sessionListViewData: SessionListViewItem[] | null;
     sessionMessages: Record<string, SessionMessages>;
     sessionGitStatus: Record<string, GitStatus | null>;
+    projectOpenspecStatus: Record<string, OpenSpecStatus | null>;
     machines: Record<string, Machine>;
     artifacts: Record<string, DecryptedArtifact>;  // New artifacts storage
     friends: Record<string, UserProfile>;  // All relationships (friends, pending, requested, etc.)
@@ -131,6 +132,8 @@ interface StorageState {
     getProjectGitStatus: (projectId: string) => import('./storageTypes').GitStatus | null;
     getSessionProjectGitStatus: (sessionId: string) => import('./storageTypes').GitStatus | null;
     updateSessionProjectGitStatus: (sessionId: string, status: import('./storageTypes').GitStatus | null) => void;
+    // OpenSpec status methods
+    updateProjectOpenSpecStatus: (projectKey: string, status: OpenSpecStatus | null) => void;
     // Friend management methods
     applyFriends: (friends: UserProfile[]) => void;
     applyRelationshipUpdate: (event: RelationshipUpdatedEvent) => void;
@@ -190,6 +193,8 @@ export const storage = create<StorageState>()((set, get) => {
     let profile = loadProfile();
     let sessionDrafts = loadSessionDrafts();
     let sessionPermissionModes = loadSessionPermissionModes();
+    let sessionModelModes = loadSessionModelModes();
+    let sessionEffortLevels = loadSessionEffortLevels();
     return {
         settings,
         settingsVersion: version,
@@ -206,6 +211,7 @@ export const storage = create<StorageState>()((set, get) => {
         sessionListViewData: null,
         sessionMessages: {},
         sessionGitStatus: {},
+        projectOpenspecStatus: {},
         realtimeStatus: 'disconnected',
         realtimeMode: 'idle',
         socketStatus: 'disconnected',
@@ -236,6 +242,8 @@ export const storage = create<StorageState>()((set, get) => {
             // Load drafts and permission modes if sessions are empty (initial load)
             const savedDrafts = Object.keys(state.sessions).length === 0 ? sessionDrafts : {};
             const savedPermissionModes = Object.keys(state.sessions).length === 0 ? sessionPermissionModes : {};
+            const savedModelModes = Object.keys(state.sessions).length === 0 ? sessionModelModes : {};
+            const savedEffortLevels = Object.keys(state.sessions).length === 0 ? sessionEffortLevels : {};
 
             // Merge new sessions with existing ones
             const mergedSessions: Record<string, Session> = { ...state.sessions };
@@ -258,14 +266,25 @@ export const storage = create<StorageState>()((set, get) => {
                     (session.permissionMode && session.permissionMode !== 'default' ? session.permissionMode : undefined) ||
                     defaultPermissionMode;
 
+                const resolvedModelMode: string | null =
+                    existingSession?.modelMode ||
+                    savedModelModes[session.id] ||
+                    session.modelMode ||
+                    null;
+
+                const resolvedEffortLevel: string | null =
+                    (existingSession && 'effortLevel' in existingSession ? existingSession.effortLevel : undefined) ??
+                    savedEffortLevels[session.id] ??
+                    session.effortLevel ??
+                    null;
+
                 mergedSessions[session.id] = {
                     ...session,
                     presence,
                     draft: existingDraft || savedDraft || session.draft || null,
                     permissionMode: resolvedPermissionMode,
-                    // Preserve local-only fields that are not synced to the server
-                    modelMode: existingSession?.modelMode ?? session.modelMode,
-                    effortLevel: existingSession?.effortLevel ?? session.effortLevel,
+                    modelMode: resolvedModelMode,
+                    effortLevel: resolvedEffortLevel,
                 };
             });
 
@@ -741,6 +760,14 @@ export const storage = create<StorageState>()((set, get) => {
             // Persist permission modes (only non-default values to save space)
             saveSessionPermissionModes(allModes);
 
+            // Sync to server KV store
+            const updatedSession = updatedSessions[sessionId];
+            sync.persistSessionConfig(sessionId, {
+                permissionMode: mode,
+                modelMode: updatedSession.modelMode ?? undefined,
+                effortLevel: updatedSession.effortLevel ?? undefined,
+            });
+
             // No need to rebuild sessionListViewData since permission mode doesn't affect the list display
             return {
                 ...state,
@@ -760,7 +787,23 @@ export const storage = create<StorageState>()((set, get) => {
                 }
             };
 
-            // No need to rebuild sessionListViewData since model mode doesn't affect the list display
+            // Persist model modes (only non-null values)
+            const allModelModes: Record<string, string> = {};
+            Object.entries(updatedSessions).forEach(([id, sess]) => {
+                if (sess.modelMode) {
+                    allModelModes[id] = sess.modelMode;
+                }
+            });
+            saveSessionModelModes(allModelModes);
+
+            // Sync to server KV store
+            const updatedSession = updatedSessions[sessionId];
+            sync.persistSessionConfig(sessionId, {
+                permissionMode: updatedSession.permissionMode ?? undefined,
+                modelMode: mode,
+                effortLevel: updatedSession.effortLevel ?? undefined,
+            });
+
             return {
                 ...state,
                 sessions: updatedSessions
@@ -770,15 +813,34 @@ export const storage = create<StorageState>()((set, get) => {
             const session = state.sessions[sessionId];
             if (!session) return state;
 
+            const updatedSessions = {
+                ...state.sessions,
+                [sessionId]: {
+                    ...session,
+                    effortLevel: level
+                }
+            };
+
+            // Persist effort levels (only non-null values)
+            const allEffortLevels: Record<string, string> = {};
+            Object.entries(updatedSessions).forEach(([id, sess]) => {
+                if (sess.effortLevel) {
+                    allEffortLevels[id] = sess.effortLevel;
+                }
+            });
+            saveSessionEffortLevels(allEffortLevels);
+
+            // Sync to server KV store
+            const updatedSession = updatedSessions[sessionId];
+            sync.persistSessionConfig(sessionId, {
+                permissionMode: updatedSession.permissionMode ?? undefined,
+                modelMode: updatedSession.modelMode ?? undefined,
+                effortLevel: level ?? undefined,
+            });
+
             return {
                 ...state,
-                sessions: {
-                    ...state.sessions,
-                    [sessionId]: {
-                        ...session,
-                        effortLevel: level
-                    }
-                }
+                sessions: updatedSessions
             };
         }),
         // Project management methods
@@ -794,6 +856,13 @@ export const storage = create<StorageState>()((set, get) => {
             // Trigger a state update to notify hooks
             set((state) => ({ ...state }));
         },
+        updateProjectOpenSpecStatus: (projectKey: string, status: OpenSpecStatus | null) => set((state) => ({
+            ...state,
+            projectOpenspecStatus: {
+                ...state.projectOpenspecStatus,
+                [projectKey]: status
+            }
+        })),
         applyMachines: (machines: Machine[], replace: boolean = false) => set((state) => {
             // Either replace all machines or merge updates
             let mergedMachines: Record<string, Machine>;
@@ -1065,6 +1134,16 @@ export function useProjectGitStatus(projectId: string | null) {
 
 export function useSessionProjectGitStatus(sessionId: string | null) {
     return storage(useShallow((state) => sessionId ? state.getSessionProjectGitStatus(sessionId) : null));
+}
+
+export function useSessionProjectOpenSpecStatus(sessionId: string | null): OpenSpecStatus | null {
+    return storage(useShallow((state) => {
+        if (!sessionId) return null;
+        const session = state.sessions[sessionId];
+        if (!session?.metadata?.machineId || !session?.metadata?.path) return null;
+        const projectKey = `${session.metadata.machineId}:${session.metadata.path}`;
+        return state.projectOpenspecStatus[projectKey] ?? null;
+    }));
 }
 
 export function useLocalSetting<K extends keyof LocalSettings>(name: K): LocalSettings[K] {

@@ -325,6 +325,7 @@ export const pl: TranslationStructure = {
 
     session: {
         inputPlaceholder: 'Wpisz wiadomość...',
+        resumeSessionFailed: 'Nie udało się wznowić sesji. Upewnij się, że demon działa na maszynie.',
     },
 
     commandPalette: {
@@ -1027,6 +1028,17 @@ export const pl: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. Otwórz Joyful na swoim urządzeniu mobilnym\n2. Przejdź do Ustawienia → Konto\n3. Kliknij „Połącz nowe urządzenie"\n4. Zeskanuj ten kod QR',
         restoreWithSecretKey: 'Przywróć za pomocą klucza tajnego',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `Aktywne zmiany (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `Główne specyfikacje (${count})`,
+        archived: ({ count }: { count: number }) => `Archiwum (${count})`,
+        noActiveChanges: 'Brak aktywnych zmian',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} zadań`,
+        noTasksFile: 'Brak pliku zadań',
+        refreshing: 'Odświeżanie...',
     },
 } as const;
 

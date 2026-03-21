@@ -314,6 +314,7 @@ export const ca: TranslationStructure = {
 
     session: {
         inputPlaceholder: 'Escriu un missatge...',
+        resumeSessionFailed: 'No s\'ha pogut reprendre la sessió. Assegureu-vos que el dimoni estigui en execució a la màquina.',
     },
 
     commandPalette: {
@@ -1002,6 +1003,17 @@ export const ca: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. Obre Joyful al teu dispositiu mòbil\n2. Vés a Configuració → Compte\n3. Toca "Vincula el nou dispositiu"\n4. Escaneja aquest codi QR',
         restoreWithSecretKey: 'Restaura amb la clau secreta',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `Canvis actius (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `Especificacions principals (${count})`,
+        archived: ({ count }: { count: number }) => `Arxivats (${count})`,
+        noActiveChanges: 'Sense canvis actius',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} tasques`,
+        noTasksFile: 'Sense fitxer de tasques',
+        refreshing: 'Actualitzant...',
     },
 } as const;
 

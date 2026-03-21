@@ -316,6 +316,7 @@ export const zhHans: TranslationStructure = {
 
     session: {
         inputPlaceholder: '输入消息...',
+        resumeSessionFailed: '无法恢复会话。请确保守护进程正在机器上运行。',
     },
 
     commandPalette: {
@@ -1004,5 +1005,16 @@ export const zhHans: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. 在移动设备上打开 Joyful\n2. 前往设置 → 账户\n3. 点击「链接新设备」\n4. 扫描此二维码',
         restoreWithSecretKey: '使用密钥恢复',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `活跃变更 (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `主要规格 (${count})`,
+        archived: ({ count }: { count: number }) => `已归档 (${count})`,
+        noActiveChanges: '没有活跃变更',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} 任务`,
+        noTasksFile: '无任务文件',
+        refreshing: '刷新中...',
     },
 } as const;

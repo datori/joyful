@@ -346,6 +346,7 @@ export const ja: TranslationStructure = {
 
     session: {
         inputPlaceholder: 'メッセージを入力...',
+        resumeSessionFailed: 'セッションを再開できませんでした。マシンでデーモンが実行されていることを確認してください。',
     },
 
     commandPalette: {
@@ -1005,5 +1006,16 @@ export const ja: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. モバイルデバイスでJoyfulを開く\n2. 設定 → アカウントへ移動\n3. 「新しいデバイスをリンク」をタップ\n4. このQRコードをスキャン',
         restoreWithSecretKey: 'シークレットキーで復元',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `アクティブな変更 (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `メイン仕様 (${count})`,
+        archived: ({ count }: { count: number }) => `アーカイブ (${count})`,
+        noActiveChanges: 'アクティブな変更なし',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} タスク`,
+        noTasksFile: 'タスクファイルなし',
+        refreshing: '更新中...',
     },
 } as const;

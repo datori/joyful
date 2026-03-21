@@ -315,6 +315,7 @@ export const zhHant: TranslationStructure = {
 
     session: {
         inputPlaceholder: '輸入訊息...',
+        resumeSessionFailed: '無法恢復工作階段。請確認守護程序正在機器上執行。',
     },
 
     commandPalette: {
@@ -1004,5 +1005,16 @@ export const zhHant: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. 在行動裝置上開啟 Joyful\n2. 前往設定 → 帳戶\n3. 點選「連結新裝置」\n4. 掃描此 QR 碼',
         restoreWithSecretKey: '使用密鑰還原',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `進行中的變更 (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `主要規格 (${count})`,
+        archived: ({ count }: { count: number }) => `已封存 (${count})`,
+        noActiveChanges: '沒有進行中的變更',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} 個任務`,
+        noTasksFile: '無任務檔案',
+        refreshing: '重新整理中…',
     },
 } as const;

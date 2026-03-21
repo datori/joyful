@@ -343,6 +343,7 @@ export const it: TranslationStructure = {
 
     session: {
         inputPlaceholder: 'Scrivi un messaggio ...',
+        resumeSessionFailed: 'Impossibile riprendere la sessione. Assicurarsi che il daemon sia in esecuzione sulla macchina.',
     },
 
     commandPalette: {
@@ -1002,6 +1003,17 @@ export const it: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. Apri Joyful sul tuo dispositivo mobile\n2. Vai a Impostazioni → Account\n3. Tocca "Collega nuovo dispositivo"\n4. Scansiona questo codice QR',
         restoreWithSecretKey: 'Ripristina con chiave segreta',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `Modifiche attive (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `Specifiche principali (${count})`,
+        archived: ({ count }: { count: number }) => `Archiviati (${count})`,
+        noActiveChanges: 'Nessuna modifica attiva',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} attività`,
+        noTasksFile: 'Nessun file attività',
+        refreshing: 'Aggiornamento...',
     },
 } as const;
 

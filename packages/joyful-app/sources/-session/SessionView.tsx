@@ -20,8 +20,11 @@ import { Modal } from '@/modal';
 import { voiceHooks } from '@/realtime/hooks/voiceHooks';
 import { startRealtimeSession, stopRealtimeSession } from '@/realtime/RealtimeSession';
 import { gitStatusSync } from '@/sync/gitStatusSync';
-import { sessionAbort } from '@/sync/ops';
-import { storage, useIsDataReady, useLocalSetting, useRealtimeStatus, useSessionMessages, useSessionUsage, useSetting } from '@/sync/storage';
+import { openspecSync } from '@/sync/openspecSync';
+import { machineSpawnNewSession, sessionAbort } from '@/sync/ops';
+import { storage, useIsDataReady, useLocalSetting, useRealtimeStatus, useSessionMessages, useSessionUsage, useSessionProjectOpenSpecStatus, useSetting } from '@/sync/storage';
+import { useJoyfulAction } from '@/hooks/useJoyfulAction';
+import { JoyfulError } from '@/utils/errors';
 import { useSession } from '@/sync/storage';
 import { Session } from '@/sync/storageTypes';
 import { sync } from '@/sync/sync';
@@ -40,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import type { PermissionMode } from '@/components/PermissionModeSelector';
 
-export const SessionView = React.memo((props: { id: string }) => {
+export const SessionView = React.memo((props: { id: string; initialMessage?: string }) => {
     const sessionId = props.id;
     const router = useRouter();
     const session = useSession(sessionId);
@@ -151,7 +154,7 @@ export const SessionView = React.memo((props: { id: string }) => {
                     </View>
                 ) : (
                     // Normal session view
-                    <SessionViewLoaded key={sessionId} sessionId={sessionId} session={session} />
+                    <SessionViewLoaded key={sessionId} sessionId={sessionId} session={session} initialMessage={props.initialMessage} />
                 )}
             </View>
         </>
@@ -159,13 +162,17 @@ export const SessionView = React.memo((props: { id: string }) => {
 });
 
 
-function SessionViewLoaded({ sessionId, session }: { sessionId: string, session: Session }) {
+function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: string, session: Session, initialMessage?: string }) {
     const { theme } = useUnistyles();
     const router = useRouter();
     const safeArea = useSafeAreaInsets();
     const isLandscape = useIsLandscape();
     const deviceType = useDeviceType();
     const [message, setMessage] = React.useState('');
+    const messageRef = React.useRef(message);
+    messageRef.current = message;
+    const [exploreModeArmed, setExploreModeArmed] = React.useState(false);
+    const openspecStatus = useSessionProjectOpenSpecStatus(sessionId);
     const realtimeStatus = useRealtimeStatus();
     const { messages, isLoaded } = useSessionMessages(sessionId);
     const acknowledgedCliVersions = useLocalSetting('acknowledgedCliVersions');
@@ -216,6 +223,41 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
 
     // Use draft hook for auto-saving message drafts
     const { clearDraft } = useDraft(sessionId, message, setMessage);
+
+    // Pre-fill input when navigated here with an initialMessage (e.g., after resuming an archived session)
+    React.useEffect(() => {
+        if (initialMessage) {
+            setMessage(initialMessage);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Resume an archived session by forking it via machineSpawnNewSession with resumeNativeSessionId
+    const [, performResume] = useJoyfulAction(React.useCallback(async () => {
+        const claudeSessionId = session.metadata?.claudeSessionId;
+        const machineId = session.metadata?.machineId;
+        const directory = session.metadata?.path;
+        const currentMessage = messageRef.current;
+
+        if (!claudeSessionId || !machineId || !directory) {
+            throw new JoyfulError(t('session.resumeSessionFailed'), false);
+        }
+
+        const result = await machineSpawnNewSession({
+            machineId,
+            directory,
+            resumeNativeSessionId: claudeSessionId,
+            approvedNewDirectoryCreation: false,
+        });
+
+        if (result.type === 'error') {
+            throw new JoyfulError(result.errorMessage, false);
+        }
+        if (result.type !== 'success') {
+            throw new JoyfulError(t('session.resumeSessionFailed'), false);
+        }
+
+        router.push({ pathname: '/session/[id]', params: { id: result.sessionId, initialMessage: currentMessage } });
+    }, [session.metadata, router]));
 
     // Handle dismissing CLI version warning
     const handleDismissCliWarning = React.useCallback(() => {
@@ -292,6 +334,9 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
 
         // Initialize git status sync for this session
         gitStatusSync.getSync(sessionId);
+
+        // Initialize openspec sync for this session
+        openspecSync.getSync(sessionId);
     }, [sessionId, realtimeStatus]);
 
     let content = (
@@ -337,10 +382,18 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
             }}
             onSend={() => {
                 if (message.trim()) {
-                    setMessage('');
-                    clearDraft();
-                    sync.sendMessage(sessionId, message);
-                    trackMessageSent();
+                    console.log('[resume-debug] active:', session.active, 'claudeSessionId:', session.metadata?.claudeSessionId, 'machineId:', session.metadata?.machineId, 'path:', session.metadata?.path);
+                    if (!session.active && session.metadata?.claudeSessionId) {
+                        // Session is archived and has a Claude session ID — fork it via resume
+                        performResume();
+                    } else {
+                        const outgoingMessage = exploreModeArmed ? `/opsx:explore ${message}` : message;
+                        setExploreModeArmed(false);
+                        setMessage('');
+                        clearDraft();
+                        sync.sendMessage(sessionId, outgoingMessage);
+                        trackMessageSent();
+                    }
                 }
             }}
             onMicPress={micButtonState.onMicPress}
@@ -348,6 +401,10 @@ function SessionViewLoaded({ sessionId, session }: { sessionId: string, session:
             onAbort={() => sessionAbort(sessionId)}
             showAbortButton={sessionStatus.state === 'thinking' || sessionStatus.state === 'waiting'}
             onFileViewerPress={experiments ? () => router.push(`/session/${sessionId}/files`) : undefined}
+            exploreModeArmed={exploreModeArmed}
+            onExplorePress={session.active ? () => setExploreModeArmed(prev => !prev) : undefined}
+            openspecStatus={openspecStatus}
+            onOpenspecPress={() => router.push(`/session/${sessionId}/openspec`)}
             // Autocomplete configuration
             autocompletePrefixes={['@', '/']}
             autocompleteSuggestions={(query) => getSuggestions(sessionId, query)}

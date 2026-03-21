@@ -89,9 +89,9 @@ export interface Session {
         id: string;
     }>;
     draft?: string | null; // Local draft message, not synced to server
-    permissionMode?: string | null; // Local permission mode key, not synced to server
-    modelMode?: string | null; // Local model key, not synced to server
-    effortLevel?: string | null; // Local effort level key, not synced to server
+    permissionMode?: string | null; // Permission mode key — persisted to MMKV and synced via server KV store
+    modelMode?: string | null; // Model key — persisted to MMKV and synced via server KV store
+    effortLevel?: string | null; // Effort level key — persisted to MMKV and synced via server KV store
     // IMPORTANT: latestUsage is extracted from reducerState.latestUsage after message processing.
     // We store it directly on Session to ensure it's available immediately on load.
     // Do NOT store reducerState itself on Session - it's mutable and should only exist in SessionMessages.
@@ -176,4 +176,35 @@ export interface GitStatus {
     aheadCount?: number; // Commits ahead of upstream
     behindCount?: number; // Commits behind upstream
     stashCount?: number; // Number of stash entries
+}
+
+//
+// OpenSpec Status
+//
+
+export interface OpenSpecArtifact {
+    path: string;      // relative path from project root (e.g., "openspec/changes/my-change/proposal.md")
+    filename: string;  // just the filename (e.g., "proposal.md")
+    type: 'proposal' | 'design' | 'tasks' | 'config' | 'spec' | 'other';
+}
+
+export interface OpenSpecSpecGroup {
+    name: string;               // spec subdirectory name (e.g., "my-capability")
+    artifacts: OpenSpecArtifact[];
+}
+
+export interface OpenSpecChange {
+    name: string;                  // change directory name (e.g., "fix-archived-session-restore")
+    isArchived: boolean;
+    artifacts: OpenSpecArtifact[]; // top-level files (proposal.md, design.md, tasks.md, .openspec.yaml)
+    deltaSpecs: OpenSpecSpecGroup[]; // specs/ subdirectory within the change
+    taskStats: { completed: number; total: number } | null;
+}
+
+export interface OpenSpecStatus {
+    hasOpenspec: boolean;
+    activeChanges: OpenSpecChange[];
+    archivedChanges: OpenSpecChange[];
+    mainSpecs: OpenSpecSpecGroup[]; // openspec/specs/ groups
+    lastUpdatedAt: number;
 }

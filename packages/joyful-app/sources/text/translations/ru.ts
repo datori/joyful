@@ -414,6 +414,7 @@ export const ru: TranslationStructure = {
 
     session: {
         inputPlaceholder: 'Введите сообщение...',
+        resumeSessionFailed: 'Не удалось возобновить сессию. Убедитесь, что демон запущен на машине.',
     },
 
     commandPalette: {
@@ -1026,6 +1027,17 @@ export const ru: TranslationStructure = {
     restore: {
         linkDeviceInstructions: '1. Откройте Joyful на вашем мобильном устройстве\n2. Перейдите в Настройки → Аккаунт\n3. Нажмите «Привязать новое устройство»\n4. Отсканируйте этот QR-код',
         restoreWithSecretKey: 'Восстановить с помощью секретного ключа',
+    },
+
+    openspec: {
+        panelTitle: 'OpenSpec',
+        activeChanges: ({ count }: { count: number }) => `Активные изменения (${count})`,
+        mainSpecs: ({ count }: { count: number }) => `Основные спецификации (${count})`,
+        archived: ({ count }: { count: number }) => `Архив (${count})`,
+        noActiveChanges: 'Нет активных изменений',
+        tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} задач`,
+        noTasksFile: 'Файл задач отсутствует',
+        refreshing: 'Обновление...',
     },
 } as const;
 

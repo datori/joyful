@@ -26,6 +26,7 @@ import { getServerUrl } from './serverConfig';
 import { config } from '@/config';
 import { log } from '@/log';
 import { gitStatusSync } from './gitStatusSync';
+import { openspecSync } from './openspecSync';
 import { projectManager } from './projectManager';
 import { AsyncLock } from '@/utils/lock';
 import { voiceHooks } from '@/realtime/hooks/voiceHooks';
@@ -38,6 +39,7 @@ import { ArtifactEncryption } from './encryption/artifactEncryption';
 import { getUserProfile } from './apiFriends';
 import { UserProfile } from './friendTypes';
 import { resolveMessageModeMeta } from './messageMeta';
+import { kvBulkGet, kvMutate } from './apiKv';
 import { perfMark, setForegroundTs, flushPerfBuffer } from '@/utils/perfBuffer';
 
 type V3GetSessionMessagesResponse = {
@@ -90,6 +92,7 @@ class Sync {
     private sessionDataKeys = new Map<string, Uint8Array>(); // Store session data encryption keys internally
     private machineDataKeys = new Map<string, Uint8Array>(); // Store machine data encryption keys internally
     private artifactDataKeys = new Map<string, Uint8Array>(); // Store artifact data encryption keys internally
+    private sessionConfigVersions = new Map<string, number>(); // KV version for session config persistence
     private settingsSync: InvalidateSync;
     private profileSync: InvalidateSync;
     private purchasesSync: InvalidateSync;
@@ -235,6 +238,9 @@ class Sync {
 
         // Also invalidate git status sync for this session
         gitStatusSync.getSync(sessionId).invalidate();
+
+        // Also invalidate openspec sync for this session
+        openspecSync.getSync(sessionId).invalidate();
 
         // Notify voice assistant about session visibility
         const session = storage.getState().sessions[sessionId];
@@ -767,6 +773,39 @@ class Sync {
             decryptedSessions.push(processedSession);
         }
 
+        // Load cross-platform session configs from KV store and merge into sessions
+        try {
+            const kvKeys = decryptedSessions.map(s => `session-config:${s.id}`);
+            if (kvKeys.length > 0) {
+                const kvConfigs = await kvBulkGet(this.credentials, kvKeys.slice(0, 100));
+                const configMap = new Map<string, { permissionMode?: string; modelMode?: string; effortLevel?: string | null }>();
+                for (const item of kvConfigs.values) {
+                    const sessionId = item.key.replace('session-config:', '');
+                    this.sessionConfigVersions.set(sessionId, item.version);
+                    try {
+                        configMap.set(sessionId, JSON.parse(item.value));
+                    } catch { /* ignore malformed values */ }
+                }
+                // Merge KV configs into decrypted sessions so applySessions can use them as fallbacks
+                for (const session of decryptedSessions) {
+                    const config = configMap.get(session.id);
+                    if (config) {
+                        if (config.permissionMode && !session.permissionMode) {
+                            session.permissionMode = config.permissionMode;
+                        }
+                        if (config.modelMode && !session.modelMode) {
+                            session.modelMode = config.modelMode;
+                        }
+                        if ('effortLevel' in config && !session.effortLevel) {
+                            session.effortLevel = config.effortLevel ?? null;
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            log.log(`Failed to load session configs from KV: ${e}`);
+        }
+
         // Apply to storage
         this.applySessions(decryptedSessions);
         log.log(`📥 fetchSessions completed - processed ${decryptedSessions.length} sessions`);
@@ -779,6 +818,33 @@ class Sync {
 
     public refreshSessions = async () => {
         return this.sessionsSync.invalidateAndAwait();
+    }
+
+    public persistSessionConfig = async (
+        sessionId: string,
+        config: { permissionMode?: string; modelMode?: string; effortLevel?: string | null }
+    ): Promise<void> => {
+        if (!this.credentials) return;
+        const key = `session-config:${sessionId}`;
+        const value = JSON.stringify(config);
+        const version = this.sessionConfigVersions.get(sessionId) ?? -1;
+
+        try {
+            const result = await kvMutate(this.credentials, [{ key, value, version }]);
+            if (result.success) {
+                this.sessionConfigVersions.set(sessionId, result.results[0].version);
+            } else {
+                // Version mismatch — retry with the current version returned by the server
+                const currentVersion = result.errors[0].version;
+                this.sessionConfigVersions.set(sessionId, currentVersion);
+                const retryResult = await kvMutate(this.credentials, [{ key, value, version: currentVersion }]);
+                if (retryResult.success) {
+                    this.sessionConfigVersions.set(sessionId, retryResult.results[0].version);
+                }
+            }
+        } catch (e) {
+            log.log(`Failed to persist session config for ${sessionId}: ${e}`);
+        }
     }
 
     public getCredentials() {
@@ -1862,9 +1928,6 @@ class Sync {
                     }
                 }
             }
-
-            // Ping session
-            this.onSessionVisible(updateData.body.sid);
 
         } else if (updateData.body.t === 'new-session') {
             log.log('🆕 New session update received');
