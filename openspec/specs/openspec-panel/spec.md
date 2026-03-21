@@ -53,6 +53,17 @@ The system SHALL allow the user to tap any `.md` file or artifact file in the Op
 - **WHEN** the user taps `spec.md` inside the `archived-session-resume` delta spec of an active change
 - **THEN** the app navigates to `session/<id>/file?path=<base64("openspec/changes/my-change/specs/archived-session-resume/spec.md")>`
 
+### Requirement: Patch Mode toggle button appears in the new session creator
+The system SHALL display a Patch Mode toggle button in the `AgentInput` left toolbar only in the **new session creator** screen, alongside the Explore Mode button. The button SHALL use a distinct icon (wrench/construct). It SHALL behave as a one-shot prefix toggle: when armed, the next sent message is prefixed with `/opsx:patch `. Only one of Explore Mode or Patch Mode may be armed at a time; arming one SHALL disarm the other.
+
+#### Scenario: User arms Patch Mode and sends a message
+- **WHEN** the user taps the Patch button (arming it), types "fix the badge count", and taps Send
+- **THEN** the message sent is `/opsx:patch fix the badge count` and the button returns to its unarmed state
+
+#### Scenario: Patch and Explore are mutually exclusive
+- **WHEN** the user arms Explore Mode then taps the Patch button
+- **THEN** Explore Mode disarms and Patch Mode arms
+
 ### Requirement: OpenSpec panel has a manual refresh button
 The system SHALL display a refresh icon button in the OpenSpec panel header. Tapping it SHALL trigger an immediate re-scan of the OpenSpec directory and update the displayed data.
 

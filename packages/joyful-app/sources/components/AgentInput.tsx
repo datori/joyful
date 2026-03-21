@@ -83,6 +83,8 @@ interface AgentInputProps {
     onProfileClick?: () => void;
     exploreModeArmed?: boolean;
     onExplorePress?: () => void;
+    patchModeArmed?: boolean;
+    onPatchPress?: () => void;
     openspecStatus?: OpenSpecStatus | null;
     onOpenspecPress?: () => void;
 }
@@ -1002,6 +1004,31 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             name={'telescope-outline'}
                                             size={16}
                                             color={props.exploreModeArmed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
+                                        />
+                                    </Pressable>
+                                )}
+
+                                {/* Patch Mode toggle button (one-shot) */}
+                                {props.onPatchPress && (
+                                    <Pressable
+                                        onPress={props.onPatchPress}
+                                        hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
+                                        style={(p) => ({
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            borderRadius: Platform.select({ default: 16, android: 20 }),
+                                            paddingHorizontal: 8,
+                                            paddingVertical: 6,
+                                            justifyContent: 'center',
+                                            height: 32,
+                                            opacity: p.pressed ? 0.7 : 1,
+                                            backgroundColor: props.patchModeArmed ? theme.colors.button.primary.background : 'transparent',
+                                        })}
+                                    >
+                                        <Ionicons
+                                            name={'construct-outline'}
+                                            size={16}
+                                            color={props.patchModeArmed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
                                         />
                                     </Pressable>
                                 )}

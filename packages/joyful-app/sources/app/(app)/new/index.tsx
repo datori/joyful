@@ -443,6 +443,8 @@ function NewSessionWizard() {
     });
     const [isCreating, setIsCreating] = React.useState(false);
     const [showAdvanced, setShowAdvanced] = React.useState(false);
+    const [exploreModeArmed, setExploreModeArmed] = React.useState(false);
+    const [patchModeArmed, setPatchModeArmed] = React.useState(false);
     // Handle machineId route param from picker screens (main's navigation pattern)
     React.useEffect(() => {
         if (typeof machineIdParam !== 'string' || machines.length === 0) {
@@ -1078,9 +1080,12 @@ function NewSessionWizard() {
                 }
                 storage.getState().updateSessionEffortLevel(result.sessionId, effortLevel);
 
-                // Send initial message if provided
+                // Send initial message if provided (with any armed mode prefix)
                 if (sessionPrompt.trim()) {
-                    await sync.sendMessage(result.sessionId, sessionPrompt);
+                    const prefix = exploreModeArmed ? '/opsx:explore ' : patchModeArmed ? '/opsx:patch ' : '';
+                    setExploreModeArmed(false);
+                    setPatchModeArmed(false);
+                    await sync.sendMessage(result.sessionId, prefix + sessionPrompt);
                 }
 
                 router.replace(`/session/${result.sessionId}`, {
@@ -1207,6 +1212,10 @@ function NewSessionWizard() {
                                 onMachineClick={handleMachineClick}
                                 currentPath={selectedPath}
                                 onPathClick={handlePathClick}
+                                exploreModeArmed={exploreModeArmed}
+                                onExplorePress={() => { setExploreModeArmed(prev => !prev); setPatchModeArmed(false); }}
+                                patchModeArmed={patchModeArmed}
+                                onPatchPress={() => { setPatchModeArmed(prev => !prev); setExploreModeArmed(false); }}
                             />
                         </View>
                     </View>
@@ -1964,6 +1973,10 @@ function NewSessionWizard() {
                             onPathClick={handleAgentInputPathClick}
                             profileId={selectedProfileId}
                             onProfileClick={handleAgentInputProfileClick}
+                            exploreModeArmed={exploreModeArmed}
+                            onExplorePress={() => { setExploreModeArmed(prev => !prev); setPatchModeArmed(false); }}
+                            patchModeArmed={patchModeArmed}
+                            onPatchPress={() => { setPatchModeArmed(prev => !prev); setExploreModeArmed(false); }}
                         />
                     </View>
                 </View>

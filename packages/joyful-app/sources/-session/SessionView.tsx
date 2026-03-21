@@ -171,7 +171,6 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
     const [message, setMessage] = React.useState('');
     const messageRef = React.useRef(message);
     messageRef.current = message;
-    const [exploreModeArmed, setExploreModeArmed] = React.useState(false);
     const openspecStatus = useSessionProjectOpenSpecStatus(sessionId);
     const realtimeStatus = useRealtimeStatus();
     const { messages, isLoaded } = useSessionMessages(sessionId);
@@ -387,11 +386,9 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
                         // Session is archived and has a Claude session ID — fork it via resume
                         performResume();
                     } else {
-                        const outgoingMessage = exploreModeArmed ? `/opsx:explore ${message}` : message;
-                        setExploreModeArmed(false);
                         setMessage('');
                         clearDraft();
-                        sync.sendMessage(sessionId, outgoingMessage);
+                        sync.sendMessage(sessionId, message);
                         trackMessageSent();
                     }
                 }
@@ -401,8 +398,6 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
             onAbort={() => sessionAbort(sessionId)}
             showAbortButton={sessionStatus.state === 'thinking' || sessionStatus.state === 'waiting'}
             onFileViewerPress={experiments ? () => router.push(`/session/${sessionId}/files`) : undefined}
-            exploreModeArmed={exploreModeArmed}
-            onExplorePress={session.active ? () => setExploreModeArmed(prev => !prev) : undefined}
             openspecStatus={openspecStatus}
             onOpenspecPress={() => router.push(`/session/${sessionId}/openspec`)}
             // Autocomplete configuration

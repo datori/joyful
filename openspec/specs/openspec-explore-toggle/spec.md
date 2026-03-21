@@ -1,14 +1,14 @@
 ## ADDED Requirements
 
-### Requirement: Explore Mode toggle button appears for active sessions
-The system SHALL display an Explore Mode toggle button in the `AgentInput` left toolbar when the session is active (not archived). The button SHALL be visually distinct when armed (tinted/highlighted color). The button SHALL NOT appear for archived sessions or when there is no active session.
+### Requirement: Explore Mode toggle button appears in the new session creator
+The system SHALL display an Explore Mode toggle button in the `AgentInput` left toolbar only in the **new session creator** screen. The button SHALL NOT appear in existing session views (active or archived). The button SHALL be visually distinct when armed (tinted/highlighted color).
 
-#### Scenario: Active session toolbar
-- **WHEN** the session is active (`session.active === true`)
+#### Scenario: New session creator toolbar
+- **WHEN** the user is on the new session creation screen
 - **THEN** the Explore Mode button appears in the AgentInput left toolbar
 
-#### Scenario: Archived session toolbar
-- **WHEN** the session is archived (`session.active === false`)
+#### Scenario: Existing session toolbar
+- **WHEN** the user is viewing an existing session (active or archived)
 - **THEN** the Explore Mode button does NOT appear
 
 ### Requirement: Explore Mode is a one-shot prefix toggle
@@ -18,6 +18,7 @@ The system SHALL implement Explore Mode as a one-shot toggle. When the button is
 3. Immediately after that send, the armed state resets to off — the button returns to its normal appearance
 
 The button SHALL also be able to be tapped again while armed to cancel (disarm) without sending.
+Arming Explore Mode SHALL automatically disarm Patch Mode if it was armed (mutually exclusive).
 
 #### Scenario: User arms and sends a message
 - **WHEN** the user taps the Explore button (arming it), types "how does auth work?", and taps Send
@@ -32,8 +33,8 @@ The button SHALL also be able to be tapped again while armed to cancel (disarm) 
 - **THEN** nothing is sent (normal empty-send guard applies) and the armed state is NOT cleared
 
 ### Requirement: Explore Mode state is ephemeral
-The explore mode armed state SHALL be stored as local React state (`useState`) in the session view component. It SHALL reset whenever the session view unmounts or a message is successfully sent. It SHALL NOT be persisted to storage, synced across devices, or retained across navigation.
+The explore mode armed state SHALL be stored as local React state (`useState`) in the new session wizard component. It SHALL reset whenever a message is successfully sent. It SHALL NOT be persisted to storage, synced across devices, or retained across navigation.
 
 #### Scenario: Navigate away and back
-- **WHEN** Explore Mode is armed and the user navigates away from the session and returns
+- **WHEN** Explore Mode is armed and the user navigates away from the new session screen and returns
 - **THEN** the button is in its normal (unarmed) state
