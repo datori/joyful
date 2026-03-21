@@ -4,51 +4,45 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-17 (fork base: d343330c) -->
-
-#### UI & UX
-- **Git history and branch list screen** — branch-name pill in the files view is now tappable, opening a new screen showing all local/remote branches (with ahead/behind counts, current branch highlighted) and the last 30 commits with author and relative time
-- **Code block word wrapping fix on mobile** — agent message container now stretches to a definite width, preventing horizontal scroll-views in code blocks from breaking text wrapping for adjacent content
-- **Plasma avatar style** — new default avatar style (replaces brutalist) using three soft gaussian-blurred blobs in triadic hues with screen blending and a radial center glow; CSS fallback for web where Skia is unavailable
-- **Condensed UI density** — session rows and settings items tightened across mobile and desktop; session titles ellipsize at one line instead of wrapping; sidebar quota bars now inline (label + bar + stats on a single row)
-- **Dark mode consistency** — desktop and web dark surfaces aligned to iOS palette; FAB buttons softened from pure white to an elevated surface tone to reduce harsh contrast
-- **iOS PWA safe-area fix** — eliminated double-counted top spacing when app is saved to the iOS home screen; header height normalized across native and PWA
-- **J branding in mobile header** — H logo replaced with J in the mobile navigation header
-- **Mobile message wrapping** — agent/system messages now correctly wrap on narrow screens; RAM panel shown at the top of the Sessions tab on mobile, mirroring the desktop sidebar; slash command and settings overlays re-anchored to appear directly above the keyboard instead of mid-screen
-- **Ionicons icon set** — tab bar and sidebar icons replaced with Ionicons; sidebar logo replaced with a bold "J" text label; settings page logotype removed; FAB buttons tightened
-- **Compact session view by default** — compact layout is the default; expanded layout is opt-in via Appearance settings
-- **Settings chips** — permissions, model, and effort selectors in the session overlay replaced with horizontal chip rows, eliminating the need to scroll
-- **Inbox tab → Updates** — friend/feed system removed; Inbox repurposed as an Updates tab showing app and changelog notifications
-
-#### Voice
-- **Self-hosted ElevenLabs config** — agent ID can be set directly in Settings → Voice without rebuilding; mic button shows a clear prompt when unconfigured; server returns 503 with an actionable message when `ELEVENLABS_API_KEY` is absent
+<!-- changelog-summary: 2026-03-21 (fork base: d343330c) -->
 
 #### Session management
-- **Interactive filesystem browser for working directory** — "Browse filesystem" option in the new-session path picker lets users navigate the remote machine's directory tree interactively, with hidden-dir toggle and breadcrumb navigation; disabled when the machine is offline
-- **Native session browser** — discover and resume existing Claude Code sessions (JSONL files in `~/.claude/projects/`) directly from the app, without starting a new session
-- **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session" on the sessions list; pick machine, working directory, and native session in one flow
-- **Archived sessions section** — inactive sessions grouped under a collapsible "Archived (N)" header at the bottom of the list, collapsed by default, rendered at reduced opacity
+- **Interactive filesystem browser** — navigate the remote machine's directory tree in the new-session path picker, with hidden-dir toggle and breadcrumb navigation
+- **Native session browser** — discover and resume existing Claude Code sessions (`~/.claude/projects/` JSONL files) directly from the app
+- **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session"; pick machine, working directory, and native session in one flow
+- **Archived sessions** — inactive sessions grouped under a collapsible "Archived (N)" header, collapsed by default
+
+#### Monitoring & quota
+- **Claude quota widget** — sidebar panel showing 5h and 7d rolling-window utilization bars with colour-coded fill, reset countdown, and manual refresh; sourced from `anthropic-ratelimit-unified-*` response headers via OAuth Messages API ping
+- **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and machine detail screen
+- **Quota polling fixes** — skips API-key-only machines; eliminated a re-entrant loop that caused daemon OOM crashes
 
 #### Claude Code integration
-- **Bedrock model options** — `bedrock-claude-opus`, `bedrock-claude-sonnet`, and `bedrock-claude-haiku` added to both the new-session model picker and the in-session model switcher, enabling use with an `ANTHROPIC_BASE_URL`-backed Bedrock gateway
-- **Model & effort level** — CLI reads `~/.claude/settings.json` at startup and surfaces default model and effort level to the app; effort picker in session creation and session view; actual running model captured from the SDK and kept in sync
-- **Slash command autocomplete on new session screen** — typing `/` surfaces recently-seen commands from past sessions; more commands now visible (auth, config, review, and diagnostic commands no longer suppressed)
+- **Bedrock model support** — `bedrock-claude-opus`, `bedrock-claude-sonnet`, and `bedrock-claude-haiku` in model pickers, for `ANTHROPIC_BASE_URL`-backed Bedrock gateways
+- **Model & effort level** — CLI reads `~/.claude/settings.json` and surfaces default model/effort to the app; effort picker in session creation and session view
+- **Slash command autocomplete** — typing `/` on the new-session screen surfaces recently-seen commands from past sessions
+- **OpenSpec panel** — in-app status panel showing active changes with task progress bars, main specs, and archived changes; toolbar badge shows active-change count
+- **Explore & Patch mode buttons** — one-shot prefix toggles for `/opsx:explore` and `/opsx:patch` in the new-session creator; mutually exclusive
+
+#### UI & UX
+- **Git history & branch list** — tappable branch pill opens a screen with all local/remote branches (ahead/behind counts) and last 30 commits
+- **Plasma avatar style** — new default: three gaussian-blurred blobs in triadic hues with screen blending; CSS fallback for web
+- **Condensed density & dark mode** — tightened session rows and settings items; dark surfaces aligned to iOS palette; FAB buttons softened
+- **Mobile layout fixes** — code block word wrapping, message wrapping on narrow screens, slash-command overlay anchored above keyboard, PWA safe-area fix
+- **Machines panel collapsed by default** — collapse state persisted via MMKV; defaults to collapsed to reduce noise
+- **Compact view default, settings chips, Ionicons, J branding** — streamlined defaults and visual refresh
+
+#### Voice
+- **Self-hosted ElevenLabs config** — agent ID settable in Settings → Voice; clear prompts when unconfigured; 503 with actionable message when API key is absent
 
 #### Performance
-- **Quota polling skips API-key-only machines** — `fetch-quota` RPCs are now sent only to machines with OAuth credentials (`hasOAuthCredentials` flag from daemon state), silently skipping API-key-only machines that can't report subscription quota
-- **Quota polling loop fix** — eliminated a re-entrant feedback loop in `useClaudeQuota` where a successful quota fetch would immediately re-trigger itself 5+ times concurrently, causing the daemon to OOM-crash while scanning thousands of JSONL entries
-- **Reconnect** — single batched `POST /v3/messages/batch` replaces one HTTP fetch per session on reconnect (~92% fewer requests); selective invalidation skips sessions already up-to-date
-- **Streaming** — seq allocation batched per-message-group in both REST and socket paths, eliminating seq gaps that caused 35% of streaming messages to hit the slow REST fallback
-
-#### Monitoring
-- **Quota from API response headers** — Claude quota widget now reads `anthropic-ratelimit-*` headers directly from the Messages API response instead of estimating usage by scanning JSONL files, giving more accurate and up-to-date utilization data
-- **Claude quota widget** — persistent sidebar panel above Machines showing 5h and 7d rolling-window utilization bars with a time-cursor tick, colour-coded fill (on-pace/amber/red), reset countdown, staleness hint, and a manual refresh button; data sourced from Anthropic's authoritative `anthropic-ratelimit-unified-*` response headers via a minimal OAuth Messages API ping (works for all Pro/Max subscription tiers)
-- **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and on the machine detail screen
+- **Reconnect batching** — single `POST /v3/messages/batch` replaces one fetch per session on reconnect (~92% fewer requests)
+- **Streaming seq fix** — batched seq allocation eliminates gaps that forced 35% of messages to the slow REST fallback
 
 #### Infrastructure
-- **Socket.IO polling transport fallback** — daemon now uses `['polling', 'websocket']` transports instead of WebSocket-only, fixing connection failures when a direct WebSocket upgrade is blocked (e.g. macOS LaunchAgent network context)
-- **Safe co-existence with Happy daemon** — joyful daemon runs independently alongside any existing `happy`/`happier` daemon on the same machine
-- **Renamed throughout** — all `happy`/`handy` identifiers, env vars (`JOYFUL_MASTER_SECRET`), and home directory (`~/.joyful-dev`) updated to `joyful`
+- **Socket.IO polling fallback** — `['polling', 'websocket']` transports fix connection failures behind restrictive networks
+- **Safe co-existence with Happy daemon** — joyful daemon runs independently alongside existing `happy`/`happier` daemons
+- **Full rename** — all identifiers, env vars, and home directories updated from `happy`/`handy` to `joyful`
 
 <!-- end-changelog-summary -->
 
