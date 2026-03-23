@@ -1,15 +1,15 @@
-## ADDED Requirements
+## Requirements
 
-### Requirement: Explore Mode toggle button appears in the new session creator
-The system SHALL display an Explore Mode toggle button in the `AgentInput` left toolbar only in the **new session creator** screen. The button SHALL NOT appear in existing session views (active or archived). The button SHALL be visually distinct when armed (tinted/highlighted color).
+### Requirement: Explore and Patch Mode toggles are available in both new session creator and active sessions
+The system SHALL provide Explore Mode and Patch Mode toggle buttons accessible from the `AgentInput` toolbar. In **active sessions** where the project has an `openspec/` directory, these toggles appear inside the OpenSpec submenu (see openspec-panel spec). In the **new session creator** (where no openspec context exists), they appear as standalone toolbar buttons.
 
-#### Scenario: New session creator toolbar
+#### Scenario: Active session with openspec
+- **WHEN** the user is viewing an active session whose project has `openspec/`
+- **THEN** Explore and Patch Mode toggles are available inside the OpenSpec submenu
+
+#### Scenario: New session creator
 - **WHEN** the user is on the new session creation screen
-- **THEN** the Explore Mode button appears in the AgentInput left toolbar
-
-#### Scenario: Existing session toolbar
-- **WHEN** the user is viewing an existing session (active or archived)
-- **THEN** the Explore Mode button does NOT appear
+- **THEN** Explore and Patch Mode buttons appear as standalone toolbar buttons
 
 ### Requirement: Explore Mode is a one-shot prefix toggle
 The system SHALL implement Explore Mode as a one-shot toggle. When the button is tapped:
@@ -32,9 +32,9 @@ Arming Explore Mode SHALL automatically disarm Patch Mode if it was armed (mutua
 - **WHEN** the Explore button is armed and the user taps Send with an empty input
 - **THEN** nothing is sent (normal empty-send guard applies) and the armed state is NOT cleared
 
-### Requirement: Explore Mode state is ephemeral
-The explore mode armed state SHALL be stored as local React state (`useState`) in the new session wizard component. It SHALL reset whenever a message is successfully sent. It SHALL NOT be persisted to storage, synced across devices, or retained across navigation.
+### Requirement: Explore/Patch Mode state is ephemeral
+The explore/patch mode armed state SHALL be stored as local React state (`useState`) in the component managing the session. It SHALL reset whenever a message is successfully sent. It SHALL NOT be persisted to storage, synced across devices, or retained across navigation.
 
 #### Scenario: Navigate away and back
-- **WHEN** Explore Mode is armed and the user navigates away from the new session screen and returns
+- **WHEN** Explore Mode is armed and the user navigates away from the session screen and returns
 - **THEN** the button is in its normal (unarmed) state

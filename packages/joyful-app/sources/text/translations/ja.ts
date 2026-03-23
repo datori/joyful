@@ -1017,5 +1017,10 @@ export const ja: TranslationStructure = {
         tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} タスク`,
         noTasksFile: 'タスクファイルなし',
         refreshing: '更新中...',
+        exploreMode: '探索モード',
+        patchMode: 'パッチモード',
+        applyMode: '変更を適用',
+        ffMode: 'ファストフォワード',
+        openPanel: 'パネルを開く',
     },
 } as const;

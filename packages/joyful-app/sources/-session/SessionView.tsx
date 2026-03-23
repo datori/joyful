@@ -172,6 +172,10 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
     const messageRef = React.useRef(message);
     messageRef.current = message;
     const openspecStatus = useSessionProjectOpenSpecStatus(sessionId);
+    const [exploreModeArmed, setExploreModeArmed] = React.useState(false);
+    const [patchModeArmed, setPatchModeArmed] = React.useState(false);
+    const [applyModeArmed, setApplyModeArmed] = React.useState(false);
+    const [ffModeArmed, setFfModeArmed] = React.useState(false);
     const realtimeStatus = useRealtimeStatus();
     const { messages, isLoaded } = useSessionMessages(sessionId);
     const acknowledgedCliVersions = useLocalSetting('acknowledgedCliVersions');
@@ -386,9 +390,18 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
                         // Session is archived and has a Claude session ID — fork it via resume
                         performResume();
                     } else {
+                        const prefix = exploreModeArmed ? '/opsx:explore '
+                            : patchModeArmed ? '/opsx:patch '
+                            : applyModeArmed ? '/opsx:apply '
+                            : ffModeArmed ? '/opsx:ff '
+                            : '';
+                        setExploreModeArmed(false);
+                        setPatchModeArmed(false);
+                        setApplyModeArmed(false);
+                        setFfModeArmed(false);
                         setMessage('');
                         clearDraft();
-                        sync.sendMessage(sessionId, message);
+                        sync.sendMessage(sessionId, prefix + message);
                         trackMessageSent();
                     }
                 }
@@ -400,6 +413,14 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
             onFileViewerPress={experiments ? () => router.push(`/session/${sessionId}/files`) : undefined}
             openspecStatus={openspecStatus}
             onOpenspecPress={() => router.push(`/session/${sessionId}/openspec`)}
+            exploreModeArmed={exploreModeArmed}
+            onExplorePress={() => { setExploreModeArmed(prev => !prev); setPatchModeArmed(false); setApplyModeArmed(false); setFfModeArmed(false); }}
+            patchModeArmed={patchModeArmed}
+            onPatchPress={() => { setPatchModeArmed(prev => !prev); setExploreModeArmed(false); setApplyModeArmed(false); setFfModeArmed(false); }}
+            applyModeArmed={applyModeArmed}
+            onApplyPress={() => { setApplyModeArmed(prev => !prev); setExploreModeArmed(false); setPatchModeArmed(false); setFfModeArmed(false); }}
+            ffModeArmed={ffModeArmed}
+            onFfPress={() => { setFfModeArmed(prev => !prev); setExploreModeArmed(false); setPatchModeArmed(false); setApplyModeArmed(false); }}
             // Autocomplete configuration
             autocompletePrefixes={['@', '/']}
             autocompleteSuggestions={(query) => getSuggestions(sessionId, query)}

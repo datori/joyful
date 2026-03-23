@@ -1038,6 +1038,11 @@ export const ru: TranslationStructure = {
         tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} задач`,
         noTasksFile: 'Файл задач отсутствует',
         refreshing: 'Обновление...',
+        exploreMode: 'Режим обзора',
+        patchMode: 'Режим патча',
+        applyMode: 'Применить изменение',
+        ffMode: 'Быстрый старт',
+        openPanel: 'Открыть панель',
     },
 } as const;
 

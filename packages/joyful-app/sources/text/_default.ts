@@ -1016,6 +1016,11 @@ export const en = {
         tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} tasks`,
         noTasksFile: 'No tasks file',
         refreshing: 'Refreshing...',
+        exploreMode: 'Explore Mode',
+        patchMode: 'Patch Mode',
+        applyMode: 'Apply Change',
+        ffMode: 'Fast-Forward',
+        openPanel: 'Open Panel',
     },
 } as const;
 

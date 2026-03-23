@@ -259,7 +259,8 @@ export const storage = create<StorageState>()((set, get) => {
                 const savedDraft = savedDrafts[session.id];
                 const existingPermissionMode = existingSession?.permissionMode;
                 const savedPermissionMode = savedPermissionModes[session.id];
-                const defaultPermissionMode: PermissionModeKey = isSandboxEnabled(session.metadata) ? 'bypassPermissions' : 'default';
+                const defaultPermissionMode: PermissionModeKey = isSandboxEnabled(session.metadata) ? 'bypassPermissions' :
+                    (session.metadata?.flavor === 'codex' || session.metadata?.flavor === 'gemini') ? 'yolo' : 'bypassPermissions';
                 const resolvedPermissionMode: PermissionModeKey =
                     (existingPermissionMode && existingPermissionMode !== 'default' ? existingPermissionMode : undefined) ||
                     (savedPermissionMode && savedPermissionMode !== 'default' ? savedPermissionMode : undefined) ||

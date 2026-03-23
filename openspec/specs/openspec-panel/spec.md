@@ -1,7 +1,15 @@
-## ADDED Requirements
+## Requirements
 
-### Requirement: OpenSpec toolbar button appears for OpenSpec projects
+### Requirement: OpenSpec toolbar button with submenu
 The system SHALL display an OpenSpec icon button in the `AgentInput` left toolbar when `openspecStatus.hasOpenspec` is true for the current session's project. The button SHALL show a numeric badge indicating the count of active changes when that count is greater than zero. The button SHALL be absent (not merely disabled) when the project has no `openspec/` directory.
+
+Tapping the button SHALL open a floating submenu (popover) anchored above the button. The submenu SHALL contain:
+1. **Explore Mode** toggle row — arms/disarms `/opsx:explore` prefix (see openspec-explore-toggle spec)
+2. **Patch Mode** toggle row — arms/disarms `/opsx:patch` prefix (see openspec-explore-toggle spec)
+3. A divider
+4. **Open Panel** row — navigates to the full OpenSpec panel screen
+
+When either Explore or Patch Mode is armed, the main toolbar button SHALL be highlighted (primary background color) to indicate an active mode. Selecting a mode row closes the submenu. Tapping outside the submenu also closes it.
 
 #### Scenario: Project has active changes
 - **WHEN** `openspecStatus.hasOpenspec` is true and `activeChanges.length` is 2
@@ -14,6 +22,14 @@ The system SHALL display an OpenSpec icon button in the `AgentInput` left toolba
 #### Scenario: Project has no openspec directory
 - **WHEN** `openspecStatus` is null or `hasOpenspec` is false
 - **THEN** no OpenSpec button appears in the toolbar
+
+#### Scenario: User arms Explore Mode via submenu
+- **WHEN** the user taps the OpenSpec button, then taps "Explore Mode"
+- **THEN** the submenu closes, Explore Mode is armed, and the OpenSpec toolbar button highlights
+
+#### Scenario: User opens the panel via submenu
+- **WHEN** the user taps the OpenSpec button, then taps "Open Panel"
+- **THEN** the submenu closes and the app navigates to the OpenSpec panel screen
 
 ### Requirement: OpenSpec panel displays hierarchy of changes and specs
 The system SHALL provide a screen at the session-scoped route `session/[id]/openspec` that shows the full OpenSpec hierarchy in a scrollable, hierarchically organized list. The screen SHALL have three collapsible sections:
@@ -53,8 +69,8 @@ The system SHALL allow the user to tap any `.md` file or artifact file in the Op
 - **WHEN** the user taps `spec.md` inside the `archived-session-resume` delta spec of an active change
 - **THEN** the app navigates to `session/<id>/file?path=<base64("openspec/changes/my-change/specs/archived-session-resume/spec.md")>`
 
-### Requirement: Patch Mode toggle button appears in the new session creator
-The system SHALL display a Patch Mode toggle button in the `AgentInput` left toolbar only in the **new session creator** screen, alongside the Explore Mode button. The button SHALL use a distinct icon (wrench/construct). It SHALL behave as a one-shot prefix toggle: when armed, the next sent message is prefixed with `/opsx:patch `. Only one of Explore Mode or Patch Mode may be armed at a time; arming one SHALL disarm the other.
+### Requirement: Patch Mode toggle button
+The system SHALL provide a Patch Mode toggle in the OpenSpec submenu (active sessions) or as a standalone toolbar button (new session creator), alongside the Explore Mode toggle. It SHALL behave as a one-shot prefix toggle: when armed, the next sent message is prefixed with `/opsx:patch `. Only one of Explore Mode or Patch Mode may be armed at a time; arming one SHALL disarm the other.
 
 #### Scenario: User arms Patch Mode and sends a message
 - **WHEN** the user taps the Patch button (arming it), types "fix the badge count", and taps Send

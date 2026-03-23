@@ -1016,5 +1016,10 @@ export const zhHant: TranslationStructure = {
         tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} 個任務`,
         noTasksFile: '無任務檔案',
         refreshing: '重新整理中…',
+        exploreMode: '探索模式',
+        patchMode: '修補模式',
+        applyMode: '套用變更',
+        ffMode: '快速推進',
+        openPanel: '開啟面板',
     },
 } as const;

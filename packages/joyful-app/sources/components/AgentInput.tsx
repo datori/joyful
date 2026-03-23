@@ -85,6 +85,10 @@ interface AgentInputProps {
     onExplorePress?: () => void;
     patchModeArmed?: boolean;
     onPatchPress?: () => void;
+    applyModeArmed?: boolean;
+    onApplyPress?: () => void;
+    ffModeArmed?: boolean;
+    onFfPress?: () => void;
     openspecStatus?: OpenSpecStatus | null;
     onOpenspecPress?: () => void;
 }
@@ -342,6 +346,333 @@ const getContextWarning = (contextSize: number, alwaysShow: boolean = false, the
     }
     return null; // No display needed
 };
+
+// ── OpenSpec Submenu Button ──────────────────────────────────────────────────
+// Single button with a floating popover. On web the menu is portaled to
+// document.body (via react-dom createPortal) so it escapes all ancestor
+// overflow:hidden constraints. Position is measured via getBoundingClientRect.
+
+// Web-only: grab createPortal at module level (react-dom is always available on Expo Web)
+const _webCreatePortal: ((children: React.ReactNode, container: Element) => React.ReactPortal) | null =
+    Platform.OS === 'web'
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        ? (require('react-dom') as { createPortal: (children: React.ReactNode, container: Element) => React.ReactPortal }).createPortal
+        : null;
+
+function OpenSpecSubmenuButton({
+    openspecStatus,
+    onOpenspecPress,
+    exploreModeArmed,
+    onExplorePress,
+    patchModeArmed,
+    onPatchPress,
+    applyModeArmed,
+    onApplyPress,
+    ffModeArmed,
+    onFfPress,
+    theme,
+}: {
+    openspecStatus: OpenSpecStatus;
+    onOpenspecPress: () => void;
+    exploreModeArmed?: boolean;
+    onExplorePress?: () => void;
+    patchModeArmed?: boolean;
+    onPatchPress?: () => void;
+    applyModeArmed?: boolean;
+    onApplyPress?: () => void;
+    ffModeArmed?: boolean;
+    onFfPress?: () => void;
+    theme: Theme;
+}) {
+    const [open, setOpen] = React.useState(false);
+    const containerRef = React.useRef<View>(null);
+    const [pos, setPos] = React.useState({ bottom: 0, left: 0 });
+    const hasArmedMode = exploreModeArmed || patchModeArmed || applyModeArmed || ffModeArmed;
+    const activeCount = openspecStatus.activeChanges.length;
+
+    const close = React.useCallback(() => setOpen(false), []);
+
+    const handlePress = React.useCallback(() => {
+        if (open) { close(); return; }
+        // Measure button position for the portal
+        const el = containerRef.current as unknown as HTMLElement | null;
+        if (el && typeof el.getBoundingClientRect === 'function') {
+            const rect = el.getBoundingClientRect();
+            setPos({ bottom: window.innerHeight - rect.top + 6, left: rect.left });
+        }
+        setOpen(true);
+    }, [open, close]);
+
+    // Close on click outside — checks both the toolbar button and the portal menu
+    React.useEffect(() => {
+        if (!open || typeof document === 'undefined') return;
+        const handler = (e: Event) => {
+            const target = e.target as Node;
+            const containerEl = containerRef.current as unknown as HTMLElement | null;
+            const menuEl = document.getElementById('openspec-submenu');
+            const isInside = (containerEl && containerEl.contains(target)) ||
+                             (menuEl && menuEl.contains(target));
+            if (!isInside) setOpen(false);
+        };
+        const rafId = requestAnimationFrame(() => {
+            document.addEventListener('pointerdown', handler);
+        });
+        return () => {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener('pointerdown', handler);
+        };
+    }, [open]);
+
+    // ── Menu card content ────────────────────────────────────────────────
+    const menuCard = open ? (
+        <View
+            nativeID="openspec-submenu"
+            style={{
+                backgroundColor: theme.colors.surfaceHigh,
+                borderRadius: 12,
+                paddingVertical: 4,
+                minWidth: 190,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 10,
+                elevation: 10,
+            }}
+        >
+            {/* Explore toggle */}
+            {onExplorePress && (
+                <Pressable
+                    onPress={() => { onExplorePress(); close(); }}
+                    style={(p) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        gap: 10,
+                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        borderRadius: 12,
+                    })}
+                >
+                    <Ionicons
+                        name={'telescope-outline'}
+                        size={16}
+                        color={exploreModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
+                    />
+                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                        {t('openspec.exploreMode')}
+                    </Text>
+                    {exploreModeArmed && (
+                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                    )}
+                </Pressable>
+            )}
+
+            {/* Patch toggle */}
+            {onPatchPress && (
+                <Pressable
+                    onPress={() => { onPatchPress(); close(); }}
+                    style={(p) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        gap: 10,
+                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        borderRadius: 12,
+                    })}
+                >
+                    <Ionicons
+                        name={'construct-outline'}
+                        size={16}
+                        color={patchModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
+                    />
+                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                        {t('openspec.patchMode')}
+                    </Text>
+                    {patchModeArmed && (
+                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                    )}
+                </Pressable>
+            )}
+
+            {/* Apply toggle */}
+            {onApplyPress && (
+                <Pressable
+                    onPress={() => { onApplyPress(); close(); }}
+                    style={(p) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        gap: 10,
+                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        borderRadius: 12,
+                    })}
+                >
+                    <Ionicons
+                        name={'hammer-outline'}
+                        size={16}
+                        color={applyModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
+                    />
+                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                        {t('openspec.applyMode')}
+                    </Text>
+                    {applyModeArmed && (
+                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                    )}
+                </Pressable>
+            )}
+
+            {/* FF toggle */}
+            {onFfPress && (
+                <Pressable
+                    onPress={() => { onFfPress(); close(); }}
+                    style={(p) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        gap: 10,
+                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        borderRadius: 12,
+                    })}
+                >
+                    <Ionicons
+                        name={'flash-outline'}
+                        size={16}
+                        color={ffModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
+                    />
+                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                        {t('openspec.ffMode')}
+                    </Text>
+                    {ffModeArmed && (
+                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                    )}
+                </Pressable>
+            )}
+
+            {/* Divider */}
+            {(onExplorePress || onPatchPress || onApplyPress || onFfPress) && (
+                <View style={{
+                    height: 1,
+                    backgroundColor: theme.colors.divider,
+                    marginHorizontal: 14,
+                    marginVertical: 2,
+                }} />
+            )}
+
+            {/* Open Panel */}
+            <Pressable
+                onPress={() => { close(); onOpenspecPress(); }}
+                style={(p) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 14,
+                    paddingVertical: 11,
+                    gap: 10,
+                    backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                    borderRadius: 12,
+                })}
+            >
+                <Octicons name={'stack'} size={16} color={theme.colors.textSecondary} />
+                <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                    {t('openspec.openPanel')}
+                </Text>
+                {activeCount > 0 && (
+                    <View style={{
+                        backgroundColor: theme.colors.button.primary.background,
+                        borderRadius: 8,
+                        minWidth: 18,
+                        height: 18,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 4,
+                    }}>
+                        <Text style={{
+                            fontSize: 11,
+                            color: theme.colors.button.primary.tint,
+                            fontWeight: '700',
+                            lineHeight: 18,
+                        }}>
+                            {activeCount}
+                        </Text>
+                    </View>
+                )}
+            </Pressable>
+        </View>
+    ) : null;
+
+    // ── Render portal (web) or inline (native) ───────────────────────────
+    let portalMenu: React.ReactNode = null;
+    if (menuCard && _webCreatePortal && typeof document !== 'undefined') {
+        // Portal: fixed-position at body level — no overflow clipping
+        portalMenu = _webCreatePortal(
+            <View style={{ position: 'fixed' as any, bottom: pos.bottom, left: pos.left, zIndex: 99999 } as any}>
+                {menuCard}
+            </View>,
+            document.body
+        );
+    } else if (menuCard) {
+        // Native fallback: absolute-positioned inline
+        portalMenu = (
+            <View style={{ position: 'absolute', bottom: 40, left: 0, zIndex: 1000 }}>
+                {menuCard}
+            </View>
+        );
+    }
+
+    return (
+        <View ref={containerRef}>
+            <Pressable
+                onPress={handlePress}
+                hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
+                style={(p) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: Platform.select({ default: 16, android: 20 }),
+                    paddingHorizontal: 8,
+                    paddingVertical: 6,
+                    justifyContent: 'center',
+                    height: 32,
+                    opacity: p.pressed ? 0.7 : 1,
+                    backgroundColor: hasArmedMode ? theme.colors.button.primary.background : 'transparent',
+                })}
+            >
+                <View style={{ position: 'relative' }}>
+                    <Octicons
+                        name={'stack'}
+                        size={16}
+                        color={hasArmedMode ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
+                    />
+                    {activeCount > 0 && (
+                        <View style={{
+                            position: 'absolute',
+                            top: -5,
+                            right: -7,
+                            backgroundColor: hasArmedMode ? theme.colors.button.primary.tint : theme.colors.button.primary.background,
+                            borderRadius: 6,
+                            minWidth: 12,
+                            height: 12,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            paddingHorizontal: 2,
+                        }}>
+                            <Text style={{
+                                fontSize: 8,
+                                color: hasArmedMode ? theme.colors.button.primary.background : theme.colors.button.primary.tint,
+                                fontWeight: '700',
+                                lineHeight: 12,
+                            }}>
+                                {activeCount}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            </Pressable>
+            {portalMenu}
+        </View>
+    );
+}
 
 export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, AgentInputProps>((props, ref) => {
     const styles = stylesheet;
@@ -696,14 +1027,9 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             {displayPermissionMode && (
                                 <Text style={{
                                     fontSize: 11,
-                                    color: isSandboxedYoloMode ? '#4169E1' :
-                                        permissionModeKey === 'acceptEdits' ? theme.colors.permission.acceptEdits :
-                                            permissionModeKey === 'bypassPermissions' ? theme.colors.permission.bypass :
-                                                permissionModeKey === 'plan' ? theme.colors.permission.plan :
-                                                    permissionModeKey === 'read-only' ? theme.colors.permission.readOnly :
-                                                        permissionModeKey === 'safe-yolo' ? theme.colors.permission.safeYolo :
-                                                            permissionModeKey === 'yolo' ? theme.colors.permission.yolo :
-                                                                theme.colors.textSecondary, // Use secondary text color for default
+                                    color: permissionModeKey === 'yolo' || permissionModeKey === 'bypassPermissions' || isSandboxedYoloMode
+                                        ? theme.colors.success
+                                        : theme.colors.warningCritical,
                                     ...Typography.default()
                                 }}>
                                     {withSandboxSuffix(displayPermissionMode.name, permissionModeKey)}
@@ -983,8 +1309,25 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <View style={styles.actionButtonsLeft}>
 
-                                {/* Explore Mode toggle button (one-shot) */}
-                                {props.onExplorePress && (
+                                {/* OpenSpec submenu button — combines explore/patch toggles and panel navigation */}
+                                {props.openspecStatus?.hasOpenspec && props.onOpenspecPress && (
+                                    <OpenSpecSubmenuButton
+                                        openspecStatus={props.openspecStatus}
+                                        onOpenspecPress={props.onOpenspecPress}
+                                        exploreModeArmed={props.exploreModeArmed}
+                                        onExplorePress={props.onExplorePress}
+                                        patchModeArmed={props.patchModeArmed}
+                                        onPatchPress={props.onPatchPress}
+                                        applyModeArmed={props.applyModeArmed}
+                                        onApplyPress={props.onApplyPress}
+                                        ffModeArmed={props.ffModeArmed}
+                                        onFfPress={props.onFfPress}
+                                        theme={theme}
+                                    />
+                                )}
+
+                                {/* Standalone explore/patch buttons — only when no openspec context (new session creator) */}
+                                {!props.onOpenspecPress && props.onExplorePress && (
                                     <Pressable
                                         onPress={props.onExplorePress}
                                         hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
@@ -1007,9 +1350,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                         />
                                     </Pressable>
                                 )}
-
-                                {/* Patch Mode toggle button (one-shot) */}
-                                {props.onPatchPress && (
+                                {!props.onOpenspecPress && props.onPatchPress && (
                                     <Pressable
                                         onPress={props.onPatchPress}
                                         hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
@@ -1030,55 +1371,6 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             size={16}
                                             color={props.patchModeArmed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
                                         />
-                                    </Pressable>
-                                )}
-
-                                {/* OpenSpec status button */}
-                                {props.openspecStatus?.hasOpenspec && props.onOpenspecPress && (
-                                    <Pressable
-                                        onPress={props.onOpenspecPress}
-                                        hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
-                                        style={(p) => ({
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            borderRadius: Platform.select({ default: 16, android: 20 }),
-                                            paddingHorizontal: 8,
-                                            paddingVertical: 6,
-                                            justifyContent: 'center',
-                                            height: 32,
-                                            opacity: p.pressed ? 0.7 : 1,
-                                        })}
-                                    >
-                                        <View style={{ position: 'relative' }}>
-                                            <Octicons
-                                                name={'stack'}
-                                                size={16}
-                                                color={theme.colors.button.secondary.tint}
-                                            />
-                                            {props.openspecStatus.activeChanges.length > 0 && (
-                                                <View style={{
-                                                    position: 'absolute',
-                                                    top: -5,
-                                                    right: -7,
-                                                    backgroundColor: theme.colors.button.primary.background,
-                                                    borderRadius: 6,
-                                                    minWidth: 12,
-                                                    height: 12,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    paddingHorizontal: 2,
-                                                }}>
-                                                    <Text style={{
-                                                        fontSize: 8,
-                                                        color: theme.colors.button.primary.tint,
-                                                        fontWeight: '700',
-                                                        lineHeight: 12,
-                                                    }}>
-                                                        {props.openspecStatus.activeChanges.length}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
                                     </Pressable>
                                 )}
 

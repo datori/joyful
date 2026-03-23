@@ -188,6 +188,9 @@ export function getDefaultModelKey(flavor: AgentFlavor): string {
     return 'default';
 }
 
-export function getDefaultPermissionModeKey(_flavor: AgentFlavor): string {
-    return 'default';
+export function getDefaultPermissionModeKey(flavor: AgentFlavor): string {
+    if (flavor === 'codex' || flavor === 'gemini') {
+        return 'yolo';
+    }
+    return 'bypassPermissions';
 }

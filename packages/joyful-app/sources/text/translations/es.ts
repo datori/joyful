@@ -1016,6 +1016,11 @@ export const es: TranslationStructure = {
         tasksProgress: ({ completed, total }: { completed: number; total: number }) => `${completed}/${total} tareas`,
         noTasksFile: 'Sin archivo de tareas',
         refreshing: 'Actualizando...',
+        exploreMode: 'Modo explorar',
+        patchMode: 'Modo parche',
+        applyMode: 'Aplicar cambio',
+        ffMode: 'Fast-Forward',
+        openPanel: 'Abrir panel',
     },
 } as const;
 
