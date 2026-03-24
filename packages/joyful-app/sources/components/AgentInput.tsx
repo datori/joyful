@@ -347,6 +347,11 @@ const getContextWarning = (contextSize: number, alwaysShow: boolean = false, the
     return null; // No display needed
 };
 
+function cycleNext<T extends { key: string }>(options: T[], currentKey: string): T {
+    const idx = options.findIndex((o) => o.key === currentKey);
+    return options[((idx >= 0 ? idx : 0) + 1) % options.length];
+}
+
 // ── OpenSpec Submenu Button ──────────────────────────────────────────────────
 // Single button with a floating popover. On web the menu is portaled to
 // document.body (via react-dom createPortal) so it escapes all ancestor
@@ -685,6 +690,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
     // Use metadata.flavor for existing sessions, agentType prop for new sessions
     const isCodex = props.metadata?.flavor === 'codex' || props.agentType === 'codex';
     const isGemini = props.metadata?.flavor === 'gemini' || props.agentType === 'gemini';
+    const isClaude = !isCodex && !isGemini;
     const displayPermissionMode = React.useMemo(() => (
         props.permissionMode ? hackMode(props.permissionMode) : null
     ), [props.permissionMode]);
@@ -1019,6 +1025,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 </Text>
                             )}
                         </View>
+                        {!isClaude && (
                         <View style={{
                             flexDirection: 'column',
                             alignItems: 'flex-end',
@@ -1054,6 +1061,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 </Text>
                             )}
                         </View>
+                        )}
                     </View>
                 )}
 
@@ -1159,8 +1167,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                         </View>
                     )}
 
-                    {/* Settings overlay — anchored to input box */}
-                    {showSettings && (
+                    {/* Settings overlay — anchored to input box (Codex/Gemini only; Claude uses inline toggles) */}
+                    {showSettings && !isClaude && (
                         <>
                             <TouchableWithoutFeedback onPress={() => setShowSettings(false)}>
                                 <View style={styles.overlayBackdrop} />
@@ -1374,8 +1382,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                     </Pressable>
                                 )}
 
-                                {/* Settings button */}
-                                {props.onPermissionModeChange && (
+                                {/* Settings button — Codex/Gemini only */}
+                                {props.onPermissionModeChange && !isClaude && (
                                     <Pressable
                                         onPress={handleSettingsPress}
                                         hitSlop={{ top: 5, bottom: 10, left: 0, right: 0 }}
@@ -1397,6 +1405,93 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                         />
                                     </Pressable>
                                 )}
+
+                                {/* Model toggles — Claude only: [Snt|Ops] [Std|1M] */}
+                                {isClaude && props.onModelModeChange && (() => {
+                                    const modelKey = props.modelMode?.key ?? 'claude-sonnet-4-6';
+                                    const tier = modelKey.startsWith('claude-opus') ? 'opus' : 'sonnet';
+                                    const ctx = modelKey.endsWith('[1m]') ? '1m' : 'std';
+                                    const tierColors = {
+                                        sonnet: theme.colors.button.primary.background,
+                                        opus: theme.colors.box.warning.border,
+                                    } as const;
+                                    const ctxColors = {
+                                        std: theme.colors.button.primary.background,
+                                        '1m': theme.colors.success,
+                                    } as const;
+                                    return (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                            {/* Tier toggle */}
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                {(['sonnet', 'opus'] as const).map((t) => (
+                                                    <Pressable
+                                                        key={t}
+                                                        onPress={() => {
+                                                            hapticsLight();
+                                                            const newKey = `claude-${t}-4-6${ctx === '1m' ? '[1m]' : ''}`;
+                                                            const mode = props.availableModels?.find((m) => m.key === newKey);
+                                                            if (mode) props.onModelModeChange?.(mode);
+                                                        }}
+                                                        hitSlop={{ top: 5, bottom: 10, left: 2, right: 2 }}
+                                                        style={(p) => ({
+                                                            paddingHorizontal: 5,
+                                                            paddingVertical: 3,
+                                                            borderRadius: 7,
+                                                            height: 26,
+                                                            justifyContent: 'center',
+                                                            opacity: p.pressed ? 0.7 : 1,
+                                                            backgroundColor: tier === t ? tierColors[t] : 'transparent',
+                                                        })}
+                                                    >
+                                                        <Text style={{
+                                                            fontSize: 12,
+                                                            color: tier === t
+                                                                ? theme.colors.button.primary.tint
+                                                                : theme.colors.button.secondary.tint,
+                                                            ...Typography.default('semiBold'),
+                                                        }}>
+                                                            {t === 'sonnet' ? 'Snt' : 'Ops'}
+                                                        </Text>
+                                                    </Pressable>
+                                                ))}
+                                            </View>
+                                            {/* Context toggle */}
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                {(['std', '1m'] as const).map((c) => (
+                                                    <Pressable
+                                                        key={c}
+                                                        onPress={() => {
+                                                            hapticsLight();
+                                                            const newKey = `claude-${tier}-4-6${c === '1m' ? '[1m]' : ''}`;
+                                                            const mode = props.availableModels?.find((m) => m.key === newKey);
+                                                            if (mode) props.onModelModeChange?.(mode);
+                                                        }}
+                                                        hitSlop={{ top: 5, bottom: 10, left: 2, right: 2 }}
+                                                        style={(p) => ({
+                                                            paddingHorizontal: 5,
+                                                            paddingVertical: 3,
+                                                            borderRadius: 7,
+                                                            height: 26,
+                                                            justifyContent: 'center',
+                                                            opacity: p.pressed ? 0.7 : 1,
+                                                            backgroundColor: ctx === c ? ctxColors[c] : 'transparent',
+                                                        })}
+                                                    >
+                                                        <Text style={{
+                                                            fontSize: 12,
+                                                            color: ctx === c
+                                                                ? theme.colors.button.primary.tint
+                                                                : theme.colors.button.secondary.tint,
+                                                            ...Typography.default('semiBold'),
+                                                        }}>
+                                                            {c === 'std' ? 'Std' : '1M'}
+                                                        </Text>
+                                                    </Pressable>
+                                                ))}
+                                            </View>
+                                        </View>
+                                    );
+                                })()}
 
                                 {/* Profile selector button - FIRST */}
                                 {props.profileId && props.onProfileClick && (
@@ -1434,8 +1529,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                     </Pressable>
                                 )}
 
-                                {/* Agent selector button */}
-                                {props.agentType && props.onAgentClick && (
+                                {/* Agent selector button — Codex/Gemini only (Claude is always claude) */}
+                                {props.agentType && props.agentType !== 'claude' && props.onAgentClick && (
                                     <Pressable
                                         onPress={() => {
                                             hapticsLight();
@@ -1465,7 +1560,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             fontWeight: '600',
                                             ...Typography.default('semiBold'),
                                         }}>
-                                            {props.agentType === 'claude' ? t('agentInput.agent.claude') : props.agentType === 'codex' ? t('agentInput.agent.codex') : t('agentInput.agent.gemini')}
+                                            {props.agentType === 'codex' ? t('agentInput.agent.codex') : t('agentInput.agent.gemini')}
                                         </Text>
                                     </Pressable>
                                 )}
@@ -1507,6 +1602,55 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 {/* Git Status Badge */}
                                 <GitStatusButton sessionId={props.sessionId} onPress={props.onFileViewerPress} />
                                 </View>
+
+                                {/* Effort + Permission tap-to-cycle selectors — Claude only, right side */}
+                                {isClaude && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 4 }}>
+                                        {availableEffortLevels.length > 0 && props.onEffortLevelChange && (() => {
+                                            const effortChevrons: Record<string, number> = { default: 0, low: 1, medium: 2, high: 3, max: 4 };
+                                            const chevronCount = effortChevrons[props.effortLevel?.key ?? 'default'] ?? 0;
+                                            return (
+                                                <Pressable
+                                                    onPress={() => {
+                                                        hapticsLight();
+                                                        const next = cycleNext(availableEffortLevels, props.effortLevel?.key ?? 'default');
+                                                        props.onEffortLevelChange?.(next);
+                                                    }}
+                                                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                                                    style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+                                                >
+                                                    {chevronCount === 0 ? (
+                                                        <Text style={{ fontSize: 11, color: theme.colors.textSecondary, ...Typography.default() }}>—</Text>
+                                                    ) : (
+                                                        Array.from({ length: chevronCount }).map((_, i) => (
+                                                            <Ionicons key={i} name="chevron-up" size={10} color={theme.colors.textSecondary} style={{ marginBottom: -8 }} />
+                                                        ))
+                                                    )}
+                                                </Pressable>
+                                            );
+                                        })()}
+                                        {availableModes.length > 0 && props.onPermissionModeChange && displayPermissionMode && (
+                                            <Pressable
+                                                onPress={() => {
+                                                    hapticsLight();
+                                                    const next = cycleNext(availableModes, permissionModeKey);
+                                                    props.onPermissionModeChange?.(next);
+                                                }}
+                                                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                                            >
+                                                <Text style={{
+                                                    fontSize: 11,
+                                                    color: permissionModeKey === 'yolo' || permissionModeKey === 'bypassPermissions' || isSandboxedYoloMode
+                                                        ? theme.colors.success
+                                                        : theme.colors.textSecondary,
+                                                    ...Typography.default(),
+                                                }}>
+                                                    {withSandboxSuffix(displayPermissionMode.name, permissionModeKey)}
+                                                </Text>
+                                            </Pressable>
+                                        )}
+                                    </View>
+                                )}
 
                                 {/* Send/Voice button - aligned with first row */}
                                 <View

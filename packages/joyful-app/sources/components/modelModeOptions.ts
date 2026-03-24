@@ -71,15 +71,10 @@ export function getGeminiPermissionModes(translate: Translate): PermissionMode[]
 
 export function getClaudeModelModes(): ModelMode[] {
     return [
-        { key: 'default', name: 'Default', description: 'Use CLI settings' },
-        { key: 'claude-opus-4-6', name: 'Claude Opus 4.6', description: 'Most capable' },
-        { key: 'claude-opus-4-6[1m]', name: 'Claude Opus 4.6 (1M)', description: 'Most capable, 1M context' },
-        { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', description: 'Fast and capable' },
-        { key: 'claude-sonnet-4-6[1m]', name: 'Claude Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
-        { key: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', description: 'Fastest' },
-        { key: 'bedrock-claude-opus:latest', name: 'Bedrock Opus', description: 'Most capable (Bedrock)' },
-        { key: 'bedrock-claude-sonnet:latest', name: 'Bedrock Sonnet', description: 'Fast and capable (Bedrock)' },
-        { key: 'bedrock-claude-haiku:latest', name: 'Bedrock Haiku', description: 'Fastest (Bedrock)' },
+        { key: 'claude-sonnet-4-6', name: 'Sonnet 4.6', description: 'Fast and capable' },
+        { key: 'claude-sonnet-4-6[1m]', name: 'Sonnet 4.6 (1M)', description: 'Fast and capable, 1M context' },
+        { key: 'claude-opus-4-6', name: 'Opus 4.6', description: 'Most capable' },
+        { key: 'claude-opus-4-6[1m]', name: 'Opus 4.6 (1M)', description: 'Most capable, 1M context' },
     ];
 }
 
@@ -185,7 +180,7 @@ export function getDefaultModelKey(flavor: AgentFlavor): string {
     if (flavor === 'gemini') {
         return 'gemini-2.5-pro';
     }
-    return 'default';
+    return 'claude-sonnet-4-6';
 }
 
 export function getDefaultPermissionModeKey(flavor: AgentFlavor): string {
