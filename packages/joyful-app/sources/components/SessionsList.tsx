@@ -26,7 +26,7 @@ import { useRouter } from 'expo-router';
 import { Item } from './Item';
 import { ItemGroup } from './ItemGroup';
 import { useJoyfulAction } from '@/hooks/useJoyfulAction';
-import { sessionDelete, machineSpawnNewSession } from '@/sync/ops';
+import { sessionDelete } from '@/sync/ops';
 import { JoyfulError } from '@/utils/errors';
 import { Modal } from '@/modal';
 import { useLocalSettingMutable } from '@/sync/storage';
@@ -252,18 +252,9 @@ export function SessionsList() {
         setCollapsedProjectGroups({ ...collapsedProjectGroups, [key]: !collapsedProjectGroups[key] });
     }, [setCollapsedProjectGroups, collapsedProjectGroups]);
 
-    const handleNewChat = React.useCallback(async (machineId: string, path: string) => {
-        try {
-            const result = await machineSpawnNewSession({ machineId, directory: path, approvedNewDirectoryCreation: false });
-            if (result.type === 'error') {
-                Modal.alert(t('common.error'), result.errorMessage);
-            } else if (result.type === 'success') {
-                navigateToSession(result.sessionId);
-            }
-        } catch {
-            Modal.alert(t('common.error'), t('common.error'));
-        }
-    }, [navigateToSession]);
+    const handleNewChat = React.useCallback((machineId: string, path: string) => {
+        router.push({ pathname: '/new', params: { machineId, path } });
+    }, [router]);
 
     const moveProjectGroup = React.useCallback((key: string, direction: 'up' | 'down') => {
         const order = [...projectGroupOrder];

@@ -11,6 +11,25 @@ The system SHALL provide Explore Mode and Patch Mode toggle buttons accessible f
 - **WHEN** the user is on the new session creation screen
 - **THEN** Explore and Patch Mode buttons appear as standalone toolbar buttons
 
+### Requirement: The OpenSpec submenu button shows which mode is currently armed
+When a mode is armed the OpenSpec submenu button (in the `AgentInput` toolbar) SHALL change its visual appearance to indicate both that a mode is active AND which specific mode. The stack icon SHALL be replaced with the armed mode's icon alongside a short text label (e.g., telescope + "Explore", wrench + "Patch"). The filled primary-color background remains as the selection indicator.
+
+Inside the submenu, the armed row SHALL display with a highlighted background and primary-color text so the active choice is immediately distinguishable.
+
+#### Scenario: No mode armed — default button
+- **WHEN** no mode is armed
+- **THEN** the submenu button shows the stack icon on a transparent background
+
+#### Scenario: A mode is armed — button shows mode
+- **WHEN** e.g. Patch Mode is armed
+- **THEN** the submenu button shows the construct icon and the label "Patch" on a filled primary background
+
+#### Scenario: Armed row highlighted in submenu
+- **WHEN** the submenu is open and Explore Mode is armed
+- **THEN** the Explore row has a distinct background, primary-color text, and a filled checkmark icon
+
+---
+
 ### Requirement: Explore Mode is a one-shot prefix toggle
 The system SHALL implement Explore Mode as a one-shot toggle. When the button is tapped:
 1. The button enters an "armed" visual state (highlighted/tinted)

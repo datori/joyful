@@ -57,16 +57,12 @@ A hairline divider SHALL be rendered between consecutive project groups to visua
 ---
 
 ### Requirement: Each project group header has a quick new-chat button
-Each project group header SHALL display a `+` button to the left of the reorder button. Tapping it spawns a new session in that project's directory on the associated machine and navigates directly to the new session.
+Each project group header SHALL display a `+` button to the left of the reorder button. Tapping it navigates to the new session screen (`/new`) with the project's machine and directory pre-selected.
 
 #### Scenario: User taps + button on a project group
 - **WHEN** the user taps the + button on a project group header
-- **THEN** a new session is spawned in that project's directory and the app navigates to it
+- **THEN** the app navigates to the new session screen with the project's machine and path pre-populated
 
-#### Scenario: + button navigates to new session
-- **WHEN** session spawning succeeds
-- **THEN** the app navigates immediately to the new session
-
-#### Scenario: Spawning fails gracefully
-- **WHEN** session spawning returns an error
-- **THEN** an error alert is shown and the user remains on the sessions list
+#### Scenario: New session screen pre-populates project
+- **WHEN** the new session screen opens via the + button
+- **THEN** the machine and working directory fields reflect the project group's machine and path

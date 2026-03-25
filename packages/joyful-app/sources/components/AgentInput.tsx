@@ -454,7 +454,7 @@ function OpenSpecSubmenuButton({
                         paddingHorizontal: 14,
                         paddingVertical: 11,
                         gap: 10,
-                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        backgroundColor: exploreModeArmed ? theme.colors.surface : (p.pressed ? theme.colors.surface : 'transparent'),
                         borderRadius: 12,
                     })}
                 >
@@ -463,11 +463,11 @@ function OpenSpecSubmenuButton({
                         size={16}
                         color={exploreModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
                     />
-                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                    <Text style={{ flex: 1, fontSize: 14, color: exploreModeArmed ? theme.colors.button.primary.background : theme.colors.text, ...Typography.default(exploreModeArmed ? 'semiBold' : undefined) }}>
                         {t('openspec.exploreMode')}
                     </Text>
                     {exploreModeArmed && (
-                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.button.primary.background} />
                     )}
                 </Pressable>
             )}
@@ -482,7 +482,7 @@ function OpenSpecSubmenuButton({
                         paddingHorizontal: 14,
                         paddingVertical: 11,
                         gap: 10,
-                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        backgroundColor: patchModeArmed ? theme.colors.surface : (p.pressed ? theme.colors.surface : 'transparent'),
                         borderRadius: 12,
                     })}
                 >
@@ -491,11 +491,11 @@ function OpenSpecSubmenuButton({
                         size={16}
                         color={patchModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
                     />
-                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                    <Text style={{ flex: 1, fontSize: 14, color: patchModeArmed ? theme.colors.button.primary.background : theme.colors.text, ...Typography.default(patchModeArmed ? 'semiBold' : undefined) }}>
                         {t('openspec.patchMode')}
                     </Text>
                     {patchModeArmed && (
-                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.button.primary.background} />
                     )}
                 </Pressable>
             )}
@@ -510,7 +510,7 @@ function OpenSpecSubmenuButton({
                         paddingHorizontal: 14,
                         paddingVertical: 11,
                         gap: 10,
-                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        backgroundColor: applyModeArmed ? theme.colors.surface : (p.pressed ? theme.colors.surface : 'transparent'),
                         borderRadius: 12,
                     })}
                 >
@@ -519,11 +519,11 @@ function OpenSpecSubmenuButton({
                         size={16}
                         color={applyModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
                     />
-                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                    <Text style={{ flex: 1, fontSize: 14, color: applyModeArmed ? theme.colors.button.primary.background : theme.colors.text, ...Typography.default(applyModeArmed ? 'semiBold' : undefined) }}>
                         {t('openspec.applyMode')}
                     </Text>
                     {applyModeArmed && (
-                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.button.primary.background} />
                     )}
                 </Pressable>
             )}
@@ -538,7 +538,7 @@ function OpenSpecSubmenuButton({
                         paddingHorizontal: 14,
                         paddingVertical: 11,
                         gap: 10,
-                        backgroundColor: p.pressed ? theme.colors.surface : 'transparent',
+                        backgroundColor: ffModeArmed ? theme.colors.surface : (p.pressed ? theme.colors.surface : 'transparent'),
                         borderRadius: 12,
                     })}
                 >
@@ -547,11 +547,11 @@ function OpenSpecSubmenuButton({
                         size={16}
                         color={ffModeArmed ? theme.colors.button.primary.background : theme.colors.textSecondary}
                     />
-                    <Text style={{ flex: 1, fontSize: 14, color: theme.colors.text, ...Typography.default() }}>
+                    <Text style={{ flex: 1, fontSize: 14, color: ffModeArmed ? theme.colors.button.primary.background : theme.colors.text, ...Typography.default(ffModeArmed ? 'semiBold' : undefined) }}>
                         {t('openspec.ffMode')}
                     </Text>
                     {ffModeArmed && (
-                        <Ionicons name="checkmark" size={16} color={theme.colors.button.primary.background} />
+                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.button.primary.background} />
                     )}
                 </Pressable>
             )}
@@ -643,36 +643,54 @@ function OpenSpecSubmenuButton({
                     backgroundColor: hasArmedMode ? theme.colors.button.primary.background : 'transparent',
                 })}
             >
-                <View style={{ position: 'relative' }}>
-                    <Octicons
-                        name={'stack'}
-                        size={16}
-                        color={hasArmedMode ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
-                    />
-                    {activeCount > 0 && (
-                        <View style={{
-                            position: 'absolute',
-                            top: -5,
-                            right: -7,
-                            backgroundColor: hasArmedMode ? theme.colors.button.primary.tint : theme.colors.button.primary.background,
-                            borderRadius: 6,
-                            minWidth: 12,
-                            height: 12,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            paddingHorizontal: 2,
-                        }}>
-                            <Text style={{
-                                fontSize: 8,
-                                color: hasArmedMode ? theme.colors.button.primary.background : theme.colors.button.primary.tint,
-                                fontWeight: '700',
-                                lineHeight: 12,
+                {hasArmedMode ? (
+                    <>
+                        <Ionicons
+                            name={
+                                exploreModeArmed ? 'telescope-outline' :
+                                patchModeArmed ? 'construct-outline' :
+                                applyModeArmed ? 'hammer-outline' :
+                                'flash-outline'
+                            }
+                            size={15}
+                            color={theme.colors.button.primary.tint}
+                        />
+                        <Text style={{ fontSize: 11, color: theme.colors.button.primary.tint, marginLeft: 5, fontWeight: '600', lineHeight: 16, ...Typography.default('semiBold') }}>
+                            {exploreModeArmed ? 'Explore' : patchModeArmed ? 'Patch' : applyModeArmed ? 'Apply' : 'FF'}
+                        </Text>
+                    </>
+                ) : (
+                    <View style={{ position: 'relative' }}>
+                        <Octicons
+                            name={'stack'}
+                            size={16}
+                            color={theme.colors.button.secondary.tint}
+                        />
+                        {activeCount > 0 && (
+                            <View style={{
+                                position: 'absolute',
+                                top: -5,
+                                right: -7,
+                                backgroundColor: theme.colors.button.primary.background,
+                                borderRadius: 6,
+                                minWidth: 12,
+                                height: 12,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                paddingHorizontal: 2,
                             }}>
-                                {activeCount}
-                            </Text>
-                        </View>
-                    )}
-                </View>
+                                <Text style={{
+                                    fontSize: 8,
+                                    color: theme.colors.button.primary.tint,
+                                    fontWeight: '700',
+                                    lineHeight: 12,
+                                }}>
+                                    {activeCount}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                )}
             </Pressable>
             {portalMenu}
         </View>
