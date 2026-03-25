@@ -35,6 +35,8 @@ export const ja: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'キャンセル',
+        moveUp: '上に移動',
+        moveDown: '下に移動',
         authenticate: '認証',
         save: '保存',
         error: 'エラー',

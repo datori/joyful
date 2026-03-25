@@ -16,6 +16,7 @@ export const LocalSettingsSchema = z.object({
     // UI panel collapse states
     machinesPanelCollapsed: z.boolean().describe('Whether the machines/devices sidebar panel is collapsed'),
     collapsedProjectGroups: z.record(z.string(), z.boolean()).describe('Which project groups are collapsed in the sessions list, keyed by machineId|displayPath'),
+    projectGroupOrder: z.array(z.string()).describe('User-defined order of project groups in the sessions list, keyed by machineId|displayPath'),
 });
 
 //
@@ -40,6 +41,7 @@ export const localSettingsDefaults: LocalSettings = {
     acknowledgedCliVersions: {},
     machinesPanelCollapsed: true,
     collapsedProjectGroups: {},
+    projectGroupOrder: [],
 };
 Object.freeze(localSettingsDefaults);
 

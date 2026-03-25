@@ -32,6 +32,8 @@ export const pt: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Cancelar',
+        moveUp: 'Mover para cima',
+        moveDown: 'Mover para baixo',
         authenticate: 'Autenticar',
         save: 'Salvar',
         saveAs: 'Salvar como',

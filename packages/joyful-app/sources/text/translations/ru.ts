@@ -43,6 +43,8 @@ export const ru: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Отмена',
+        moveUp: 'Переместить вверх',
+        moveDown: 'Переместить вниз',
         authenticate: 'Авторизация',
         save: 'Сохранить',
         saveAs: 'Сохранить как',

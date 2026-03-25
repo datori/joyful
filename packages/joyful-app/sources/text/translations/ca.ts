@@ -32,6 +32,8 @@ export const ca: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Cancel·la',
+        moveUp: 'Mou amunt',
+        moveDown: 'Mou avall',
         authenticate: 'Autentica',
         save: 'Desa',
         saveAs: 'Desa com a',

@@ -32,6 +32,8 @@ export const en = {
     common: {
         // Simple string constants
         cancel: 'Cancel',
+        moveUp: 'Move Up',
+        moveDown: 'Move Down',
         authenticate: 'Authenticate',
         save: 'Save',
         saveAs: 'Save As',

@@ -208,6 +208,15 @@ const stylesheet = StyleSheet.create((theme) => ({
     archivedSessionWrapper: {
         opacity: 0.55,
     },
+    projectGroupDivider: {
+        height: 1,
+        backgroundColor: theme.colors.groupped.sectionTitle,
+        marginHorizontal: 16,
+        opacity: 0.15,
+    },
+    reorderButton: {
+        paddingHorizontal: 6,
+    },
     sessionItemArchived: {
         height: 44,
     },
@@ -231,19 +240,96 @@ export function SessionsList() {
     const router = useRouter();
     const selectable = isTablet;
     const experiments = useSetting('experiments');
+    const [isArchivedExpanded, setIsArchivedExpanded] = React.useState(false);
     const [collapsedProjectGroups, setCollapsedProjectGroups] = useLocalSettingMutable('collapsedProjectGroups');
+    const [projectGroupOrder, setProjectGroupOrder] = useLocalSettingMutable('projectGroupOrder');
 
     const toggleProjectGroup = React.useCallback((machineId: string, displayPath: string) => {
         const key = `${machineId}|${displayPath}`;
         setCollapsedProjectGroups({ ...collapsedProjectGroups, [key]: !collapsedProjectGroups[key] });
     }, [setCollapsedProjectGroups, collapsedProjectGroups]);
 
-    // Filter out sessions belonging to collapsed project groups
-    const visibleData = React.useMemo(() => {
+    const moveProjectGroup = React.useCallback((key: string, direction: 'up' | 'down') => {
+        const order = [...projectGroupOrder];
+        const idx = order.indexOf(key);
+        if (idx === -1) return;
+        const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= order.length) return;
+        [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+        setProjectGroupOrder(order);
+    }, [projectGroupOrder, setProjectGroupOrder]);
+
+    // Reorder project-group chunks according to projectGroupOrder; append unseen groups at end
+    const orderedData = React.useMemo(() => {
         if (!data) return data;
+
+        // Split flat list into typed chunks per project group, preserving archived-section-header
+        type Chunk = { key: string; items: SessionListViewItem[] };
+        const activeChunks: Chunk[] = [];
+        const archivedChunks: Chunk[] = [];
+        let currentChunk: Chunk | null = null;
+        let inArchived = false;
+        let archivedHeader: SessionListViewItem | null = null;
+
+        for (const item of data) {
+            if (item.type === 'archived-section-header') {
+                if (currentChunk) { activeChunks.push(currentChunk); currentChunk = null; }
+                archivedHeader = item;
+                inArchived = true;
+                continue;
+            }
+            if (item.type === 'project-group') {
+                if (currentChunk) { (inArchived ? archivedChunks : activeChunks).push(currentChunk); }
+                const key = `${item.machine.id}|${item.displayPath}`;
+                currentChunk = { key, items: [item] };
+                continue;
+            }
+            if (currentChunk) { currentChunk.items.push(item); }
+        }
+        if (currentChunk) { (inArchived ? archivedChunks : activeChunks).push(currentChunk); }
+
+        const applyOrder = (chunks: Chunk[]) => {
+            const known = chunks.filter(c => projectGroupOrder.includes(c.key));
+            const unknown = chunks.filter(c => !projectGroupOrder.includes(c.key));
+            known.sort((a, b) => projectGroupOrder.indexOf(a.key) - projectGroupOrder.indexOf(b.key));
+            return [...known, ...unknown];
+        };
+
+        const result: SessionListViewItem[] = [];
+        for (const chunk of applyOrder(activeChunks)) result.push(...chunk.items);
+        if (archivedHeader) {
+            result.push(archivedHeader);
+            for (const chunk of applyOrder(archivedChunks)) result.push(...chunk.items);
+        }
+        return result;
+    }, [data, projectGroupOrder]);
+
+    // Append any newly seen group keys to projectGroupOrder
+    React.useEffect(() => {
+        if (!data) return;
+        const keys = data
+            .filter((item): item is Extract<SessionListViewItem, { type: 'project-group' }> => item.type === 'project-group')
+            .map(item => `${item.machine.id}|${item.displayPath}`);
+        const missing = keys.filter(k => !projectGroupOrder.includes(k));
+        if (missing.length > 0) {
+            setProjectGroupOrder([...projectGroupOrder, ...missing]);
+        }
+    }, [data]);
+
+    // Filter out sessions belonging to collapsed project groups, and archived section when collapsed
+    const visibleData = React.useMemo(() => {
+        if (!orderedData) return orderedData;
         const result: SessionListViewItem[] = [];
         let currentGroupCollapsed = false;
-        for (const item of data) {
+        let inArchivedSection = false;
+        for (const item of orderedData) {
+            if (item.type === 'archived-section-header') {
+                inArchivedSection = true;
+                currentGroupCollapsed = false;
+                result.push(item);
+                continue;
+            }
+            if (inArchivedSection && !isArchivedExpanded) continue;
             if (item.type === 'project-group') {
                 const key = `${item.machine.id}|${item.displayPath}`;
                 currentGroupCollapsed = !!collapsedProjectGroups[key];
@@ -255,7 +341,7 @@ export function SessionsList() {
             result.push(item);
         }
         return result;
-    }, [data, collapsedProjectGroups]);
+    }, [orderedData, collapsedProjectGroups, isArchivedExpanded]);
 
     const dataWithSelected = selectable ? React.useMemo(() => {
         return visibleData?.map(item => ({
@@ -318,30 +404,55 @@ export function SessionsList() {
             case 'project-group': {
                 const groupKey = `${item.machine.id}|${item.displayPath}`;
                 const isCollapsed = !!collapsedProjectGroups[groupKey];
+                const prevItem = index > 0 && dataWithSelected ? dataWithSelected[index - 1] : null;
+                const showDivider = prevItem !== null && prevItem.type !== 'archived-section-header';
                 return (
-                    <Pressable style={styles.projectGroup} onPress={() => toggleProjectGroup(item.machine.id, item.displayPath)} hitSlop={8}>
-                        <Avatar id={`${item.machine.id}:${item.displayPath}`} size={28} />
-                        <View style={styles.projectGroupContent}>
-                            <Text style={styles.projectGroupTitle}>
-                                {item.displayPath}
-                            </Text>
-                        </View>
-                        <Ionicons
-                            name={isCollapsed ? 'chevron-forward' : 'chevron-down'}
-                            size={16}
-                            color={styles.projectGroupTitle.color}
-                        />
-                    </Pressable>
+                    <>
+                        {showDivider && <View style={styles.projectGroupDivider} />}
+                        <Pressable style={styles.projectGroup} onPress={() => toggleProjectGroup(item.machine.id, item.displayPath)} hitSlop={8}>
+                            <Avatar id={`${item.machine.id}:${item.displayPath}`} size={28} />
+                            <View style={styles.projectGroupContent}>
+                                <Text style={styles.projectGroupTitle}>
+                                    {item.displayPath}
+                                </Text>
+                            </View>
+                            <Pressable
+                                style={styles.reorderButton}
+                                onPress={() => Modal.alert(
+                                    item.displayPath,
+                                    undefined,
+                                    [
+                                        { text: t('common.moveUp'), onPress: () => moveProjectGroup(groupKey, 'up') },
+                                        { text: t('common.moveDown'), onPress: () => moveProjectGroup(groupKey, 'down') },
+                                        { text: t('common.cancel'), style: 'cancel' },
+                                    ]
+                                )}
+                                hitSlop={8}
+                            >
+                                <Ionicons name="reorder-three-outline" size={18} color={styles.projectGroupTitle.color} />
+                            </Pressable>
+                            <Ionicons
+                                name={isCollapsed ? 'chevron-forward' : 'chevron-down'}
+                                size={16}
+                                color={styles.projectGroupTitle.color}
+                            />
+                        </Pressable>
+                    </>
                 );
             }
 
             case 'archived-section-header':
                 return (
-                    <View style={styles.archivedSectionHeader}>
+                    <Pressable style={styles.archivedSectionHeader} onPress={() => setIsArchivedExpanded(v => !v)} hitSlop={8}>
                         <Text style={styles.archivedSectionHeaderText}>
                             {t('sessionList.archived')} ({item.count})
                         </Text>
-                    </View>
+                        <Ionicons
+                            name={isArchivedExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={14}
+                            color={styles.archivedSectionHeaderText.color}
+                        />
+                    </Pressable>
                 );
 
             case 'session':
@@ -365,7 +476,7 @@ export function SessionsList() {
                     />
                 );
         }
-    }, [pathname, dataWithSelected, compactSessionView, collapsedProjectGroups, toggleProjectGroup]);
+    }, [pathname, dataWithSelected, compactSessionView, collapsedProjectGroups, toggleProjectGroup, isArchivedExpanded, moveProjectGroup]);
 
 
     // Remove this section as we'll use FlatList for all items now

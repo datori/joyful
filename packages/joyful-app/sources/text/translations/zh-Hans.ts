@@ -34,6 +34,8 @@ export const zhHans: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: '取消',
+        moveUp: '向上移动',
+        moveDown: '向下移动',
         authenticate: '认证',
         save: '保存',
         saveAs: '另存为',

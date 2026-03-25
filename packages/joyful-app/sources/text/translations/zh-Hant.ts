@@ -34,6 +34,8 @@ export const zhHant: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: '取消',
+        moveUp: '向上移動',
+        moveDown: '向下移動',
         authenticate: '驗證',
         save: '儲存',
         saveAs: '另存為',
