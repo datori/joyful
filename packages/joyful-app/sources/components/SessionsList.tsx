@@ -122,6 +122,10 @@ const stylesheet = StyleSheet.create((theme) => ({
     sessionItemSelected: {
         backgroundColor: theme.colors.surfaceSelected,
     },
+    statusDotContainer: {
+        paddingLeft: 12,
+        paddingRight: 4,
+    },
     sessionContent: {
         flex: 1,
         justifyContent: 'center',
@@ -147,23 +151,6 @@ const stylesheet = StyleSheet.create((theme) => ({
         fontSize: 13,
         color: theme.colors.textSecondary,
         marginBottom: 4,
-        ...Typography.default(),
-    },
-    statusRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    statusDotContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 16,
-        marginTop: 2,
-        marginRight: 4,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '500',
-        lineHeight: 16,
         ...Typography.default(),
     },
     avatarContainer: {
@@ -474,30 +461,16 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
             }}
         >
             <View style={styles.sessionContent}>
-                {/* Title line */}
-                <View style={styles.sessionTitleRow}>
-                    <Text style={[
-                        styles.sessionTitle,
-                        sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
-                        isArchived ? styles.sessionTitleArchived : undefined,
-                    ]} numberOfLines={1}> {/* {variant !== 'no-path' ? 1 : 2} - issue is we don't have anything to take this space yet and it looks strange - if summaries were more reliably generated, we can add this. While no summary - add something like "New session" or "Empty session", and extend summary to 2 lines once we have it */}
-                        {sessionName}
-                    </Text>
-                </View>
-
-
-                {/* Status line with dot */}
-                <View style={styles.statusRow}>
-                    <View style={styles.statusDotContainer}>
-                        <StatusDot color={sessionStatus.statusDotColor} isPulsing={sessionStatus.isPulsing} />
-                    </View>
-                    <Text style={[
-                        styles.statusText,
-                        { color: sessionStatus.statusColor }
-                    ]}>
-                        {sessionStatus.statusText}
-                    </Text>
-                </View>
+                <Text style={[
+                    styles.sessionTitle,
+                    sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
+                    isArchived ? styles.sessionTitleArchived : undefined,
+                ]} numberOfLines={1}>
+                    {sessionName}
+                </Text>
+            </View>
+            <View style={styles.statusDotContainer}>
+                <StatusDot color={sessionStatus.statusDotColor} isPulsing={sessionStatus.isPulsing} />
             </View>
         </Pressable>
     );
