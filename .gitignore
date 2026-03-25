@@ -52,3 +52,7 @@ CLAUDE.local.md
 notes/
 # ralphex progress logs
 progress*.txt
+
+# Screenshot tooling
+docs/screenshots/_raw_*.png
+packages/joyful-server/data/screenshots-demo/

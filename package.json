@@ -13,7 +13,11 @@
         "dev:stack:restart": "./scripts/dev-stack.sh restart",
         "dev:stack:status": "./scripts/dev-stack.sh status",
         "dev:stack:nuke": "./scripts/dev-stack.sh nuke",
-        "dev:stack:seed": "./scripts/dev-stack.sh seed"
+        "dev:stack:seed": "./scripts/dev-stack.sh seed",
+        "screenshots": "node scripts/screenshots.mjs"
+    },
+    "devDependencies": {
+        "playwright": "^1.58.2"
     },
     "workspaces": {
         "packages": [

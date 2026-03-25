@@ -29,3 +29,20 @@ The settings popup SHALL NOT render per-option description text inside the popup
 - **WHEN** the settings popup is open
 - **THEN** each section shows only its title and a row of chips with option names — no description paragraphs
 
+### Requirement: Permission mode, model, and effort level persist across platforms
+The app SHALL persist the user's permission mode, model, and effort level selections per session so that they survive app restarts, device changes, and platform switches.
+
+#### Scenario: Settings restored after app restart on same device
+- **WHEN** the user sets a permission mode, model, or effort level for a session
+- **AND** the app is closed and reopened on the same device
+- **THEN** the session restores the previously selected permission mode, model, and effort level
+
+#### Scenario: Settings restored on a different platform
+- **WHEN** the user sets a permission mode or model on one platform (e.g., iOS)
+- **AND** the user opens the same session on a different platform (e.g., web)
+- **THEN** the session shows the previously selected values (fetched from server-side KV store)
+
+#### Scenario: Local change takes precedence over server value
+- **WHEN** the in-memory selection on the current platform differs from the server-side saved value
+- **THEN** the local in-memory selection is shown (most recent change wins)
+
