@@ -14,6 +14,7 @@ interface ChatHeaderViewProps {
     subtitle?: string;
     onBackPress?: () => void;
     onAvatarPress?: () => void;
+    onArchivePress?: () => void;
     avatarId?: string;
     backgroundColor?: string;
     tintColor?: string;
@@ -26,6 +27,7 @@ export const ChatHeaderView: React.FC<ChatHeaderViewProps> = ({
     subtitle,
     onBackPress,
     onAvatarPress,
+    onArchivePress,
     avatarId,
     isConnected = true,
     flavor,
@@ -87,6 +89,19 @@ export const ChatHeaderView: React.FC<ChatHeaderViewProps> = ({
                     )}
                 </View>
                 
+                {onArchivePress && (
+                    <Pressable
+                        onPress={onArchivePress}
+                        hitSlop={15}
+                        style={styles.archiveButton}
+                    >
+                        <Ionicons
+                            name="archive-outline"
+                            size={22}
+                            color={theme.colors.header.tint}
+                        />
+                    </Pressable>
+                )}
                 {avatarId && onAvatarPress && (
                     <Pressable
                         onPress={onAvatarPress}
@@ -152,5 +167,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: Platform.select({ ios: -8, default: -8 }),
+    },
+    archiveButton: {
+        width: 40,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 2,
     },
 });

@@ -63,7 +63,7 @@ interface SessionMessages {
 export type SessionListViewItem =
     | { type: 'header'; title: string }
     | { type: 'active-sessions'; sessions: Session[] }
-    | { type: 'project-group'; displayPath: string; machine: Machine }
+    | { type: 'project-group'; displayPath: string; machine: Machine; path: string }
     | { type: 'session'; session: Session; variant?: 'default' | 'no-path' | 'archived'; machineColor?: string }
     | { type: 'archived-section-header'; count: number };
 
@@ -168,7 +168,7 @@ function buildSessionListViewData(
     // Helper: group a list of sessions into project-group + session items
     function buildProjectGroups(sessList: Session[], variant: 'default' | 'archived') {
         const groupKeys: string[] = [];
-        const groupMap = new Map<string, { machine: Machine; displayPath: string; sessions: Session[] }>();
+        const groupMap = new Map<string, { machine: Machine; displayPath: string; path: string; sessions: Session[] }>();
 
         for (const sess of sessList) {
             const machineId = sess.metadata?.machineId || '';
@@ -198,14 +198,14 @@ function buildSessionListViewData(
                         displayPath = rest.startsWith('/') ? '~' + rest : rest === '' ? '~' : '~/' + rest;
                     }
                 }
-                groupMap.set(key, { machine, displayPath: displayPath || machineId, sessions: [] });
+                groupMap.set(key, { machine, displayPath: displayPath || machineId, path, sessions: [] });
             }
             groupMap.get(key)!.sessions.push(sess);
         }
 
         for (const key of groupKeys) {
             const group = groupMap.get(key)!;
-            listData.push({ type: 'project-group', displayPath: group.displayPath, machine: group.machine });
+            listData.push({ type: 'project-group', displayPath: group.displayPath, machine: group.machine, path: group.path });
             for (const sess of group.sessions) {
                 const machineColor = getMachineColor(sess.metadata?.machineId, machines);
                 listData.push({ type: 'session', session: sess, variant, machineColor });

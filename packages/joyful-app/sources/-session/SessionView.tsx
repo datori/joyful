@@ -21,7 +21,7 @@ import { voiceHooks } from '@/realtime/hooks/voiceHooks';
 import { startRealtimeSession, stopRealtimeSession } from '@/realtime/RealtimeSession';
 import { gitStatusSync } from '@/sync/gitStatusSync';
 import { openspecSync } from '@/sync/openspecSync';
-import { machineSpawnNewSession, sessionAbort } from '@/sync/ops';
+import { machineSpawnNewSession, sessionAbort, sessionKill } from '@/sync/ops';
 import { storage, useIsDataReady, useLocalSetting, useRealtimeStatus, useSessionMessages, useSessionUsage, useSessionProjectOpenSpecStatus, useSetting } from '@/sync/storage';
 import { useJoyfulAction } from '@/hooks/useJoyfulAction';
 import { JoyfulError } from '@/utils/errors';
@@ -56,6 +56,26 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
     const realtimeStatus = useRealtimeStatus();
     const isTablet = useIsTablet();
 
+    const [, performArchive] = useJoyfulAction(React.useCallback(async () => {
+        if (!session) return;
+        const result = await sessionKill(session.id);
+        if (!result.success) {
+            throw new JoyfulError(result.message || t('sessionInfo.failedToArchiveSession'), false);
+        }
+        router.back();
+    }, [session, router]));
+
+    const handleArchivePress = React.useCallback(() => {
+        Modal.alert(
+            t('sessionInfo.archiveSession'),
+            t('sessionInfo.archiveSessionConfirm'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('sessionInfo.archiveSession'), style: 'destructive', onPress: performArchive },
+            ]
+        );
+    }, [performArchive]);
+
     // Compute header props based on session state
     const headerProps = useMemo(() => {
         if (!isDataReady) {
@@ -65,6 +85,7 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
                 subtitle: undefined,
                 avatarId: undefined,
                 onAvatarPress: undefined,
+                onArchivePress: undefined,
                 isConnected: false,
                 flavor: null
             };
@@ -77,6 +98,7 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
                 subtitle: undefined,
                 avatarId: undefined,
                 onAvatarPress: undefined,
+                onArchivePress: undefined,
                 isConnected: false,
                 flavor: null
             };
@@ -89,11 +111,12 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
             subtitle: session.metadata?.path ? formatPathRelativeToHome(session.metadata.path, session.metadata?.homeDir) : undefined,
             avatarId: getSessionAvatarId(session),
             onAvatarPress: () => router.push(`/session/${sessionId}/info`),
+            onArchivePress: session.active ? handleArchivePress : undefined,
             isConnected: isConnected,
             flavor: session.metadata?.flavor || null,
             tintColor: isConnected ? '#000' : '#8E8E93'
         };
-    }, [session, isDataReady, sessionId, router]);
+    }, [session, isDataReady, sessionId, router, handleArchivePress]);
 
     return (
         <>
