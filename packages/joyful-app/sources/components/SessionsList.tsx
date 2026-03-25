@@ -5,7 +5,7 @@ import { Text } from '@/components/StyledText';
 import { usePathname } from 'expo-router';
 import { SessionListViewItem } from '@/sync/storage';
 import { Ionicons } from '@expo/vector-icons';
-import { getSessionName, useSessionStatus, getSessionSubtitle, getSessionAvatarId } from '@/utils/sessionUtils';
+import { getSessionName, useSessionStatus, getSessionAvatarId } from '@/utils/sessionUtils';
 import { Avatar } from './Avatar';
 import { ActiveSessionsGroup } from './ActiveSessionsGroup';
 import { ActiveSessionsGroupCompact } from './ActiveSessionsGroupCompact';
@@ -58,8 +58,8 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     projectGroup: {
         paddingHorizontal: 16,
-        paddingTop: 10,
-        paddingBottom: 6,
+        paddingTop: 6,
+        paddingBottom: 4,
         backgroundColor: theme.colors.groupped.background,
         flexDirection: 'row',
         alignItems: 'center',
@@ -67,22 +67,24 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     projectGroupContent: {
         flex: 1,
+        marginLeft: 8,
+        justifyContent: 'center',
     },
     projectGroupTitle: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
         color: theme.colors.groupped.sectionTitle,
         letterSpacing: 0.1,
         ...Typography.default('semiBold'),
     },
     projectGroupSubtitle: {
-        fontSize: 11,
+        fontSize: 10,
         color: theme.colors.textSecondary,
-        marginTop: 2,
+        marginTop: 1,
         ...Typography.default(),
     },
     sessionItem: {
-        height: 72,
+        height: 52,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
@@ -122,7 +124,6 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     sessionContent: {
         flex: 1,
-        marginLeft: 16,
         justifyContent: 'center',
     },
     sessionTitleRow: {
@@ -221,7 +222,7 @@ const stylesheet = StyleSheet.create((theme) => ({
         opacity: 0.55,
     },
     sessionItemArchived: {
-        height: 56,
+        height: 44,
     },
     avatarContainerArchived: {
         width: 40,
@@ -332,12 +333,10 @@ export function SessionsList() {
                 const isCollapsed = !!collapsedProjectGroups[groupKey];
                 return (
                     <Pressable style={styles.projectGroup} onPress={() => toggleProjectGroup(item.machine.id, item.displayPath)} hitSlop={8}>
+                        <Avatar id={`${item.machine.id}:${item.displayPath}`} size={28} />
                         <View style={styles.projectGroupContent}>
                             <Text style={styles.projectGroupTitle}>
                                 {item.displayPath}
-                            </Text>
-                            <Text style={styles.projectGroupSubtitle}>
-                                {item.machine.metadata?.displayName || item.machine.metadata?.host || item.machine.id}
                             </Text>
                         </View>
                         <Ionicons
@@ -421,7 +420,6 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
     const sessionName = getSessionName(session);
-    const sessionSubtitle = getSessionSubtitle(session);
     const navigateToSession = useNavigateToSession();
     const isTablet = useIsTablet();
     const swipeableRef = React.useRef<Swipeable | null>(null);
@@ -475,18 +473,6 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
                 }
             }}
         >
-            <View style={[styles.avatarContainer, isArchived && styles.avatarContainerArchived]}>
-                <Avatar id={avatarId} size={isArchived ? 40 : 48} monochrome={!sessionStatus.isConnected} flavor={session.metadata?.flavor} />
-                {session.draft && (
-                    <View style={styles.draftIconContainer}>
-                        <Ionicons
-                            name="create-outline"
-                            size={12}
-                            style={styles.draftIconOverlay}
-                        />
-                    </View>
-                )}
-            </View>
             <View style={styles.sessionContent}>
                 {/* Title line */}
                 <View style={styles.sessionTitleRow}>
@@ -499,12 +485,6 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
                     </Text>
                 </View>
 
-                {/* Subtitle line */}
-                {!isArchived && (
-                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
-                        {sessionSubtitle}
-                    </Text>
-                )}
 
                 {/* Status line with dot */}
                 <View style={styles.statusRow}>
