@@ -34,10 +34,6 @@ export function useVisibleSessionListViewData(): SessionListViewItem[] | null {
             }
 
             pendingProjectGroup = null;
-
-            if (item.type === 'active-sessions') {
-                filtered.push(item);
-            }
             // archived-section-header and header items are intentionally omitted (inactive sessions hidden)
         }
 

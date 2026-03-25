@@ -15,6 +15,7 @@ export const LocalSettingsSchema = z.object({
     acknowledgedCliVersions: z.record(z.string(), z.string()).describe('Acknowledged CLI versions per machine'),
     // UI panel collapse states
     machinesPanelCollapsed: z.boolean().describe('Whether the machines/devices sidebar panel is collapsed'),
+    collapsedProjectGroups: z.record(z.string(), z.boolean()).describe('Which project groups are collapsed in the sessions list, keyed by machineId|displayPath'),
 });
 
 //
@@ -38,6 +39,7 @@ export const localSettingsDefaults: LocalSettings = {
     markdownCopyV2: false,
     acknowledgedCliVersions: {},
     machinesPanelCollapsed: true,
+    collapsedProjectGroups: {},
 };
 Object.freeze(localSettingsDefaults);
 

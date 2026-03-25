@@ -29,6 +29,7 @@ import { useJoyfulAction } from '@/hooks/useJoyfulAction';
 import { sessionDelete } from '@/sync/ops';
 import { JoyfulError } from '@/utils/errors';
 import { Modal } from '@/modal';
+import { useLocalSettingMutable } from '@/sync/storage';
 
 const stylesheet = StyleSheet.create((theme) => ({
     container: {
@@ -57,13 +58,21 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     projectGroup: {
         paddingHorizontal: 16,
-        paddingVertical: 6,
-        backgroundColor: theme.colors.surface,
+        paddingTop: 10,
+        paddingBottom: 6,
+        backgroundColor: theme.colors.groupped.background,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    projectGroupContent: {
+        flex: 1,
     },
     projectGroupTitle: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '600',
-        color: theme.colors.text,
+        color: theme.colors.groupped.sectionTitle,
+        letterSpacing: 0.1,
         ...Typography.default('semiBold'),
     },
     projectGroupSubtitle: {
@@ -102,11 +111,11 @@ const stylesheet = StyleSheet.create((theme) => ({
     sessionItemContainerLast: {
         borderBottomLeftRadius: 12,
         borderBottomRightRadius: 12,
-        marginBottom: 12,
+        marginBottom: 6,
     },
     sessionItemContainerSingle: {
         borderRadius: 12,
-        marginBottom: 12,
+        marginBottom: 6,
     },
     sessionItemSelected: {
         backgroundColor: theme.colors.surfaceSelected,
@@ -197,9 +206,9 @@ const stylesheet = StyleSheet.create((theme) => ({
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: theme.colors.groupped.background,
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 8,
+        paddingHorizontal: 16,
+        paddingTop: 14,
+        paddingBottom: 6,
     },
     archivedSectionHeaderText: {
         fontSize: 14,
@@ -234,13 +243,31 @@ export function SessionsList() {
     const router = useRouter();
     const selectable = isTablet;
     const experiments = useSetting('experiments');
-    const [isArchivedExpanded, setIsArchivedExpanded] = React.useState(false);
+    const [collapsedProjectGroups, setCollapsedProjectGroups] = useLocalSettingMutable('collapsedProjectGroups');
 
-    // When archived section is collapsed, hide all archived session rows
+    const toggleProjectGroup = React.useCallback((machineId: string, displayPath: string) => {
+        const key = `${machineId}|${displayPath}`;
+        setCollapsedProjectGroups({ ...collapsedProjectGroups, [key]: !collapsedProjectGroups[key] });
+    }, [setCollapsedProjectGroups, collapsedProjectGroups]);
+
+    // Filter out sessions belonging to collapsed project groups
     const visibleData = React.useMemo(() => {
-        if (!data || isArchivedExpanded) return data;
-        return data.filter(item => !(item.type === 'session' && item.variant === 'archived'));
-    }, [data, isArchivedExpanded]);
+        if (!data) return data;
+        const result: SessionListViewItem[] = [];
+        let currentGroupCollapsed = false;
+        for (const item of data) {
+            if (item.type === 'project-group') {
+                const key = `${item.machine.id}|${item.displayPath}`;
+                currentGroupCollapsed = !!collapsedProjectGroups[key];
+                result.push(item);
+                continue;
+            }
+            if (item.type === 'session' && currentGroupCollapsed) continue;
+            if (item.type !== 'session') currentGroupCollapsed = false;
+            result.push(item);
+        }
+        return result;
+    }, [data, collapsedProjectGroups]);
 
     const dataWithSelected = selectable ? React.useMemo(() => {
         return visibleData?.map(item => ({
@@ -300,30 +327,35 @@ export function SessionsList() {
                     />
                 );
 
-            case 'project-group':
+            case 'project-group': {
+                const groupKey = `${item.machine.id}|${item.displayPath}`;
+                const isCollapsed = !!collapsedProjectGroups[groupKey];
                 return (
-                    <View style={styles.projectGroup}>
-                        <Text style={styles.projectGroupTitle}>
-                            {item.displayPath}
-                        </Text>
-                        <Text style={styles.projectGroupSubtitle}>
-                            {item.machine.metadata?.displayName || item.machine.metadata?.host || item.machine.id}
-                        </Text>
-                    </View>
+                    <Pressable style={styles.projectGroup} onPress={() => toggleProjectGroup(item.machine.id, item.displayPath)} hitSlop={8}>
+                        <View style={styles.projectGroupContent}>
+                            <Text style={styles.projectGroupTitle}>
+                                {item.displayPath}
+                            </Text>
+                            <Text style={styles.projectGroupSubtitle}>
+                                {item.machine.metadata?.displayName || item.machine.metadata?.host || item.machine.id}
+                            </Text>
+                        </View>
+                        <Ionicons
+                            name={isCollapsed ? 'chevron-forward' : 'chevron-down'}
+                            size={16}
+                            color={styles.projectGroupTitle.color}
+                        />
+                    </Pressable>
                 );
+            }
 
             case 'archived-section-header':
                 return (
-                    <Pressable style={styles.archivedSectionHeader} onPress={() => setIsArchivedExpanded(v => !v)} hitSlop={8}>
+                    <View style={styles.archivedSectionHeader}>
                         <Text style={styles.archivedSectionHeaderText}>
                             {t('sessionList.archived')} ({item.count})
                         </Text>
-                        <Ionicons
-                            name={isArchivedExpanded ? 'chevron-up' : 'chevron-down'}
-                            size={16}
-                            color={styles.archivedSectionHeaderText.color}
-                        />
-                    </Pressable>
+                    </View>
                 );
 
             case 'session':
@@ -331,8 +363,8 @@ export function SessionsList() {
                 const prevItem = index > 0 && dataWithSelected ? dataWithSelected[index - 1] : null;
                 const nextItem = index < (dataWithSelected?.length || 0) - 1 && dataWithSelected ? dataWithSelected[index + 1] : null;
 
-                const isFirst = prevItem?.type === 'header' || prevItem?.type === 'archived-section-header';
-                const isLast = nextItem?.type === 'header' || nextItem?.type === 'archived-section-header' || nextItem == null || nextItem?.type === 'active-sessions';
+                const isFirst = prevItem?.type === 'header' || prevItem?.type === 'archived-section-header' || prevItem?.type === 'project-group';
+                const isLast = nextItem?.type === 'header' || nextItem?.type === 'archived-section-header' || nextItem?.type === 'project-group' || nextItem == null || nextItem?.type === 'active-sessions';
                 const isSingle = isFirst && isLast;
 
                 return (
@@ -347,7 +379,7 @@ export function SessionsList() {
                     />
                 );
         }
-    }, [pathname, dataWithSelected, compactSessionView, isArchivedExpanded]);
+    }, [pathname, dataWithSelected, compactSessionView, collapsedProjectGroups, toggleProjectGroup]);
 
 
     // Remove this section as we'll use FlatList for all items now

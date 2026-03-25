@@ -150,10 +150,9 @@ function buildSessionListViewData(
     sessions: Record<string, Session>,
     machines: Record<string, Machine> = {}
 ): SessionListViewItem[] {
-    // Separate active and inactive sessions
+    // Separate active and inactive sessions, sort each by updated date
     const activeSessions: Session[] = [];
     const inactiveSessions: Session[] = [];
-
     Object.values(sessions).forEach(session => {
         if (isSessionActive(session)) {
             activeSessions.push(session);
@@ -161,26 +160,66 @@ function buildSessionListViewData(
             inactiveSessions.push(session);
         }
     });
-
-    // Sort sessions by updated date (newest first)
     activeSessions.sort((a, b) => b.updatedAt - a.updatedAt);
     inactiveSessions.sort((a, b) => b.updatedAt - a.updatedAt);
 
-    // Build unified list view data
     const listData: SessionListViewItem[] = [];
 
-    // Add active sessions as a single item at the top (if any)
-    if (activeSessions.length > 0) {
-        listData.push({ type: 'active-sessions', sessions: activeSessions });
+    // Helper: group a list of sessions into project-group + session items
+    function buildProjectGroups(sessList: Session[], variant: 'default' | 'archived') {
+        const groupKeys: string[] = [];
+        const groupMap = new Map<string, { machine: Machine; displayPath: string; sessions: Session[] }>();
+
+        for (const sess of sessList) {
+            const machineId = sess.metadata?.machineId || '';
+            const path = sess.metadata?.path || '';
+            const key = `${machineId}|${path}`;
+
+            if (!groupMap.has(key)) {
+                groupKeys.push(key);
+                const machine: Machine = machines[machineId] ?? {
+                    id: machineId,
+                    seq: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    active: false,
+                    activeAt: 0,
+                    metadata: null,
+                    metadataVersion: 0,
+                    daemonState: null,
+                    daemonStateVersion: 0,
+                };
+                const homeDir = sess.metadata?.homeDir;
+                let displayPath = path;
+                if (path && homeDir) {
+                    const normalizedHome = homeDir.endsWith('/') ? homeDir.slice(0, -1) : homeDir;
+                    if (path.startsWith(normalizedHome)) {
+                        const rest = path.slice(normalizedHome.length);
+                        displayPath = rest.startsWith('/') ? '~' + rest : rest === '' ? '~' : '~/' + rest;
+                    }
+                }
+                groupMap.set(key, { machine, displayPath: displayPath || machineId, sessions: [] });
+            }
+            groupMap.get(key)!.sessions.push(sess);
+        }
+
+        for (const key of groupKeys) {
+            const group = groupMap.get(key)!;
+            listData.push({ type: 'project-group', displayPath: group.displayPath, machine: group.machine });
+            for (const sess of group.sessions) {
+                const machineColor = getMachineColor(sess.metadata?.machineId, machines);
+                listData.push({ type: 'session', session: sess, variant, machineColor });
+            }
+        }
     }
 
-    // Add archived (inactive) sessions as a collapsed section at the bottom
+    // Top section: active sessions grouped by project
+    buildProjectGroups(activeSessions, 'default');
+
+    // Bottom section: archived sessions grouped by project, preceded by section header
     if (inactiveSessions.length > 0) {
         listData.push({ type: 'archived-section-header', count: inactiveSessions.length });
-        inactiveSessions.forEach(sess => {
-            const machineColor = getMachineColor(sess.metadata?.machineId, machines);
-            listData.push({ type: 'session', session: sess, variant: 'archived', machineColor });
-        });
+        buildProjectGroups(inactiveSessions, 'archived');
     }
 
     return listData;
