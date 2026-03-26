@@ -4,9 +4,10 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-21 (fork base: d343330c) -->
+<!-- changelog-summary: 2026-03-26 (fork base: d343330c) -->
 
 #### Session management
+- **Model & effort persistence per session** — selected model and effort level are saved and restored per session so settings survive restarts and navigation
 - **Interactive filesystem browser** — navigate the remote machine's directory tree in the new-session path picker, with hidden-dir toggle and breadcrumb navigation
 - **Native session browser** — discover and resume existing Claude Code sessions (`~/.claude/projects/` JSONL files) directly from the app
 - **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session"; pick machine, working directory, and native session in one flow
@@ -18,6 +19,9 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Quota polling fixes** — skips API-key-only machines; eliminated a re-entrant loop that caused daemon OOM crashes
 
 #### Claude Code integration
+- **OpenSpec unified submenu** — Explore, Patch, and Open Panel consolidated into a single toolbar submenu; active mode shown as icon + label directly in the toolbar button; explore/patch now available in active sessions, not just the new-session creator
+- **Yolo permission default** — new sessions default to `bypassPermissions` (Claude) / `yolo` (Codex/Gemini) with a green indicator; non-yolo modes shown in red
+- **Inline model & effort toggles** — `[Snt|Ops]` and `[Std|1M]` segmented pickers replace the gear icon for Claude sessions; effort displayed as stacked chevrons; Sonnet 4.6 is the new default model key
 - **Bedrock model support** — `bedrock-claude-opus`, `bedrock-claude-sonnet`, and `bedrock-claude-haiku` in model pickers, for `ANTHROPIC_BASE_URL`-backed Bedrock gateways
 - **Model & effort level** — CLI reads `~/.claude/settings.json` and surfaces default model/effort to the app; effort picker in session creation and session view
 - **Slash command autocomplete** — typing `/` on the new-session screen surfaces recently-seen commands from past sessions
@@ -25,6 +29,13 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 - **Explore & Patch mode buttons** — one-shot prefix toggles for `/opsx:explore` and `/opsx:patch` in the new-session creator; mutually exclusive
 
 #### UI & UX
+- **Project group session list** — sessions grouped by project (machine + working directory) with collapsible headers; collapsed state persisted per device; hairline dividers between groups
+- **Stable project group ordering** — group order persisted in local settings; new groups append at the end; reorder modal (≡ button) lets you move groups up/down
+- **+ button per project group** — tapping + on a group header navigates to the new-session screen with that project's machine and path pre-filled
+- **Archive button in chat header** — archive icon in the chat header lets you archive an active session directly without leaving the conversation
+- **Compact session rows** — removed per-row avatar and path subtitle; single small avatar in group header; item heights reduced for denser lists
+- **Emoji session titles** — Claude prefixes auto-generated session titles with a relevant emoji for quicker visual scanning
+- **Status dot on right** — session status indicator moved to the right side of rows; text label removed for a cleaner look
 - **Git history & branch list** — tappable branch pill opens a screen with all local/remote branches (ahead/behind counts) and last 30 commits
 - **Plasma avatar style** — new default: three gaussian-blurred blobs in triadic hues with screen blending; CSS fallback for web
 - **Condensed density & dark mode** — tightened session rows and settings items; dark surfaces aligned to iOS palette; FAB buttons softened
