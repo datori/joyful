@@ -6,54 +6,42 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 <!-- changelog-summary: 2026-03-26 (fork base: d343330c) -->
 
-#### Session management
-- **Model & effort persistence per session** — selected model and effort level are saved and restored per session so settings survive restarts and navigation
-- **Interactive filesystem browser** — navigate the remote machine's directory tree in the new-session path picker, with hidden-dir toggle and breadcrumb navigation
-- **Native session browser** — discover and resume existing Claude Code sessions (`~/.claude/projects/` JSONL files) directly from the app
-- **Split FAB for session resume** — dedicated "Resume" entry point alongside "New Session"; pick machine, working directory, and native session in one flow
-- **Archived sessions** — inactive sessions grouped under a collapsible "Archived (N)" header, collapsed by default
-
-#### Monitoring & quota
-- **Claude quota widget** — sidebar panel showing 5h and 7d rolling-window utilization bars with colour-coded fill, reset countdown, and manual refresh; sourced from `anthropic-ratelimit-unified-*` response headers via OAuth Messages API ping
-- **Machine memory stats** — daemon reports total/free RAM and its own RSS; shown in a collapsible sidebar panel and machine detail screen
-- **Quota polling fixes** — skips API-key-only machines; eliminated a re-entrant loop that caused daemon OOM crashes
-
-#### Claude Code integration
-- **OpenSpec unified submenu** — Explore, Patch, and Open Panel consolidated into a single toolbar submenu; active mode shown as icon + label directly in the toolbar button; explore/patch now available in active sessions, not just the new-session creator
-- **Yolo permission default** — new sessions default to `bypassPermissions` (Claude) / `yolo` (Codex/Gemini) with a green indicator; non-yolo modes shown in red
-- **Inline model & effort toggles** — `[Snt|Ops]` and `[Std|1M]` segmented pickers replace the gear icon for Claude sessions; effort displayed as stacked chevrons; Sonnet 4.6 is the new default model key
-- **Bedrock model support** — `bedrock-claude-opus`, `bedrock-claude-sonnet`, and `bedrock-claude-haiku` in model pickers, for `ANTHROPIC_BASE_URL`-backed Bedrock gateways
-- **Model & effort level** — CLI reads `~/.claude/settings.json` and surfaces default model/effort to the app; effort picker in session creation and session view
-- **Slash command autocomplete** — typing `/` on the new-session screen surfaces recently-seen commands from past sessions
-- **OpenSpec panel** — in-app status panel showing active changes with task progress bars, main specs, and archived changes; toolbar badge shows active-change count
-- **Explore & Patch mode buttons** — one-shot prefix toggles for `/opsx:explore` and `/opsx:patch` in the new-session creator; mutually exclusive
-
-#### UI & UX
-- **Project group session list** — sessions grouped by project (machine + working directory) with collapsible headers; collapsed state persisted per device; hairline dividers between groups
-- **Stable project group ordering** — group order persisted in local settings; new groups append at the end; reorder modal (≡ button) lets you move groups up/down
-- **+ button per project group** — tapping + on a group header navigates to the new-session screen with that project's machine and path pre-filled
-- **Archive button in chat header** — archive icon in the chat header lets you archive an active session directly without leaving the conversation
-- **Compact session rows** — removed per-row avatar and path subtitle; single small avatar in group header; item heights reduced for denser lists
-- **Emoji session titles** — Claude prefixes auto-generated session titles with a relevant emoji for quicker visual scanning
-- **Status dot on right** — session status indicator moved to the right side of rows; text label removed for a cleaner look
-- **Git history & branch list** — tappable branch pill opens a screen with all local/remote branches (ahead/behind counts) and last 30 commits
-- **Plasma avatar style** — new default: three gaussian-blurred blobs in triadic hues with screen blending; CSS fallback for web
-- **Condensed density & dark mode** — tightened session rows and settings items; dark surfaces aligned to iOS palette; FAB buttons softened
-- **Mobile layout fixes** — code block word wrapping, message wrapping on narrow screens, slash-command overlay anchored above keyboard, PWA safe-area fix
-- **Machines panel collapsed by default** — collapse state persisted via MMKV; defaults to collapsed to reduce noise
-- **Compact view default, settings chips, Ionicons, J branding** — streamlined defaults and visual refresh
-
-#### Voice
-- **Self-hosted ElevenLabs config** — agent ID settable in Settings → Voice; clear prompts when unconfigured; 503 with actionable message when API key is absent
-
-#### Performance
-- **Reconnect batching** — single `POST /v3/messages/batch` replaces one fetch per session on reconnect (~92% fewer requests)
-- **Streaming seq fix** — batched seq allocation eliminates gaps that forced 35% of messages to the slow REST fallback
-
-#### Infrastructure
-- **Socket.IO polling fallback** — `['polling', 'websocket']` transports fix connection failures behind restrictive networks
-- **Safe co-existence with Happy daemon** — joyful daemon runs independently alongside existing `happy`/`happier` daemons
-- **Full rename** — all identifiers, env vars, and home directories updated from `happy`/`handy` to `joyful`
+| Category | Feature | What it does |
+|----------|---------|--------------|
+| **Sessions** | Model & effort persistence | Selected model/effort saved per session, survives restarts |
+| | Interactive filesystem browser | Navigate remote directory tree in path picker, with hidden-dir toggle |
+| | Native session browser | Discover and resume existing Claude sessions from `~/.claude/projects/` |
+| | Split FAB for session resume | Dedicated Resume entry alongside New Session; pick machine, dir, and session |
+| | Archived sessions | Inactive sessions in a collapsible "Archived (N)" header, collapsed by default |
+| **Monitoring** | Claude quota widget | 5h/7d rolling-window utilization bars, reset countdown, manual refresh |
+| | Machine memory stats | Daemon reports total/free RAM + RSS; shown in collapsible sidebar panel |
+| | Quota polling fixes | Skips API-key-only machines; fixed re-entrant loop causing daemon OOM |
+| **Claude Code** | OpenSpec submenu | Explore, Patch, Open Panel in one toolbar menu; active mode shown as icon + label |
+| | Yolo permission default | New sessions default to `bypassPermissions`/`yolo`; green/red indicator |
+| | Inline model & effort toggles | `[Snt\|Ops]` and `[Std\|1M]` pickers replace gear icon; effort shown as chevrons |
+| | Bedrock model support | `bedrock-claude-*` variants in model pickers for Bedrock gateways |
+| | Model & effort from settings | CLI reads `~/.claude/settings.json` and surfaces defaults to the app |
+| | Slash command autocomplete | Typing `/` surfaces recently-seen commands from past sessions |
+| | OpenSpec panel | In-app panel with active changes, task progress bars, and toolbar badge |
+| | Explore & Patch mode | One-shot prefix toggles for `/opsx:explore` and `/opsx:patch` |
+| **UI & UX** | Project group session list | Sessions grouped by project with collapsible headers; state persisted per device |
+| | Stable group ordering | Group order persisted; reorder modal (≡) to move groups up/down |
+| | + button per group | Tap + on a group header to open new-session screen pre-filled for that project |
+| | Archive in chat header | Archive icon in the chat header to archive active session in place |
+| | Compact session rows | No per-row avatar/path; reduced heights; single avatar in group header |
+| | Emoji session titles | Claude prefixes auto-generated session titles with a relevant emoji |
+| | Status dot on right | Status indicator moved to row right; text label removed |
+| | Git history & branches | Tappable branch pill shows all branches (ahead/behind) and last 30 commits |
+| | Plasma avatar style | Gaussian-blurred triadic blobs with screen blending; CSS fallback for web |
+| | Condensed density & dark mode | Tighter rows/items; dark surfaces aligned to iOS palette |
+| | Mobile layout fixes | Code block wrapping, keyboard-anchored overlays, PWA safe-area |
+| | Machines panel collapsed | Collapse state persisted; defaults to collapsed |
+| **Voice** | Self-hosted ElevenLabs | Agent ID configurable in Settings → Voice; clear errors when unconfigured |
+| **Performance** | Reconnect batching | Single batch request on reconnect instead of one per session (~92% fewer) |
+| | Streaming seq fix | Batched seq allocation eliminates gaps that caused slow REST fallback |
+| **Infrastructure** | Socket.IO polling fallback | `['polling', 'websocket']` fixes connections behind restrictive networks |
+| | Happy daemon co-existence | Runs independently alongside existing `happy`/`happier` daemons |
+| | Full rename | All identifiers, env vars, home dirs updated from `happy`/`handy` to `joyful` |
 
 <!-- end-changelog-summary -->
 
