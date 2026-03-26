@@ -257,14 +257,22 @@ export function SessionsList() {
     }, [router]);
 
     const moveProjectGroup = React.useCallback((key: string, direction: 'up' | 'down') => {
-        const order = [...projectGroupOrder];
+        // Build a complete order from the persisted list + any groups not yet in it,
+        // so the move works even if projectGroupOrder hasn't been populated by the effect yet.
+        const currentKeys = (data || [])
+            .filter((item): item is Extract<SessionListViewItem, { type: 'project-group' }> => item.type === 'project-group')
+            .map(item => `${item.machine.id}|${item.displayPath}`);
+        const known = projectGroupOrder.filter(k => currentKeys.includes(k));
+        const unseen = currentKeys.filter(k => !known.includes(k));
+        const order = [...known, ...unseen];
+
         const idx = order.indexOf(key);
         if (idx === -1) return;
         const newIdx = direction === 'up' ? idx - 1 : idx + 1;
         if (newIdx < 0 || newIdx >= order.length) return;
         [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
         setProjectGroupOrder(order);
-    }, [projectGroupOrder, setProjectGroupOrder]);
+    }, [projectGroupOrder, setProjectGroupOrder, data]);
 
     // Reorder project-group chunks according to projectGroupOrder; append unseen groups at end
     const orderedData = React.useMemo(() => {
