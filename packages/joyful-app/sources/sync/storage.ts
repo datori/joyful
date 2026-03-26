@@ -205,6 +205,11 @@ function buildSessionListViewData(
 
         for (const key of groupKeys) {
             const group = groupMap.get(key)!;
+            if (variant === 'default') {
+                // Active sessions within a group are ordered by creation date (newest first)
+                // so they stay in a stable position regardless of activity.
+                group.sessions.sort((a, b) => b.createdAt - a.createdAt);
+            }
             listData.push({ type: 'project-group', displayPath: group.displayPath, machine: group.machine, path: group.path });
             for (const sess of group.sessions) {
                 const machineColor = getMachineColor(sess.metadata?.machineId, machines);

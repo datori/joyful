@@ -7,6 +7,10 @@ All sessions in the sessions list SHALL be grouped under project group headers. 
 - **WHEN** the sessions list renders active sessions
 - **THEN** sessions are grouped under project headers showing the display path (e.g., `~/code/joyful`)
 
+#### Scenario: Sessions within a group are ordered by creation date
+- **WHEN** a project group contains multiple active sessions
+- **THEN** sessions are listed newest-created first within the group, so their position does not change as activity occurs
+
 #### Scenario: Project group header shows avatar and path
 - **WHEN** a project group header is rendered
 - **THEN** it shows a small avatar derived from the machine ID and path, and the display path of the project
