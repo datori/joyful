@@ -93,7 +93,7 @@ export const AvatarSkia = React.memo((props: AvatarProps) => {
     }, [square, size]);
 
     return (
-        <Canvas style={{ width: size, height: size }}>
+        <Canvas style={{ width: size, height: size }} opaque={false}>
             <Group clip={clipPath}>
                 {rects.map((rect, index) => (
                     <Rect

@@ -126,7 +126,7 @@ function AvatarPlasmaSkia(props: AvatarPlasmaProps) {
     const blurSigma = size * BLUR;
 
     return (
-        <Canvas style={{ width: size, height: size }}>
+        <Canvas style={{ width: size, height: size }} opaque={false}>
             <Group clip={clipPath}>
                 <Rect x={0} y={0} width={size} height={size}>
                     <RadialGradient

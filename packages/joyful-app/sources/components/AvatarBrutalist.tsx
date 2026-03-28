@@ -481,8 +481,7 @@ export const AvatarBrutalist = React.memo((props: AvatarBrutalistProps) => {
                 height: dimension,
                 borderRadius,
                 backgroundColor,
-                // borderWidth: square ? 0 : 0.5,
-                // borderColor: 'rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden',
                 justifyContent: 'center',
                 alignItems: 'center'
             }}
