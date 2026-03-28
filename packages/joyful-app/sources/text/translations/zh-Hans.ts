@@ -1084,6 +1084,7 @@ export const zhHans: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `位于 ${path} 的工作树有未提交的更改，这些更改将永久丢失。`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `工作树 "${name}" 已删除`,
         orphanCleanupFailed: ({ name }: { name: string }) => `删除工作树 "${name}" 失败`,
+        returnToMerge: '返回合并屏幕',
         resolveWithAI: '使用AI解决',
         resolveWithAISubtitle: '以冲突解决提示恢复会话',
         syncSpecsWithAI: '使用AI同步规格',

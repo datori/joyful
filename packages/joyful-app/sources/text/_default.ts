@@ -1085,6 +1085,7 @@ export const en = {
         orphanDirtyMessage: ({ path }: { path: string }) => `The worktree at ${path} has uncommitted changes that will be permanently lost.`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `Worktree "${name}" removed`,
         orphanCleanupFailed: ({ name }: { name: string }) => `Failed to remove worktree "${name}"`,
+        returnToMerge: 'Return to merge screen',
         resolveWithAI: 'Resolve with AI',
         resolveWithAISubtitle: 'Resume the session with a conflict resolution prompt',
         syncSpecsWithAI: 'Sync specs with AI',

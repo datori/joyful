@@ -1086,6 +1086,7 @@ export const ja: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `${path} のワークツリーにコミットされていない変更があり、永久に失われます。`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `ワークツリー "${name}" を削除しました`,
         orphanCleanupFailed: ({ name }: { name: string }) => `ワークツリー "${name}" の削除に失敗しました`,
+        returnToMerge: 'マージ画面に戻る',
         resolveWithAI: 'AIで解決',
         resolveWithAISubtitle: 'コンフリクト解決プロンプトでセッションを再開',
         syncSpecsWithAI: 'AIでスペックを同期',

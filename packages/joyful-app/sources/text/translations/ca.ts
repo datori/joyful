@@ -1082,6 +1082,7 @@ export const ca: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `El worktree a ${path} té canvis sense confirmar que es perdran permanentment.`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `Worktree "${name}" eliminat`,
         orphanCleanupFailed: ({ name }: { name: string }) => `Error en eliminar el worktree "${name}"`,
+        returnToMerge: 'Torna a la pantalla de fusió',
         resolveWithAI: 'Resoldre amb IA',
         resolveWithAISubtitle: 'Reprèn la sessió amb un prompt de resolució de conflictes',
         syncSpecsWithAI: 'Sincronitzar specs amb IA',

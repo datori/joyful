@@ -366,8 +366,19 @@ export async function mergeWorktree(
         return { success: false, conflictFiles, error: 'merge_conflict' };
     }
 
-    // For squash merge, we need to commit
+    // For squash merge, check if anything was staged before committing.
+    // git merge --squash can succeed but stage nothing (e.g. branch already reconciled).
     if (options.squash) {
+        const stagedCheck = await machineBash(
+            machineId,
+            `git -C ${shellQuote(basePath)} diff --cached --quiet`,
+            '/'
+        );
+        // exit 0 = nothing staged, exit 1 = something staged
+        if (stagedCheck.success) {
+            return { success: true };
+        }
+
         const commitResult = await machineBash(
             machineId,
             `git -C ${shellQuote(basePath)} commit -m ${shellQuote(options.commitMessage)}`,
@@ -375,10 +386,6 @@ export async function mergeWorktree(
         );
 
         if (!commitResult.success) {
-            const out = commitResult.stdout + commitResult.stderr;
-            if (out.includes('nothing to commit') || out.includes('nothing added to commit')) {
-                return { success: true };
-            }
             return { success: false, error: commitResult.stderr };
         }
     }
