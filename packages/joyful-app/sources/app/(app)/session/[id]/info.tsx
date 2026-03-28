@@ -339,8 +339,8 @@ function SessionInfoContent({ session }: { session: Session }) {
                             onPress={() => router.push(`/machine/${session.metadata?.machineId}`)}
                         />
                     )}
-                    {/* Merge to Main: only for inactive worktree sessions */}
-                    {isWorktree && !sessionStatus.isConnected && !session.active && (
+                    {/* Merge to Main: show for all worktree sessions; merge fn handles dirty check */}
+                    {isWorktree && (
                         <Item
                             title={t('sessionInfo.mergeToMain')}
                             subtitle={t('sessionInfo.mergeToMainSubtitle')}

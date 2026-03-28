@@ -325,10 +325,10 @@ export async function mergeWorktree(
 ): Promise<MergeWorktreeResult> {
     const worktreePath = `${basePath}${WORKTREE_PATH_MARKER}${branchName}`;
 
-    // Check uncommitted changes in both worktree and base
+    // Check uncommitted changes in both worktree and base (exclude untracked files)
     const [worktreeStatus, baseStatus] = await Promise.all([
-        machineBash(machineId, `git -C ${shellQuote(worktreePath)} status --porcelain`, '/'),
-        machineBash(machineId, `git -C ${shellQuote(basePath)} status --porcelain`, '/'),
+        machineBash(machineId, `git -C ${shellQuote(worktreePath)} status --porcelain -uno`, '/'),
+        machineBash(machineId, `git -C ${shellQuote(basePath)} status --porcelain -uno`, '/'),
     ]);
 
     if (worktreeStatus.success && worktreeStatus.stdout.trim()) {
@@ -358,8 +358,9 @@ export async function mergeWorktree(
             }
         }
 
-        // Abort the merge
-        await machineBash(machineId, `git -C ${shellQuote(basePath)} merge --abort`, '/');
+        // Abort the merge. Squash merges don't create MERGE_HEAD so --abort won't work;
+        // use reset --merge which handles both cases.
+        await machineBash(machineId, `git -C ${shellQuote(basePath)} reset --merge`, '/');
 
         return { success: false, conflictFiles, error: 'merge_conflict' };
     }
