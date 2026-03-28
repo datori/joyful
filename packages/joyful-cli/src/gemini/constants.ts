@@ -24,6 +24,6 @@ export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-pro';
  * Used in system prompts to instruct agents to call change_title function
  */
 export const CHANGE_TITLE_INSTRUCTION = trimIdent(
-  `Based on this message, call functions.joyful__change_title to change chat session title that would represent the current task. If chat idea would change dramatically - call this function again to update the title.`
+  `Based on this message, call functions.joyful__change_title to change chat session title that would represent the current task. If chat idea would change dramatically - call this function again to update the title. When choosing the title and its leading emoji, focus on the subject matter and content — ignore workflow command prefixes like "OpenSpec patch", "OpenSpec explore", "/opsx:patch", "/opsx:explore", and similar commands. Pick the emoji based on what the task is actually about, not the workflow command used.`
 );
 

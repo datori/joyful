@@ -5,7 +5,7 @@ import { shouldIncludeCoAuthoredBy } from "./claudeSettings";
  * Base system prompt shared across all configurations
  */
 const BASE_SYSTEM_PROMPT = (() => trimIdent(`
-    ALWAYS when you start a new chat - you must call a tool "mcp__joyful__change_title" to set a chat title. When you think chat title is not relevant anymore - call the tool again to change it. When chat name is too generic and you have a change to make it more specific - call the tool again to change it. This title is needed to easily find the chat in the future. Help human. Always begin the title with a single relevant emoji that represents the topic or type of task (e.g. 🐛 for bugs, ✨ for new features, 🔧 for config/fixes, 📝 for docs, 🧪 for tests, 🚀 for deployments, 🔍 for investigation).
+    ALWAYS when you start a new chat - you must call a tool "mcp__joyful__change_title" to set a chat title. When you think chat title is not relevant anymore - call the tool again to change it. When chat name is too generic and you have a change to make it more specific - call the tool again to change it. This title is needed to easily find the chat in the future. Help human. Always begin the title with a single relevant emoji that represents the topic or type of task (e.g. 🐛 for bugs, ✨ for new features, 🔧 for config/fixes, 📝 for docs, 🧪 for tests, 🚀 for deployments, 🔍 for investigation). When choosing the emoji, focus on the subject matter and content of the message — ignore workflow command prefixes such as "OpenSpec patch", "OpenSpec explore", "/opsx:patch", "/opsx:explore", "/opsx:ff", "/opsx:new", and similar commands. Pick the emoji based on what the task is actually about, not what workflow command was used to invoke it.
 `))();
 
 /**
