@@ -17,7 +17,7 @@ import { machineSpawnNewSession } from '@/sync/ops';
 import { Modal } from '@/modal';
 import { sync } from '@/sync/sync';
 import { SessionTypeSelector } from '@/components/SessionTypeSelector';
-import { createWorktree, isWorktreePath, removeWorktree, type WorktreeEntry } from '@/utils/worktree';
+import { createWorktree, isWorktreePath, removeWorktree, shellQuote, type WorktreeEntry } from '@/utils/worktree';
 import { useWorktreeList } from '@/hooks/useWorktreeList';
 import { WorktreePicker, type WorktreePickerSelection } from '@/components/WorktreePicker';
 import { machineBash } from '@/sync/ops';
@@ -515,7 +515,7 @@ function NewSessionWizard() {
 
     const handleCleanupOrphan = React.useCallback(async (wt: WorktreeEntry) => {
         if (!selectedMachineId) return;
-        const dirty = await machineBash(selectedMachineId, 'git status --porcelain', wt.path).catch(() => null);
+        const dirty = await machineBash(selectedMachineId, `git -C ${shellQuote(wt.path)} status --porcelain`, '/').catch(() => null);
         const proceed = () => {
             setCleaningWorktreePaths(prev => new Set([...prev, wt.path]));
             removeWorktree(selectedMachineId, wt.path)

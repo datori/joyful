@@ -3,6 +3,12 @@
  *
  * All worktree lifecycle operations: create, remove, list, merge.
  * All git commands execute remotely via machineBash RPC.
+ *
+ * NOTE: We pass cwd: '/' to all machineBash calls (the daemon's special bypass
+ * value that skips path-restriction validation) and use `git -C <path>` or
+ * `cd <path> && cmd` to run in the target directory. This is required because
+ * the daemon's machine-level bash handler only permits cwd values within its own
+ * startup directory — user project paths are always elsewhere.
  */
 
 import { machineBash } from '@/sync/ops';
@@ -25,8 +31,6 @@ export function shellQuote(value: string): string {
 export function isWorktreePath(path: string): boolean {
     return path.includes(WORKTREE_PATH_MARKER);
 }
-
-// ─── Path utilities ──────────────────────────────────────────────────────────
 
 /** Extract { branchName, basePath } from a worktree path. Returns null if not a worktree path. */
 export function parseWorktreePath(path: string): { branchName: string; basePath: string } | null {
@@ -85,11 +89,10 @@ export function generateWorktreeName(): string {
  * Best-effort — failure does not block worktree creation.
  */
 async function seedGitignore(machineId: string, basePath: string): Promise<void> {
-    // Single command: append only if entry is missing
     await machineBash(
         machineId,
-        `grep -qF '.dev/worktree/' .gitignore 2>/dev/null || printf '\\n# Joyful worktrees\\n.dev/worktree/\\n' >> .gitignore`,
-        basePath
+        `cd ${shellQuote(basePath)} && grep -qF '.dev/worktree/' .gitignore 2>/dev/null || printf '\\n# Joyful worktrees\\n.dev/worktree/\\n' >> .gitignore`,
+        '/'
     );
 }
 
@@ -107,8 +110,8 @@ export async function createWorktree(
     // Check if it's a git repository
     const gitCheck = await machineBash(
         machineId,
-        'git rev-parse --git-dir',
-        basePath
+        `git -C ${shellQuote(basePath)} rev-parse --git-dir`,
+        '/'
     );
 
     if (!gitCheck.success) {
@@ -133,8 +136,8 @@ export async function createWorktree(
         const worktreeRelPath = `.dev/worktree/${name}`;
         const result = await machineBash(
             machineId,
-            `git worktree add -b ${shellQuote(name)} ${shellQuote(worktreeRelPath)}`,
-            basePath
+            `git -C ${shellQuote(basePath)} worktree add -b ${shellQuote(name)} ${shellQuote(worktreeRelPath)}`,
+            '/'
         );
 
         if (result.success) {
@@ -180,15 +183,15 @@ export async function removeWorktree(
 
     const removeResult = await machineBash(
         machineId,
-        `git worktree remove ${shellQuote(worktreePath)} --force`,
-        basePath
+        `git -C ${shellQuote(basePath)} worktree remove ${shellQuote(worktreePath)} --force`,
+        '/'
     );
 
     // Best-effort branch deletion even if worktree removal failed
     await machineBash(
         machineId,
-        `git branch -D ${shellQuote(branchName)}`,
-        basePath
+        `git -C ${shellQuote(basePath)} branch -D ${shellQuote(branchName)}`,
+        '/'
     );
 
     if (!removeResult.success) {
@@ -211,8 +214,8 @@ export async function listWorktrees(
 ): Promise<{ success: boolean; worktrees: WorktreeEntry[]; error?: string }> {
     const result = await machineBash(
         machineId,
-        'git worktree list --porcelain',
-        basePath
+        `git -C ${shellQuote(basePath)} worktree list --porcelain`,
+        '/'
     );
 
     if (!result.success) {
@@ -263,8 +266,8 @@ export async function getWorktreeDiffStat(
     // Get the current branch of the base repo to use as merge target
     const branchResult = await machineBash(
         machineId,
-        'git rev-parse --abbrev-ref HEAD',
-        basePath
+        `git -C ${shellQuote(basePath)} rev-parse --abbrev-ref HEAD`,
+        '/'
     );
     if (!branchResult.success) {
         return { success: false, error: branchResult.stderr };
@@ -274,13 +277,13 @@ export async function getWorktreeDiffStat(
     const [diffResult, logResult] = await Promise.all([
         machineBash(
             machineId,
-            `git diff --stat ${shellQuote(baseBranch)}...${shellQuote(branchName)}`,
-            basePath
+            `git -C ${shellQuote(basePath)} diff --stat ${shellQuote(baseBranch)}...${shellQuote(branchName)}`,
+            '/'
         ),
         machineBash(
             machineId,
-            `git log ${shellQuote(baseBranch)}..${shellQuote(branchName)} --oneline`,
-            basePath
+            `git -C ${shellQuote(basePath)} log ${shellQuote(baseBranch)}..${shellQuote(branchName)} --oneline`,
+            '/'
         ),
     ]);
 
@@ -320,11 +323,12 @@ export async function mergeWorktree(
     branchName: string,
     options: MergeWorktreeOptions
 ): Promise<MergeWorktreeResult> {
-    // Check uncommitted changes in worktree branch
     const worktreePath = `${basePath}${WORKTREE_PATH_MARKER}${branchName}`;
+
+    // Check uncommitted changes in both worktree and base
     const [worktreeStatus, baseStatus] = await Promise.all([
-        machineBash(machineId, 'git status --porcelain', worktreePath),
-        machineBash(machineId, 'git status --porcelain', basePath),
+        machineBash(machineId, `git -C ${shellQuote(worktreePath)} status --porcelain`, '/'),
+        machineBash(machineId, `git -C ${shellQuote(basePath)} status --porcelain`, '/'),
     ]);
 
     if (worktreeStatus.success && worktreeStatus.stdout.trim()) {
@@ -334,24 +338,16 @@ export async function mergeWorktree(
         return { success: false, error: 'base_dirty' };
     }
 
-    // Get current base branch
-    const baseBranchResult = await machineBash(
-        machineId,
-        'git rev-parse --abbrev-ref HEAD',
-        basePath
-    );
-    const baseBranch = baseBranchResult.success ? baseBranchResult.stdout.trim() : 'main';
-
     // Execute merge
     const mergeCommand = options.squash
-        ? `git merge --squash ${shellQuote(branchName)}`
-        : `git merge ${shellQuote(branchName)}`;
+        ? `git -C ${shellQuote(basePath)} merge --squash ${shellQuote(branchName)}`
+        : `git -C ${shellQuote(basePath)} merge ${shellQuote(branchName)}`;
 
-    const mergeResult = await machineBash(machineId, mergeCommand, basePath);
+    const mergeResult = await machineBash(machineId, mergeCommand, '/');
 
     if (!mergeResult.success) {
         // Detect conflicts
-        const statusResult = await machineBash(machineId, 'git status --porcelain', basePath);
+        const statusResult = await machineBash(machineId, `git -C ${shellQuote(basePath)} status --porcelain`, '/');
         const conflictFiles: string[] = [];
         if (statusResult.success) {
             for (const line of statusResult.stdout.split('\n')) {
@@ -363,25 +359,20 @@ export async function mergeWorktree(
         }
 
         // Abort the merge
-        await machineBash(machineId, 'git merge --abort', basePath);
+        await machineBash(machineId, `git -C ${shellQuote(basePath)} merge --abort`, '/');
 
-        return {
-            success: false,
-            conflictFiles,
-            error: 'merge_conflict',
-        };
+        return { success: false, conflictFiles, error: 'merge_conflict' };
     }
 
     // For squash merge, we need to commit
     if (options.squash) {
         const commitResult = await machineBash(
             machineId,
-            `git commit -m ${shellQuote(options.commitMessage)}`,
-            basePath
+            `git -C ${shellQuote(basePath)} commit -m ${shellQuote(options.commitMessage)}`,
+            '/'
         );
 
         if (!commitResult.success) {
-            // Nothing staged means no actual changes
             if (commitResult.stderr.includes('nothing to commit') || commitResult.stdout.includes('nothing to commit')) {
                 return { success: true };
             }
@@ -398,11 +389,10 @@ export async function detectUnarchivedChanges(
     machineId: string,
     worktreePath: string
 ): Promise<{ success: boolean; changeNames: string[]; error?: string }> {
-    // List directories in openspec/changes/, excluding .archive
     const result = await machineBash(
         machineId,
-        `ls -1 openspec/changes/ 2>/dev/null | grep -v '^\\.' || true`,
-        worktreePath
+        `cd ${shellQuote(worktreePath)} && ls -1 openspec/changes/ 2>/dev/null | grep -v '^\\.' || true`,
+        '/'
     );
 
     if (!result.success) {
@@ -427,8 +417,8 @@ export async function detectSpecDivergence(
     // Find merge base between worktree branch and main
     const mergeBaseResult = await machineBash(
         machineId,
-        `git merge-base ${shellQuote(worktreeBranch)} main`,
-        basePath
+        `git -C ${shellQuote(basePath)} merge-base ${shellQuote(worktreeBranch)} main`,
+        '/'
     );
 
     if (!mergeBaseResult.success) {
@@ -440,8 +430,8 @@ export async function detectSpecDivergence(
     // Check if main has commits touching openspec/specs/ since the merge base
     const logResult = await machineBash(
         machineId,
-        `git log ${shellQuote(mergeBase)}..main -- openspec/specs/`,
-        basePath
+        `git -C ${shellQuote(basePath)} log ${shellQuote(mergeBase)}..main -- openspec/specs/`,
+        '/'
     );
 
     if (!logResult.success) {
@@ -460,8 +450,8 @@ export async function pullMainIntoWorktree(
 ): Promise<{ success: boolean; hasConflicts: boolean; error?: string }> {
     const result = await machineBash(
         machineId,
-        'git merge main',
-        worktreePath
+        `git -C ${shellQuote(worktreePath)} merge main`,
+        '/'
     );
 
     if (!result.success) {

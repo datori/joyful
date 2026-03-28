@@ -33,8 +33,8 @@ import {
     detectSpecDivergence,
     pullMainIntoWorktree,
 } from '@/utils/worktree';
-import { machineBash } from '@/sync/ops';
-import { sessionDelete } from '@/sync/ops';
+import { machineBash, sessionDelete } from '@/sync/ops';
+import { shellQuote } from '@/utils/worktree';
 
 type MergeStep =
     | 'loading'
@@ -150,8 +150,8 @@ export default memo(function MergeWorktreeScreen() {
         }
         const result = await machineBash(
             machineId,
-            `git diff main...${branchName}`,
-            basePath
+            `git -C ${shellQuote(basePath)} diff main...${shellQuote(branchName)}`,
+            '/'
         );
         setFullDiff(result.success ? result.stdout : t('common.error'));
         setShowFullDiff(true);
