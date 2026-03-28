@@ -32,6 +32,9 @@ import {
     detectUnarchivedChanges,
     detectSpecDivergence,
     pullMainIntoWorktree,
+    buildConflictResolutionPrompt,
+    getSpecDiff,
+    buildSpecReconciliationPrompt,
 } from '@/utils/worktree';
 import { machineBash, sessionDelete } from '@/sync/ops';
 import { shellQuote } from '@/utils/worktree';
@@ -71,6 +74,7 @@ export default memo(function MergeWorktreeScreen() {
     const [unarchivedChanges, setUnarchivedChanges] = useState<string[]>([]);
     const [hasDivergence, setHasDivergence] = useState(false);
     const [pullingMain, setPullingMain] = useState(false);
+    const [fetchingSpecDiff, setFetchingSpecDiff] = useState(false);
 
     // ── Initial load ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -142,6 +146,19 @@ export default memo(function MergeWorktreeScreen() {
             }
         }
     }, [machineId, worktreePath, basePath, branchName]);
+
+    const handleResolveWithAI = useCallback(() => {
+        const prompt = buildConflictResolutionPrompt(conflictFiles, branchName);
+        router.push({ pathname: '/session/[id]', params: { id, autoSendMessage: prompt } });
+    }, [conflictFiles, branchName, id, router]);
+
+    const handleSyncSpecsWithAI = useCallback(async () => {
+        setFetchingSpecDiff(true);
+        const specDiff = await getSpecDiff(machineId, basePath, branchName);
+        setFetchingSpecDiff(false);
+        const prompt = buildSpecReconciliationPrompt(specDiff, branchName);
+        router.push({ pathname: '/session/[id]', params: { id, autoSendMessage: prompt } });
+    }, [machineId, basePath, branchName, id, router]);
 
     const handleLoadFullDiff = useCallback(async () => {
         if (fullDiff !== null) {
@@ -251,9 +268,16 @@ export default memo(function MergeWorktreeScreen() {
                         showChevron={false}
                     />
                     <Item
+                        title={t('mergeWorktree.syncSpecsWithAI')}
+                        subtitle={t('mergeWorktree.syncSpecsWithAISubtitle')}
+                        icon={fetchingSpecDiff ? undefined : <Ionicons name="sparkles-outline" size={29} color="#007AFF" />}
+                        loading={fetchingSpecDiff}
+                        onPress={handleSyncSpecsWithAI}
+                    />
+                    <Item
                         title={t('mergeWorktree.specPullResync')}
                         subtitle={t('mergeWorktree.specPullResyncDescription')}
-                        icon={pullingMain ? undefined : <Ionicons name="cloud-download-outline" size={29} color="#007AFF" />}
+                        icon={pullingMain ? undefined : <Ionicons name="cloud-download-outline" size={29} color={theme.colors.textSecondary} />}
                         loading={pullingMain}
                         onPress={handlePullMain}
                     />
@@ -439,8 +463,14 @@ export default memo(function MergeWorktreeScreen() {
                 )}
                 <ItemGroup>
                     <Item
+                        title={t('mergeWorktree.resolveWithAI')}
+                        subtitle={t('mergeWorktree.resolveWithAISubtitle')}
+                        icon={<Ionicons name="sparkles-outline" size={29} color="#007AFF" />}
+                        onPress={handleResolveWithAI}
+                    />
+                    <Item
                         title={t('common.back')}
-                        icon={<Ionicons name="arrow-back-outline" size={29} color="#007AFF" />}
+                        icon={<Ionicons name="arrow-back-outline" size={29} color={theme.colors.textSecondary} />}
                         onPress={() => setStep('preview')}
                     />
                 </ItemGroup>

@@ -443,6 +443,44 @@ export async function detectSpecDivergence(
     return { success: true, hasDivergence };
 }
 
+// ─── Agent reconciliation prompts ────────────────────────────────────────────
+
+export function buildConflictResolutionPrompt(conflictFiles: string[], branchName: string): string {
+    const fileList = conflictFiles.length > 0 ? conflictFiles.join(', ') : 'the conflicting files';
+    return `There are merge conflicts preventing branch "${branchName}" from merging into main.\n\nPlease resolve them:\n1. Run: git merge main\n2. Resolve the conflicts in: ${fileList}\n3. Stage the resolved files and commit the resolution\n\nReply "Ready to merge" when done so I know to return to the merge screen.`;
+}
+
+export async function getSpecDiff(machineId: string, basePath: string, branchName: string): Promise<string> {
+    const mergeBaseResult = await machineBash(
+        machineId,
+        `git -C ${shellQuote(basePath)} merge-base ${shellQuote(branchName)} main`,
+        '/'
+    );
+    if (!mergeBaseResult.success) return '';
+
+    const mergeBase = mergeBaseResult.stdout.trim();
+    const diffResult = await machineBash(
+        machineId,
+        `git -C ${shellQuote(basePath)} diff ${shellQuote(mergeBase)}..main -- openspec/specs/`,
+        '/'
+    );
+    if (!diffResult.success) return '';
+
+    const MAX_CHARS = 8000;
+    const diff = diffResult.stdout;
+    if (diff.length > MAX_CHARS) {
+        return diff.slice(0, MAX_CHARS) + '\n[truncated — run git diff for full output]';
+    }
+    return diff;
+}
+
+export function buildSpecReconciliationPrompt(specDiff: string, branchName: string): string {
+    const diffSection = specDiff.trim()
+        ? `Spec changes on main:\n\`\`\`diff\n${specDiff}\n\`\`\``
+        : 'The spec files have been updated on main (run `git diff` against main to see the changes).';
+    return `The main branch has updated spec files since branch "${branchName}" was created. Please update the implementation to match before merging.\n\n${diffSection}\n\nReview the changes, update the implementation in this branch to match the new requirements, and commit. Reply "Ready to merge" when done.`;
+}
+
 // ─── Pull main into worktree branch ─────────────────────────────────────────
 
 export async function pullMainIntoWorktree(

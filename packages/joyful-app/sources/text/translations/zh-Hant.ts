@@ -1085,5 +1085,10 @@ export const zhHant: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `位於 ${path} 的工作樹有未提交的變更，這些變更將永久遺失。`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `工作樹 "${name}" 已刪除`,
         orphanCleanupFailed: ({ name }: { name: string }) => `刪除工作樹 "${name}" 失敗`,
+        resolveWithAI: '使用AI解決',
+        resolveWithAISubtitle: '以衝突解決提示恢復會話',
+        syncSpecsWithAI: '使用AI同步規格',
+        syncSpecsWithAISubtitle: '恢復會話以更新實作以符合當前規格',
+        fetchingSpecDiff: '正在獲取規格差異...',
     },
 } as const;

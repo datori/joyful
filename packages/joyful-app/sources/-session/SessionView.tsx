@@ -43,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import type { PermissionMode } from '@/components/PermissionModeSelector';
 
-export const SessionView = React.memo((props: { id: string; initialMessage?: string }) => {
+export const SessionView = React.memo((props: { id: string; initialMessage?: string; autoSendMessage?: string }) => {
     const sessionId = props.id;
     const router = useRouter();
     const session = useSession(sessionId);
@@ -177,7 +177,7 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
                     </View>
                 ) : (
                     // Normal session view
-                    <SessionViewLoaded key={sessionId} sessionId={sessionId} session={session} initialMessage={props.initialMessage} />
+                    <SessionViewLoaded key={sessionId} sessionId={sessionId} session={session} initialMessage={props.initialMessage} autoSendMessage={props.autoSendMessage} />
                 )}
             </View>
         </>
@@ -185,7 +185,7 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
 });
 
 
-function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: string, session: Session, initialMessage?: string }) {
+function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage }: { sessionId: string, session: Session, initialMessage?: string; autoSendMessage?: string }) {
     const { theme } = useUnistyles();
     const router = useRouter();
     const safeArea = useSafeAreaInsets();
@@ -254,6 +254,17 @@ function SessionViewLoaded({ sessionId, session, initialMessage }: { sessionId: 
     React.useEffect(() => {
         if (initialMessage) {
             setMessage(initialMessage);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-send a message on mount (e.g., conflict resolution or spec reconciliation from merge screen).
+    // If the session is active, sends immediately. If inactive, falls back to pre-filling the input.
+    React.useEffect(() => {
+        if (!autoSendMessage) return;
+        if (session.active) {
+            sync.sendMessage(sessionId, autoSendMessage);
+        } else {
+            setMessage(autoSendMessage);
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
