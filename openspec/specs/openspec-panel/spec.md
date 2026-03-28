@@ -1,15 +1,17 @@
 ## Requirements
 
-### Requirement: OpenSpec toolbar button with submenu
-The system SHALL display an OpenSpec icon button in the `AgentInput` left toolbar when `openspecStatus.hasOpenspec` is true for the current session's project. The button SHALL show a numeric badge indicating the count of active changes when that count is greater than zero. The button SHALL be absent (not merely disabled) when the project has no `openspec/` directory.
+### Requirement: OpenSpec toolbar controls (adaptive layout)
+The system SHALL display OpenSpec controls in the `AgentInput` left toolbar when `openspecStatus.hasOpenspec` is true for the current session's project. The controls SHALL be absent when the project has no `openspec/` directory.
 
-Tapping the button SHALL open a floating submenu (popover) anchored above the button. The submenu SHALL contain:
-1. **Explore Mode** toggle row — arms/disarms `/opsx:explore` prefix (see openspec-explore-toggle spec)
-2. **Patch Mode** toggle row — arms/disarms `/opsx:patch` prefix (see openspec-explore-toggle spec)
-3. A divider
-4. **Open Panel** row — navigates to the full OpenSpec panel screen
+**On narrow layouts (screen width < 640 px):** A single icon button opens a floating submenu (popover) anchored above the button. The submenu SHALL contain rows for each available mode (Explore, Patch, Apply, FF), a divider, and an **Open Panel** row.
 
-When either Explore or Patch Mode is armed, the main toolbar button SHALL be highlighted (primary background color) to indicate an active mode. Selecting a mode row closes the submenu. Tapping outside the submenu also closes it.
+**On wide layouts (screen width ≥ 640 px):** All controls are shown inline in the toolbar row — individual icon buttons for each mode (Explore, Patch, Apply, FF) followed by a stack icon button that opens the OpenSpec panel directly. No popup is used.
+
+In both cases the Open Panel icon button SHALL show a numeric badge indicating the count of active changes when greater than zero.
+
+When any mode is armed, its corresponding icon button SHALL be highlighted (primary background color) to indicate active state. On the narrow (submenu) layout the main toolbar button also shows the armed mode's icon and label.
+
+A **vertical divider** SHALL appear between the OpenSpec controls section and the model selection controls (Snt/Ops toggles for Claude, gear for Codex/Gemini) whenever both sections are present.
 
 #### Scenario: Project has active changes
 - **WHEN** `openspecStatus.hasOpenspec` is true and `activeChanges.length` is 2

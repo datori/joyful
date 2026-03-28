@@ -1,11 +1,15 @@
 ## Requirements
 
 ### Requirement: Explore and Patch Mode toggles are available in both new session creator and active sessions
-The system SHALL provide Explore Mode and Patch Mode toggle buttons accessible from the `AgentInput` toolbar. In **active sessions** where the project has an `openspec/` directory, these toggles appear inside the OpenSpec submenu (see openspec-panel spec). In the **new session creator** (where no openspec context exists), they appear as standalone toolbar buttons.
+The system SHALL provide Explore Mode and Patch Mode toggle buttons accessible from the `AgentInput` toolbar. In **active sessions** where the project has an `openspec/` directory, these toggles are controlled via the OpenSpec toolbar controls (see openspec-panel spec for adaptive inline/submenu layout). In the **new session creator** (where no openspec context exists), they appear as standalone toolbar buttons.
 
-#### Scenario: Active session with openspec
-- **WHEN** the user is viewing an active session whose project has `openspec/`
+#### Scenario: Active session with openspec, narrow layout
+- **WHEN** the user is viewing an active session whose project has `openspec/` on a narrow screen
 - **THEN** Explore and Patch Mode toggles are available inside the OpenSpec submenu
+
+#### Scenario: Active session with openspec, wide layout
+- **WHEN** the user is viewing an active session whose project has `openspec/` on a wide screen (≥ 640 px)
+- **THEN** Explore and Patch Mode buttons appear inline in the toolbar as individual icon buttons
 
 #### Scenario: New session creator
 - **WHEN** the user is on the new session creation screen

@@ -697,6 +697,122 @@ function OpenSpecSubmenuButton({
     );
 }
 
+// ── OpenSpec Inline Controls (wide layouts) ──────────────────────────────────
+// On desktop/tablet widths (≥640px) the menu items are rendered directly in
+// the toolbar row instead of collapsing into a popup. Each mode gets its own
+// icon button with the same active-state styling as the submenu items.
+
+function OpenSpecInlineControls({
+    openspecStatus,
+    onOpenspecPress,
+    exploreModeArmed,
+    onExplorePress,
+    patchModeArmed,
+    onPatchPress,
+    applyModeArmed,
+    onApplyPress,
+    ffModeArmed,
+    onFfPress,
+    theme,
+}: {
+    openspecStatus: OpenSpecStatus;
+    onOpenspecPress: () => void;
+    exploreModeArmed?: boolean;
+    onExplorePress?: () => void;
+    patchModeArmed?: boolean;
+    onPatchPress?: () => void;
+    applyModeArmed?: boolean;
+    onApplyPress?: () => void;
+    ffModeArmed?: boolean;
+    onFfPress?: () => void;
+    theme: Theme;
+}) {
+    const activeCount = openspecStatus.activeChanges.length;
+
+    const modeButton = (
+        iconName: React.ComponentProps<typeof Ionicons>['name'],
+        armed: boolean | undefined,
+        onPress: (() => void) | undefined
+    ) => {
+        if (!onPress) return null;
+        return (
+            <Pressable
+                key={iconName}
+                onPress={() => { hapticsLight(); onPress(); }}
+                hitSlop={{ top: 5, bottom: 10, left: 1, right: 1 }}
+                style={(p) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: Platform.select({ default: 16, android: 20 }),
+                    paddingHorizontal: 8,
+                    paddingVertical: 6,
+                    justifyContent: 'center',
+                    height: 32,
+                    opacity: p.pressed ? 0.7 : 1,
+                    backgroundColor: armed ? theme.colors.button.primary.background : 'transparent',
+                })}
+            >
+                <Ionicons
+                    name={iconName}
+                    size={16}
+                    color={armed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
+                />
+            </Pressable>
+        );
+    };
+
+    return (
+        <>
+            {modeButton('telescope-outline', exploreModeArmed, onExplorePress)}
+            {modeButton('construct-outline', patchModeArmed, onPatchPress)}
+            {modeButton('hammer-outline', applyModeArmed, onApplyPress)}
+            {modeButton('flash-outline', ffModeArmed, onFfPress)}
+            {/* Open Panel button */}
+            <Pressable
+                onPress={onOpenspecPress}
+                hitSlop={{ top: 5, bottom: 10, left: 1, right: 1 }}
+                style={(p) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: Platform.select({ default: 16, android: 20 }),
+                    paddingHorizontal: 8,
+                    paddingVertical: 6,
+                    justifyContent: 'center',
+                    height: 32,
+                    opacity: p.pressed ? 0.7 : 1,
+                })}
+            >
+                <View style={{ position: 'relative' }}>
+                    <Octicons name={'stack'} size={16} color={theme.colors.button.secondary.tint} />
+                    {activeCount > 0 && (
+                        <View style={{
+                            position: 'absolute',
+                            top: -5,
+                            right: -7,
+                            backgroundColor: theme.colors.button.primary.background,
+                            borderRadius: 6,
+                            minWidth: 12,
+                            height: 12,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            paddingHorizontal: 2,
+                        }}>
+                            <Text style={{
+                                fontSize: 8,
+                                color: theme.colors.button.primary.tint,
+                                fontWeight: '700',
+                                lineHeight: 12,
+                            }}>
+                                {activeCount}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            </Pressable>
+        </>
+    );
+}
+
 export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, AgentInputProps>((props, ref) => {
     const styles = stylesheet;
     const { theme } = useUnistyles();
@@ -709,6 +825,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
     const isCodex = props.metadata?.flavor === 'codex' || props.agentType === 'codex';
     const isGemini = props.metadata?.flavor === 'gemini' || props.agentType === 'gemini';
     const isClaude = !isCodex && !isGemini;
+    // Inline OpenSpec controls on wide/desktop layouts instead of a popup menu
+    const isWide = screenWidth >= 640;
     const displayPermissionMode = React.useMemo(() => (
         props.permissionMode ? hackMode(props.permissionMode) : null
     ), [props.permissionMode]);
@@ -1335,21 +1453,38 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <View style={styles.actionButtonsLeft}>
 
-                                {/* OpenSpec submenu button — combines explore/patch toggles and panel navigation */}
+                                {/* OpenSpec controls section */}
+                                {/* With openspec context (existing session): inline on wide, submenu on narrow */}
                                 {props.openspecStatus?.hasOpenspec && props.onOpenspecPress && (
-                                    <OpenSpecSubmenuButton
-                                        openspecStatus={props.openspecStatus}
-                                        onOpenspecPress={props.onOpenspecPress}
-                                        exploreModeArmed={props.exploreModeArmed}
-                                        onExplorePress={props.onExplorePress}
-                                        patchModeArmed={props.patchModeArmed}
-                                        onPatchPress={props.onPatchPress}
-                                        applyModeArmed={props.applyModeArmed}
-                                        onApplyPress={props.onApplyPress}
-                                        ffModeArmed={props.ffModeArmed}
-                                        onFfPress={props.onFfPress}
-                                        theme={theme}
-                                    />
+                                    isWide ? (
+                                        <OpenSpecInlineControls
+                                            openspecStatus={props.openspecStatus}
+                                            onOpenspecPress={props.onOpenspecPress}
+                                            exploreModeArmed={props.exploreModeArmed}
+                                            onExplorePress={props.onExplorePress}
+                                            patchModeArmed={props.patchModeArmed}
+                                            onPatchPress={props.onPatchPress}
+                                            applyModeArmed={props.applyModeArmed}
+                                            onApplyPress={props.onApplyPress}
+                                            ffModeArmed={props.ffModeArmed}
+                                            onFfPress={props.onFfPress}
+                                            theme={theme}
+                                        />
+                                    ) : (
+                                        <OpenSpecSubmenuButton
+                                            openspecStatus={props.openspecStatus}
+                                            onOpenspecPress={props.onOpenspecPress}
+                                            exploreModeArmed={props.exploreModeArmed}
+                                            onExplorePress={props.onExplorePress}
+                                            patchModeArmed={props.patchModeArmed}
+                                            onPatchPress={props.onPatchPress}
+                                            applyModeArmed={props.applyModeArmed}
+                                            onApplyPress={props.onApplyPress}
+                                            ffModeArmed={props.ffModeArmed}
+                                            onFfPress={props.onFfPress}
+                                            theme={theme}
+                                        />
+                                    )
                                 )}
 
                                 {/* Standalone explore/patch buttons — only when no openspec context (new session creator) */}
@@ -1398,6 +1533,19 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             color={props.patchModeArmed ? theme.colors.button.primary.tint : theme.colors.button.secondary.tint}
                                         />
                                     </Pressable>
+                                )}
+
+                                {/* Vertical divider between OpenSpec section and model controls */}
+                                {((props.openspecStatus?.hasOpenspec && props.onOpenspecPress) ||
+                                  (!props.onOpenspecPress && (props.onExplorePress || props.onPatchPress))) &&
+                                  ((props.onPermissionModeChange && !isClaude) || (isClaude && !!props.onModelModeChange)) && (
+                                    <View style={{
+                                        width: 1,
+                                        height: 18,
+                                        backgroundColor: theme.colors.divider,
+                                        alignSelf: 'center',
+                                        marginHorizontal: 1,
+                                    }} />
                                 )}
 
                                 {/* Settings button — Codex/Gemini only */}
