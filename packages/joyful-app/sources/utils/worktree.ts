@@ -358,9 +358,10 @@ export async function mergeWorktree(
             }
         }
 
-        // Abort the merge. Squash merges don't create MERGE_HEAD so --abort won't work;
-        // use reset --merge which handles both cases.
-        await machineBash(machineId, `git -C ${shellQuote(basePath)} reset --merge`, '/');
+        // Abort the merge. Squash merges don't create MERGE_HEAD and leave unmerged
+        // index entries, which causes reset --merge to fail. Use restore --staged --worktree
+        // to forcibly reset the index and working tree back to HEAD.
+        await machineBash(machineId, `git -C ${shellQuote(basePath)} restore --staged --worktree -- .`, '/');
 
         return { success: false, conflictFiles, error: 'merge_conflict' };
     }
