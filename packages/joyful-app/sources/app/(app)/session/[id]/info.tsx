@@ -12,6 +12,7 @@ import { getSessionName, useSessionStatus, formatOSPlatform, formatPathRelativeT
 import * as Clipboard from 'expo-clipboard';
 import { Modal } from '@/modal';
 import { sessionKill, sessionDelete } from '@/sync/ops';
+import { isWorktreePath, removeWorktree, parseWorktreePath } from '@/utils/worktree';
 import { useUnistyles } from 'react-native-unistyles';
 import { layout } from '@/components/layout';
 import { t } from '@/text';
@@ -126,6 +127,13 @@ function SessionInfoContent({ session }: { session: Session }) {
     const devModeEnabled = __DEV__;
     const sessionName = getSessionName(session);
     const sessionStatus = useSessionStatus(session);
+
+    // Worktree detection — derive from path if explicit metadata not present
+    const sessionPath = session.metadata?.path ?? '';
+    const isWorktree = session.metadata?.worktree?.isWorktree ?? isWorktreePath(sessionPath);
+    const worktreeParsed = isWorktree ? parseWorktreePath(sessionPath) : null;
+    const worktreeBranch = session.metadata?.worktree?.branchName ?? worktreeParsed?.branchName ?? '';
+    const worktreeBasePath = session.metadata?.worktree?.baseRepoPath ?? worktreeParsed?.basePath ?? '';
     
     // Check if CLI version is outdated
     const isCliOutdated = session.metadata?.version && !isVersionSupported(session.metadata.version, MINIMUM_CLI_VERSION);
@@ -178,6 +186,20 @@ function SessionInfoContent({ session }: { session: Session }) {
 
     // Use HappyAction for deletion - it handles errors automatically
     const [deletingSession, performDelete] = useJoyfulAction(async () => {
+        // Best-effort worktree cleanup before deleting the session
+        const path = session.metadata?.path;
+        const machineId = session.metadata?.machineId;
+        if (path && machineId && isWorktreePath(path)) {
+            try {
+                const cleanupResult = await removeWorktree(machineId, path);
+                if (!cleanupResult.success) {
+                    Modal.alert(t('common.warning'), t('sessionInfo.worktreeCleanupFailed', { path }));
+                }
+            } catch {
+                Modal.alert(t('common.warning'), t('sessionInfo.worktreeCleanupFailed', { path }));
+            }
+        }
+
         const result = await sessionDelete(session.id);
         if (!result.success) {
             throw new JoyfulError(result.message || t('sessionInfo.failedToDeleteSession'), false);
@@ -317,6 +339,19 @@ function SessionInfoContent({ session }: { session: Session }) {
                             onPress={() => router.push(`/machine/${session.metadata?.machineId}`)}
                         />
                     )}
+                    {/* Merge to Main: only for inactive worktree sessions */}
+                    {isWorktree && !sessionStatus.isConnected && !session.active && (
+                        <Item
+                            title={t('sessionInfo.mergeToMain')}
+                            subtitle={t('sessionInfo.mergeToMainSubtitle')}
+                            icon={<Ionicons name="git-merge-outline" size={29} color="#34C759" />}
+                            onPress={() => {
+                                if (session.metadata?.machineId && worktreeBranch && worktreeBasePath) {
+                                    router.push(`/session/${session.id}/merge`);
+                                }
+                            }}
+                        />
+                    )}
                     {sessionStatus.isConnected && (
                         <Item
                             title={t('sessionInfo.archiveSession')}
@@ -334,6 +369,36 @@ function SessionInfoContent({ session }: { session: Session }) {
                         />
                     )}
                 </ItemGroup>
+
+                {/* Worktree Details */}
+                {isWorktree && (
+                    <ItemGroup title={t('sessionInfo.worktreeSection')}>
+                        {worktreeBranch ? (
+                            <Item
+                                title={t('sessionInfo.worktreeBranch')}
+                                subtitle={worktreeBranch}
+                                icon={<Ionicons name="git-branch-outline" size={29} color="#34C759" />}
+                                showChevron={false}
+                            />
+                        ) : null}
+                        {sessionPath ? (
+                            <Item
+                                title={t('sessionInfo.path')}
+                                subtitle={sessionPath}
+                                icon={<Ionicons name="folder-outline" size={29} color="#34C759" />}
+                                showChevron={false}
+                            />
+                        ) : null}
+                        {worktreeBasePath ? (
+                            <Item
+                                title={t('sessionInfo.worktreeBasePath')}
+                                subtitle={worktreeBasePath}
+                                icon={<Ionicons name="git-commit-outline" size={29} color="#34C759" />}
+                                showChevron={false}
+                            />
+                        ) : null}
+                    </ItemGroup>
+                )}
 
                 {/* Metadata */}
                 {session.metadata && (

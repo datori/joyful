@@ -42,6 +42,11 @@ export const MetadataSchema = z.object({
     flavor: z.string().nullish(), // Session flavor/variant identifier
     sandbox: z.any().nullish(), // Sandbox config metadata from CLI (or null when disabled)
     dangerouslySkipPermissions: z.boolean().nullish(), // Claude --dangerously-skip-permissions mode (or null when unknown)
+    worktree: z.object({
+        branchName: z.string(),
+        baseRepoPath: z.string(),
+        isWorktree: z.literal(true),
+    }).optional(), // Present when session was created in a git worktree
 });
 
 export type Metadata = z.infer<typeof MetadataSchema>;

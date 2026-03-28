@@ -17,7 +17,10 @@ import { machineSpawnNewSession } from '@/sync/ops';
 import { Modal } from '@/modal';
 import { sync } from '@/sync/sync';
 import { SessionTypeSelector } from '@/components/SessionTypeSelector';
-import { createWorktree } from '@/utils/createWorktree';
+import { createWorktree, isWorktreePath, removeWorktree, type WorktreeEntry } from '@/utils/worktree';
+import { useWorktreeList } from '@/hooks/useWorktreeList';
+import { WorktreePicker, type WorktreePickerSelection } from '@/components/WorktreePicker';
+import { machineBash } from '@/sync/ops';
 import { getTempData, type NewSessionData } from '@/utils/tempDataStore';
 import type { PermissionMode } from '@/components/PermissionModeSelector';
 import {
@@ -356,6 +359,7 @@ function NewSessionWizard() {
     }, [agentType]);
 
     const [sessionType, setSessionType] = React.useState<'simple' | 'worktree'>('simple');
+
     const availableModes = React.useMemo(() => (
         getAvailablePermissionModes(agentType, null, t)
     ), [agentType]);
@@ -470,6 +474,69 @@ function NewSessionWizard() {
             setSelectedPath(trimmedPath);
         }
     }, [pathParam, selectedPath]);
+
+    // ── Worktree state (requires selectedMachineId + selectedPath) ────────────
+
+    // When user selects an existing worktree from the picker, store its path here
+    const [selectedExistingWorktreePath, setSelectedExistingWorktreePath] = React.useState<string | null>(null);
+
+    // Load existing worktrees when session type is 'worktree'
+    const worktreeListEnabled = sessionType === 'worktree' && !!experimentsEnabled;
+    const { loading: worktreesLoading, worktrees, error: worktreesError, refresh: worktreeListRefresh } = useWorktreeList(
+        worktreeListEnabled ? selectedMachineId : null,
+        worktreeListEnabled ? selectedPath : null
+    );
+
+    // Active session paths for orphan detection in the picker
+    const activeSessionPaths = React.useMemo(() => {
+        const sessionsMap = storage.getState().sessions;
+        return new Set(
+            Object.values(sessionsMap)
+                .map((s) => s.metadata?.path)
+                .filter(Boolean) as string[]
+        );
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reset worktree selection when machine, path, or session type changes
+    React.useEffect(() => {
+        setSelectedExistingWorktreePath(null);
+    }, [selectedMachineId, selectedPath, sessionType]);
+
+    const handleWorktreePickerSelect = React.useCallback((selection: WorktreePickerSelection) => {
+        if (selection.type === 'existing') {
+            setSelectedExistingWorktreePath(selection.worktree.path);
+        } else {
+            setSelectedExistingWorktreePath(null);
+        }
+    }, []);
+
+    // Orphan cleanup state
+    const [cleaningWorktreePaths, setCleaningWorktreePaths] = React.useState<Set<string>>(new Set());
+
+    const handleCleanupOrphan = React.useCallback(async (wt: WorktreeEntry) => {
+        if (!selectedMachineId) return;
+        const dirty = await machineBash(selectedMachineId, 'git status --porcelain', wt.path).catch(() => null);
+        const proceed = () => {
+            setCleaningWorktreePaths(prev => new Set([...prev, wt.path]));
+            removeWorktree(selectedMachineId, wt.path)
+                .then(() => worktreeListRefresh())
+                .catch(() => Modal.alert(t('common.error'), t('mergeWorktree.orphanCleanupFailed', { name: wt.branch || wt.path })))
+                .finally(() => setCleaningWorktreePaths(prev => { const n = new Set(prev); n.delete(wt.path); return n; }));
+        };
+        if (dirty?.success && dirty.stdout.trim()) {
+            Modal.alert(
+                t('mergeWorktree.orphanDirtyTitle'),
+                t('mergeWorktree.orphanDirtyMessage', { path: wt.path }),
+                [{ text: t('common.cancel'), style: 'cancel' }, { text: t('mergeWorktree.orphanCleanup'), style: 'destructive', onPress: proceed }]
+            );
+        } else {
+            proceed();
+        }
+    }, [selectedMachineId, worktreeListRefresh]);
+
+    const handleCleanupAllOrphans = React.useCallback((orphans: WorktreeEntry[]) => {
+        orphans.forEach(wt => handleCleanupOrphan(wt));
+    }, [handleCleanupOrphan]);
 
     // Path selection state - initialize with formatted selected path
 
@@ -1023,21 +1090,27 @@ function NewSessionWizard() {
         try {
             let actualPath = selectedPath;
 
-            // Handle worktree creation
+            // Handle worktree creation or selection
             if (sessionType === 'worktree' && experimentsEnabled) {
-                const worktreeResult = await createWorktree(selectedMachineId, selectedPath);
+                if (selectedExistingWorktreePath) {
+                    // User picked an existing worktree — use it directly
+                    actualPath = selectedExistingWorktreePath;
+                } else {
+                    // Create a new worktree
+                    const worktreeResult = await createWorktree(selectedMachineId, selectedPath);
 
-                if (!worktreeResult.success) {
-                    if (worktreeResult.error === 'Not a Git repository') {
-                        Modal.alert(t('common.error'), t('newSession.worktree.notGitRepo'));
-                    } else {
-                        Modal.alert(t('common.error'), t('newSession.worktree.failed', { error: worktreeResult.error || 'Unknown error' }));
+                    if (!worktreeResult.success) {
+                        if (worktreeResult.error === 'Not a Git repository') {
+                            Modal.alert(t('common.error'), t('newSession.worktree.notGitRepo'));
+                        } else {
+                            Modal.alert(t('common.error'), t('newSession.worktree.failed', { error: worktreeResult.error || 'Unknown error' }));
+                        }
+                        setIsCreating(false);
+                        return;
                     }
-                    setIsCreating(false);
-                    return;
-                }
 
-                actualPath = worktreeResult.worktreePath;
+                    actualPath = worktreeResult.worktreePath;
+                }
             }
 
             // Save settings
@@ -1109,7 +1182,7 @@ function NewSessionWizard() {
             Modal.alert(t('common.error'), errorMessage);
             setIsCreating(false);
         }
-    }, [selectedMachineId, selectedPath, sessionPrompt, sessionType, experimentsEnabled, agentType, selectedProfileId, permissionMode, modelMode, effortLevel, recentMachinePaths, profileMap, router]);
+    }, [selectedMachineId, selectedPath, sessionPrompt, sessionType, experimentsEnabled, agentType, selectedProfileId, permissionMode, modelMode, effortLevel, recentMachinePaths, profileMap, router, selectedExistingWorktreePath]);
 
     const screenWidth = useWindowDimensions().width;
 
@@ -1933,6 +2006,18 @@ function NewSessionWizard() {
                                                 value={sessionType}
                                                 onChange={setSessionType}
                                             />
+                                            {sessionType === 'worktree' && selectedMachineId && selectedPath && (
+                                                <WorktreePicker
+                                                    worktrees={worktrees}
+                                                    activePaths={activeSessionPaths}
+                                                    loading={worktreesLoading}
+                                                    error={worktreesError}
+                                                    cleaningPaths={cleaningWorktreePaths}
+                                                    onSelect={handleWorktreePickerSelect}
+                                                    onCleanupOrphan={handleCleanupOrphan}
+                                                    onCleanupAllOrphans={handleCleanupAllOrphans}
+                                                />
+                                            )}
                                         </View>
                                     )}
                                 </>
