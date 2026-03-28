@@ -375,7 +375,8 @@ export async function mergeWorktree(
         );
 
         if (!commitResult.success) {
-            if (commitResult.stderr.includes('nothing to commit') || commitResult.stdout.includes('nothing to commit')) {
+            const out = commitResult.stdout + commitResult.stderr;
+            if (out.includes('nothing to commit') || out.includes('nothing added to commit')) {
                 return { success: true };
             }
             return { success: false, error: commitResult.stderr };
