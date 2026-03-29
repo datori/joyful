@@ -66,6 +66,7 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 | Status dot on right | Status indicator moved to row right; text label removed |
 | Git history & branches | Tappable branch pill shows all branches (ahead/behind) and last 30 commits |
 | Plasma avatar style | Gaussian-blurred triadic blobs with screen blending; CSS fallback for web |
+| Plasma avatar web fix | `clip-path: circle()` on the web plasma container ensures blurred blobs are always clipped to a circle; `filter:blur()` children bypassed `overflow:hidden` in browsers |
 | Condensed density & dark mode | Tighter rows/items; dark surfaces aligned to iOS palette |
 | Mobile layout fixes | Code block wrapping, keyboard-anchored overlays, PWA safe-area |
 | Machines panel collapsed | Collapse state persisted; defaults to collapsed |
