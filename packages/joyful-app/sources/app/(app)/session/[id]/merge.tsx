@@ -21,6 +21,7 @@ import { t } from '@/text';
 import { Typography } from '@/constants/Typography';
 import { useSession } from '@/sync/storage';
 import { parseWorktreePath, checkIsMerged, buildMergePrompt, removeWorktree } from '@/utils/worktree';
+import { formatPathRelativeToHome } from '@/utils/sessionUtils';
 import { sessionDelete } from '@/sync/ops';
 
 type MergeStep = 'loading' | 'ready' | 'merged';
@@ -117,12 +118,15 @@ export default memo(function MergeWorktreeScreen() {
         );
     }
 
+    const homeDir = session.metadata?.homeDir;
+    const displayBasePath = formatPathRelativeToHome(basePath, homeDir);
+
     return (
         <ItemList>
             <ItemGroup>
                 <Item
                     title={branchName}
-                    detail={basePath.split('/').pop()}
+                    subtitle={displayBasePath}
                     icon={<Ionicons name="git-branch-outline" size={29} color="#007AFF" />}
                     showChevron={false}
                 />

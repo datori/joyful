@@ -254,29 +254,35 @@ export async function listWorktrees(
 // ─── Merge status ────────────────────────────────────────────────────────────
 
 /**
- * Returns true if the branch has no commits ahead of main — i.e. it has been
- * merged (or was never ahead). The agent is responsible for the actual merge;
- * this is a post-hoc check the merge screen uses to detect completion.
+ * Returns true if the branch has no commits ahead of the primary branch — i.e. it has been
+ * merged (or was never ahead). Tries common primary branch names in order.
+ * The agent is responsible for the actual merge; this is a post-hoc check.
  */
 export async function checkIsMerged(
     machineId: string,
     basePath: string,
     branchName: string
 ): Promise<boolean> {
-    const result = await machineBash(
-        machineId,
-        `git -C ${shellQuote(basePath)} log main..${shellQuote(branchName)} --oneline`,
-        '/'
-    );
-    return result.success && result.stdout.trim() === '';
+    // Try common primary branch names — agent will have used whichever is correct
+    for (const primary of ['main', 'master', 'develop']) {
+        const result = await machineBash(
+            machineId,
+            `git -C ${shellQuote(basePath)} log ${primary}..${shellQuote(branchName)} --oneline 2>/dev/null`,
+            '/'
+        );
+        if (result.success) {
+            return result.stdout.trim() === '';
+        }
+    }
+    return false;
 }
 
 /**
  * Builds the comprehensive merge prompt sent to the worktree session agent.
- * The agent handles spec checks, conflict resolution, and the merge itself.
+ * The agent handles spec checks, conflict resolution, commit messaging, and the merge.
  */
 export function buildMergePrompt(basePath: string, branchName: string, worktreePath: string): string {
-    return `Please merge this worktree branch into main.
+    return `Please merge this worktree branch into the repository's primary working branch.
 
 Worktree: ${worktreePath}
 Branch: ${branchName}
@@ -284,16 +290,13 @@ Base repo: ${basePath}
 
 Handle end-to-end:
 
-1. **OpenSpec** — if openspec/changes/ exists, check for unarchived changes. Mention any found and use your judgment on whether they block the merge.
+1. **OpenSpec** — if openspec/changes/ exists, check for any changes with incomplete tasks. These are worth flagging but should not block the merge unless clearly breaking; archiving is the caller's responsibility.
 
-2. **Spec sync** — check if openspec/specs/ on main has new commits since this branch diverged (\`git merge-base ${branchName} main\` then \`git log <base>..main -- openspec/specs/\`). If so, review and update this branch's implementation to match before merging.
+2. **Spec sync** — check if openspec/specs/ on the primary branch has new commits since this branch diverged. If so, review the changes and update this branch's implementation to align before merging.
 
-3. **Merge** — from the base repo run:
-   \`git -C ${basePath} merge --squash ${branchName}\`
-   \`git -C ${basePath} commit -m "feat: ${branchName}"\`
-   Resolve any conflicts, preserving the intent of both sides.
+3. **Merge** — squash-merge this branch into the primary branch from the base repo. Write a meaningful conventional commit message that summarises what this branch actually introduced — look at the diff, not just the branch name.
 
-4. **Done** — reply "✓ Merged to main" so I know to return to the merge screen for cleanup.`;
+4. **Done** — reply "✓ Merged" so I know to return to the merge screen for cleanup.`;
 }
 
 // ─── Removed ─────────────────────────────────────────────────────────────────
