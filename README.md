@@ -4,10 +4,19 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-26 (fork base: d343330c) -->
+<!-- changelog-summary: 2026-03-29 (fork base: d343330c) -->
 
 | Category | Feature | What it does |
 |----------|---------|--------------|
+| **Worktrees** | Git worktree sessions | New session type that creates an isolated git worktree branch; agent works there while other sessions continue on main |
+| | Worktree session grouping | Worktree sessions appear under their base repo group in the session list, not as separate isolated groups |
+| | Branch name as title | Worktree sessions show the branch name (e.g. `bold-aurora`) as subtitle; slightly smaller title keeps them visually distinct |
+| | Merge button in header | Git-merge icon in the chat header navigates directly to the merge screen for any worktree session |
+| | Agent-delegated merge | "Merge with AI" dispatches a single prompt; agent handles spec checks, conflict resolution, conventional commit message, and squash merge |
+| | Return-to-merge banner | Blue pill in session view when navigated from the merge screen; tap to return once the agent signals completion |
+| **Claude Code** | OpenSpec inline toolbar | Mode buttons (Explore, Patch, Apply, FF) shown inline on wide layouts (≥640px) with a vertical divider before model controls; submenu preserved on narrow screens |
+| | Emoji from content | Chat title emoji reflects actual subject matter, not the OpenSpec command prefix used to trigger it |
+| **UI & UX** | Stable session order | Active sessions within a project group stay in creation-date order rather than jumping on each activity update |
 | **Sessions** | Model & effort persistence | Selected model/effort saved per session, survives restarts |
 | | Interactive filesystem browser | Navigate remote directory tree in path picker, with hidden-dir toggle |
 | | Native session browser | Discover and resume existing Claude sessions from `~/.claude/projects/` |
