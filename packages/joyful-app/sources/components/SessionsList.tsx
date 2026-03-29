@@ -5,7 +5,7 @@ import { Text } from '@/components/StyledText';
 import { usePathname } from 'expo-router';
 import { SessionListViewItem } from '@/sync/storage';
 import { Ionicons } from '@expo/vector-icons';
-import { getSessionName, useSessionStatus, getSessionAvatarId } from '@/utils/sessionUtils';
+import { getSessionName, getWorktreeBranchName, useSessionStatus, getSessionAvatarId } from '@/utils/sessionUtils';
 import { Avatar } from './Avatar';
 import { ActiveSessionsGroup } from './ActiveSessionsGroup';
 import { ActiveSessionsGroupCompact } from './ActiveSessionsGroupCompact';
@@ -540,6 +540,7 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
     const styles = stylesheet;
     const sessionStatus = useSessionStatus(session);
     const sessionName = getSessionName(session);
+    const worktreeBranch = getWorktreeBranchName(session);
     const navigateToSession = useNavigateToSession();
     const isTablet = useIsTablet();
     const swipeableRef = React.useRef<Swipeable | null>(null);
@@ -598,9 +599,15 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
                     styles.sessionTitle,
                     sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
                     isArchived ? styles.sessionTitleArchived : undefined,
+                    worktreeBranch ? { fontSize: 12 } : undefined,
                 ]} numberOfLines={1}>
                     {sessionName}
                 </Text>
+                {worktreeBranch && (
+                    <Text style={styles.sessionSubtitle} numberOfLines={1}>
+                        {worktreeBranch}
+                    </Text>
+                )}
             </View>
             <View style={styles.statusDotContainer}>
                 <StatusDot color={sessionStatus.statusDotColor} isPulsing={sessionStatus.isPulsing} />

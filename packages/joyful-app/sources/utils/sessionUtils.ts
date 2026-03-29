@@ -76,16 +76,24 @@ export function useSessionStatus(session: Session): SessionStatus {
  * Extracts a display name from a session's metadata path.
  * Returns the last segment of the path, or 'unknown' if no path is available.
  */
+const WORKTREE_MARKER = '/.dev/worktree/';
+
+export function getWorktreeBranchName(session: Session): string | null {
+    if (!session.metadata) return null;
+    const idx = session.metadata.path.indexOf(WORKTREE_MARKER);
+    if (idx === -1) return null;
+    return session.metadata.path.slice(idx + WORKTREE_MARKER.length) || null;
+}
+
 export function getSessionName(session: Session): string {
     if (session.metadata?.summary) {
         return session.metadata.summary.text;
     } else if (session.metadata) {
-        const WORKTREE_MARKER = '/.dev/worktree/';
-        const idx = session.metadata.path.indexOf(WORKTREE_MARKER);
-        if (idx !== -1) {
-            return session.metadata.path.slice(idx + WORKTREE_MARKER.length);
-        }
-        const segments = session.metadata.path.split('/').filter(Boolean);
+        // For worktree sessions, show the base repo's last path segment (not the branch name)
+        const path = session.metadata.path;
+        const worktreeIdx = path.indexOf(WORKTREE_MARKER);
+        const effectivePath = worktreeIdx !== -1 ? path.slice(0, worktreeIdx) : path;
+        const segments = effectivePath.split('/').filter(Boolean);
         const lastSegment = segments.pop();
         if (!lastSegment) {
             return t('status.unknown');

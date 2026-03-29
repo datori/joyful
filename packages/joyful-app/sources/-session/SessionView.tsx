@@ -32,7 +32,7 @@ import { t } from '@/text';
 import { tracking, trackMessageSent } from '@/track';
 import { isRunningOnMac } from '@/utils/platform';
 import { useDeviceType, useHeaderHeight, useIsLandscape, useIsTablet } from '@/utils/responsive';
-import { formatPathRelativeToHome, getSessionAvatarId, getSessionName, useSessionStatus } from '@/utils/sessionUtils';
+import { formatPathRelativeToHome, getSessionAvatarId, getSessionName, getWorktreeBranchName, useSessionStatus } from '@/utils/sessionUtils';
 import { isVersionSupported, MINIMUM_CLI_VERSION } from '@/utils/versionUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -106,10 +106,11 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
 
         // Normal state - show session info
         const isConnected = session.presence === 'online';
-        const isWorktree = !!(session.metadata?.worktree?.isWorktree ?? session.metadata?.path?.includes('/.dev/worktree/'));
+        const worktreeBranch = getWorktreeBranchName(session);
+        const isWorktree = !!worktreeBranch;
         return {
             title: getSessionName(session),
-            subtitle: session.metadata?.path ? formatPathRelativeToHome(session.metadata.path, session.metadata?.homeDir) : undefined,
+            subtitle: worktreeBranch ?? (session.metadata?.path ? formatPathRelativeToHome(session.metadata.path, session.metadata?.homeDir) : undefined),
             avatarId: getSessionAvatarId(session),
             onAvatarPress: () => router.push(`/session/${sessionId}/info`),
             onArchivePress: session.active ? handleArchivePress : undefined,
