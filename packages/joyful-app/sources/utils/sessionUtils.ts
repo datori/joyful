@@ -79,6 +79,8 @@ export function useSessionStatus(session: Session): SessionStatus {
 export function getSessionName(session: Session): string {
     if (session.metadata?.summary) {
         return session.metadata.summary.text;
+    } else if (session.metadata?.worktree?.branchName) {
+        return session.metadata.worktree.branchName;
     } else if (session.metadata) {
         const segments = session.metadata.path.split('/').filter(Boolean);
         const lastSegment = segments.pop();

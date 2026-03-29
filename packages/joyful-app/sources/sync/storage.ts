@@ -172,8 +172,9 @@ function buildSessionListViewData(
 
         for (const sess of sessList) {
             const machineId = sess.metadata?.machineId || '';
-            const path = sess.metadata?.path || '';
-            const key = `${machineId}|${path}`;
+            // Worktree sessions group under their base repo path, not the worktree path
+            const groupPath = sess.metadata?.worktree?.baseRepoPath || sess.metadata?.path || '';
+            const key = `${machineId}|${groupPath}`;
 
             if (!groupMap.has(key)) {
                 groupKeys.push(key);
@@ -190,15 +191,15 @@ function buildSessionListViewData(
                     daemonStateVersion: 0,
                 };
                 const homeDir = sess.metadata?.homeDir;
-                let displayPath = path;
-                if (path && homeDir) {
+                let displayPath = groupPath;
+                if (groupPath && homeDir) {
                     const normalizedHome = homeDir.endsWith('/') ? homeDir.slice(0, -1) : homeDir;
-                    if (path.startsWith(normalizedHome)) {
-                        const rest = path.slice(normalizedHome.length);
+                    if (groupPath.startsWith(normalizedHome)) {
+                        const rest = groupPath.slice(normalizedHome.length);
                         displayPath = rest.startsWith('/') ? '~' + rest : rest === '' ? '~' : '~/' + rest;
                     }
                 }
-                groupMap.set(key, { machine, displayPath: displayPath || machineId, path, sessions: [] });
+                groupMap.set(key, { machine, displayPath: displayPath || machineId, path: groupPath, sessions: [] });
             }
             groupMap.get(key)!.sessions.push(sess);
         }

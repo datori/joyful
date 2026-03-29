@@ -15,6 +15,7 @@ interface ChatHeaderViewProps {
     onBackPress?: () => void;
     onAvatarPress?: () => void;
     onArchivePress?: () => void;
+    onMergeToMainPress?: () => void;
     avatarId?: string;
     backgroundColor?: string;
     tintColor?: string;
@@ -28,6 +29,7 @@ export const ChatHeaderView: React.FC<ChatHeaderViewProps> = ({
     onBackPress,
     onAvatarPress,
     onArchivePress,
+    onMergeToMainPress,
     avatarId,
     isConnected = true,
     flavor,
@@ -89,6 +91,19 @@ export const ChatHeaderView: React.FC<ChatHeaderViewProps> = ({
                     )}
                 </View>
                 
+                {onMergeToMainPress && (
+                    <Pressable
+                        onPress={onMergeToMainPress}
+                        hitSlop={15}
+                        style={styles.archiveButton}
+                    >
+                        <Ionicons
+                            name="git-merge-outline"
+                            size={22}
+                            color={theme.colors.header.tint}
+                        />
+                    </Pressable>
+                )}
                 {onArchivePress && (
                     <Pressable
                         onPress={onArchivePress}

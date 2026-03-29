@@ -106,12 +106,14 @@ export const SessionView = React.memo((props: { id: string; initialMessage?: str
 
         // Normal state - show session info
         const isConnected = session.presence === 'online';
+        const isWorktree = !!(session.metadata?.worktree?.isWorktree ?? session.metadata?.path?.includes('/.dev/worktree/'));
         return {
             title: getSessionName(session),
             subtitle: session.metadata?.path ? formatPathRelativeToHome(session.metadata.path, session.metadata?.homeDir) : undefined,
             avatarId: getSessionAvatarId(session),
             onAvatarPress: () => router.push(`/session/${sessionId}/info`),
             onArchivePress: session.active ? handleArchivePress : undefined,
+            onMergeToMainPress: isWorktree ? () => router.push(`/session/${sessionId}/merge`) : undefined,
             isConnected: isConnected,
             flavor: session.metadata?.flavor || null,
             tintColor: isConnected ? '#000' : '#8E8E93'
