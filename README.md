@@ -6,51 +6,104 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 <!-- changelog-summary: 2026-03-29 (fork base: d343330c) -->
 
-| Category | Feature | What it does |
-|----------|---------|--------------|
-| **Worktrees** | Git worktree sessions | New session type that creates an isolated git worktree branch; agent works there while other sessions continue on main |
-| | Worktree session grouping | Worktree sessions appear under their base repo group in the session list, not as separate isolated groups |
-| | Branch name as title | Worktree sessions show the branch name (e.g. `bold-aurora`) as subtitle; slightly smaller title keeps them visually distinct |
-| | Merge button in header | Git-merge icon in the chat header navigates directly to the merge screen for any worktree session |
-| | Agent-delegated merge | "Merge with AI" dispatches a single prompt; agent handles spec checks, conflict resolution, conventional commit message, and squash merge |
-| | Return-to-merge banner | Blue pill in session view when navigated from the merge screen; tap to return once the agent signals completion |
-| **Claude Code** | OpenSpec inline toolbar | Mode buttons (Explore, Patch, Apply, FF) shown inline on wide layouts (≥640px) with a vertical divider before model controls; submenu preserved on narrow screens |
-| | Emoji from content | Chat title emoji reflects actual subject matter, not the OpenSpec command prefix used to trigger it |
-| **UI & UX** | Stable session order | Active sessions within a project group stay in creation-date order rather than jumping on each activity update |
-| **Sessions** | Model & effort persistence | Selected model/effort saved per session, survives restarts |
-| | Interactive filesystem browser | Navigate remote directory tree in path picker, with hidden-dir toggle |
-| | Native session browser | Discover and resume existing Claude sessions from `~/.claude/projects/` |
-| | Split FAB for session resume | Dedicated Resume entry alongside New Session; pick machine, dir, and session |
-| | Archived sessions | Inactive sessions in a collapsible "Archived (N)" header, collapsed by default |
-| **Monitoring** | Claude quota widget | 5h/7d rolling-window utilization bars, reset countdown, manual refresh |
-| | Machine memory stats | Daemon reports total/free RAM + RSS; shown in collapsible sidebar panel |
-| | Quota polling fixes | Skips API-key-only machines; fixed re-entrant loop causing daemon OOM |
-| **Claude Code** | OpenSpec submenu | Explore, Patch, Open Panel in one toolbar menu; active mode shown as icon + label |
-| | Yolo permission default | New sessions default to `bypassPermissions`/`yolo`; green/red indicator |
-| | Inline model & effort toggles | `[Snt\|Ops]` and `[Std\|1M]` pickers replace gear icon; effort shown as chevrons |
-| | Bedrock model support | `bedrock-claude-*` variants in model pickers for Bedrock gateways |
-| | Model & effort from settings | CLI reads `~/.claude/settings.json` and surfaces defaults to the app |
-| | Slash command autocomplete | Typing `/` surfaces recently-seen commands from past sessions |
-| | OpenSpec panel | In-app panel with active changes, task progress bars, and toolbar badge |
-| | Explore & Patch mode | One-shot prefix toggles for `/opsx:explore` and `/opsx:patch` |
-| **UI & UX** | Project group session list | Sessions grouped by project with collapsible headers; state persisted per device |
-| | Stable group ordering | Group order persisted; reorder modal (≡) to move groups up/down |
-| | + button per group | Tap + on a group header to open new-session screen pre-filled for that project |
-| | Archive in chat header | Archive icon in the chat header to archive active session in place |
-| | Compact session rows | No per-row avatar/path; reduced heights; single avatar in group header |
-| | Emoji session titles | Claude prefixes auto-generated session titles with a relevant emoji |
-| | Status dot on right | Status indicator moved to row right; text label removed |
-| | Git history & branches | Tappable branch pill shows all branches (ahead/behind) and last 30 commits |
-| | Plasma avatar style | Gaussian-blurred triadic blobs with screen blending; CSS fallback for web |
-| | Condensed density & dark mode | Tighter rows/items; dark surfaces aligned to iOS palette |
-| | Mobile layout fixes | Code block wrapping, keyboard-anchored overlays, PWA safe-area |
-| | Machines panel collapsed | Collapse state persisted; defaults to collapsed |
-| **Voice** | Self-hosted ElevenLabs | Agent ID configurable in Settings → Voice; clear errors when unconfigured |
-| **Performance** | Reconnect batching | Single batch request on reconnect instead of one per session (~92% fewer) |
-| | Streaming seq fix | Batched seq allocation eliminates gaps that caused slow REST fallback |
-| **Infrastructure** | Socket.IO polling fallback | `['polling', 'websocket']` fixes connections behind restrictive networks |
-| | Happy daemon co-existence | Runs independently alongside existing `happy`/`happier` daemons |
-| | Full rename | All identifiers, env vars, home dirs updated from `happy`/`handy` to `joyful` |
+<details>
+<summary><strong>🌿 Worktrees</strong> — isolated branch sessions with AI-assisted merge</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Git worktree sessions | New session type that creates an isolated git worktree branch; agent works there while other sessions continue on main |
+| Worktree session grouping | Worktree sessions appear under their base repo group in the session list, not as separate isolated groups |
+| Branch name as title | Worktree sessions show the branch name (e.g. `bold-aurora`) as subtitle; slightly smaller title keeps them visually distinct |
+| Merge button in header | Git-merge icon in the chat header navigates directly to the merge screen for any worktree session |
+| Agent-delegated merge | "Merge with AI" dispatches a single prompt; agent handles spec checks, conflict resolution, conventional commit message, and squash merge |
+| Return-to-merge banner | Blue pill in session view when navigated from the merge screen; tap to return once the agent signals completion |
+
+</details>
+
+<details>
+<summary><strong>🤖 Claude Code</strong> — OpenSpec toolbar, model controls, and session defaults</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| OpenSpec inline toolbar | Mode buttons (Explore, Patch, Apply, FF) shown inline on wide layouts (≥640px) with a vertical divider before model controls; submenu preserved on narrow screens |
+| Emoji from content | Chat title emoji reflects actual subject matter, not the OpenSpec command prefix used to trigger it |
+| OpenSpec submenu | Explore, Patch, Open Panel in one toolbar menu; active mode shown as icon + label |
+| Yolo permission default | New sessions default to `bypassPermissions`/`yolo`; green/red indicator |
+| Inline model & effort toggles | `[Snt\|Ops]` and `[Std\|1M]` pickers replace gear icon; effort shown as chevrons |
+| Bedrock model support | `bedrock-claude-*` variants in model pickers for Bedrock gateways |
+| Model & effort from settings | CLI reads `~/.claude/settings.json` and surfaces defaults to the app |
+| Slash command autocomplete | Typing `/` surfaces recently-seen commands from past sessions |
+| OpenSpec panel | In-app panel with active changes, task progress bars, and toolbar badge |
+| Explore & Patch mode | One-shot prefix toggles for `/opsx:explore` and `/opsx:patch` |
+
+</details>
+
+<details>
+<summary><strong>📋 Sessions</strong> — resume, browse, archive, and persist state</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Model & effort persistence | Selected model/effort saved per session, survives restarts |
+| Interactive filesystem browser | Navigate remote directory tree in path picker, with hidden-dir toggle |
+| Native session browser | Discover and resume existing Claude sessions from `~/.claude/projects/` |
+| Split FAB for session resume | Dedicated Resume entry alongside New Session; pick machine, dir, and session |
+| Archived sessions | Inactive sessions in a collapsible "Archived (N)" header, collapsed by default |
+
+</details>
+
+<details>
+<summary><strong>🎨 UI & UX</strong> — session list, density, avatars, and layout</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Project group session list | Sessions grouped by project with collapsible headers; state persisted per device |
+| Stable session order | Active sessions within a project group stay in creation-date order rather than jumping on each activity update |
+| Stable group ordering | Group order persisted; reorder modal (≡) to move groups up/down |
+| + button per group | Tap + on a group header to open new-session screen pre-filled for that project |
+| Archive in chat header | Archive icon in the chat header to archive active session in place |
+| Compact session rows | No per-row avatar/path; reduced heights; single avatar in group header |
+| Emoji session titles | Claude prefixes auto-generated session titles with a relevant emoji |
+| Status dot on right | Status indicator moved to row right; text label removed |
+| Git history & branches | Tappable branch pill shows all branches (ahead/behind) and last 30 commits |
+| Plasma avatar style | Gaussian-blurred triadic blobs with screen blending; CSS fallback for web |
+| Condensed density & dark mode | Tighter rows/items; dark surfaces aligned to iOS palette |
+| Mobile layout fixes | Code block wrapping, keyboard-anchored overlays, PWA safe-area |
+| Machines panel collapsed | Collapse state persisted; defaults to collapsed |
+
+</details>
+
+<details>
+<summary><strong>📊 Monitoring</strong> — quota, memory, and polling</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Claude quota widget | 5h/7d rolling-window utilization bars, reset countdown, manual refresh |
+| Machine memory stats | Daemon reports total/free RAM + RSS; shown in collapsible sidebar panel |
+| Quota polling fixes | Skips API-key-only machines; fixed re-entrant loop causing daemon OOM |
+
+</details>
+
+<details>
+<summary><strong>🎙️ Voice</strong> — self-hosted ElevenLabs</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Self-hosted ElevenLabs | Agent ID configurable in Settings → Voice; clear errors when unconfigured |
+
+</details>
+
+<details>
+<summary><strong>⚡ Performance & Infrastructure</strong> — reconnect, streaming, and daemon co-existence</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Reconnect batching | Single batch request on reconnect instead of one per session (~92% fewer) |
+| Streaming seq fix | Batched seq allocation eliminates gaps that caused slow REST fallback |
+| Socket.IO polling fallback | `['polling', 'websocket']` fixes connections behind restrictive networks |
+| Happy daemon co-existence | Runs independently alongside existing `happy`/`happier` daemons |
+| Full rename | All identifiers, env vars, home dirs updated from `happy`/`handy` to `joyful` |
+
+</details>
 
 <!-- end-changelog-summary -->
 
