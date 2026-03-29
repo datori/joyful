@@ -1107,6 +1107,8 @@ export const ru: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `Worktree по пути ${path} содержит незафиксированные изменения, которые будут безвозвратно потеряны.`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `Worktree "${name}" удалён`,
         orphanCleanupFailed: ({ name }: { name: string }) => `Не удалось удалить worktree "${name}"`,
+        mergeWithAI: 'Слить с помощью ИИ',
+        mergeWithAISubtitle: 'Агент проверит спецификации, разрешит конфликты и выполнит слияние',
         returnToMerge: 'Вернуться к экрану слияния',
         resolveWithAI: 'Решить с помощью ИИ',
         resolveWithAISubtitle: 'Возобновить сессию с запросом на разрешение конфликтов',

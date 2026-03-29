@@ -1082,6 +1082,8 @@ export const it: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `La worktree in ${path} contiene modifiche non salvate che andranno perse definitivamente.`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `Worktree "${name}" rimossa`,
         orphanCleanupFailed: ({ name }: { name: string }) => `Impossibile rimuovere la worktree "${name}"`,
+        mergeWithAI: 'Unisci con AI',
+        mergeWithAISubtitle: "L'agente controllerà le spec, gestirà i conflitti e unirà al main",
         returnToMerge: 'Torna alla schermata di merge',
         resolveWithAI: 'Risolvi con AI',
         resolveWithAISubtitle: 'Riprendi la sessione con un prompt di risoluzione dei conflitti',

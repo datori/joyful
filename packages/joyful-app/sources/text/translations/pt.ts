@@ -1082,6 +1082,8 @@ export const pt: TranslationStructure = {
         orphanDirtyMessage: ({ path }: { path: string }) => `O worktree em ${path} possui alterações não confirmadas que serão perdidas permanentemente.`,
         orphanCleanupSuccess: ({ name }: { name: string }) => `Worktree "${name}" removido`,
         orphanCleanupFailed: ({ name }: { name: string }) => `Falha ao remover worktree "${name}"`,
+        mergeWithAI: 'Mesclar com IA',
+        mergeWithAISubtitle: 'O agente verificará as specs, resolverá conflitos e mesclará com main',
         returnToMerge: 'Voltar à tela de mesclagem',
         resolveWithAI: 'Resolver com IA',
         resolveWithAISubtitle: 'Retomar a sessão com um prompt de resolução de conflitos',
