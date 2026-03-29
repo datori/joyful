@@ -84,6 +84,8 @@ function AvatarPlasmaWeb(props: AvatarPlasmaProps) {
             width: size, height: size, borderRadius, overflow: 'hidden',
             background: `radial-gradient(circle at 50% 50%, ${centerGlowColor} 0%, ${backgroundColor} 80%)`,
             boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.28)`,
+            // clip-path reliably clips filter:blur() children that escape overflow:hidden in browsers
+            clipPath: square ? undefined : `circle(${size / 2}px at 50% 50%)`,
         } as any}>
             {blobs.map((blob, i) => (
                 <View
