@@ -79,9 +79,12 @@ export function useSessionStatus(session: Session): SessionStatus {
 export function getSessionName(session: Session): string {
     if (session.metadata?.summary) {
         return session.metadata.summary.text;
-    } else if (session.metadata?.worktree?.branchName) {
-        return session.metadata.worktree.branchName;
     } else if (session.metadata) {
+        const WORKTREE_MARKER = '/.dev/worktree/';
+        const idx = session.metadata.path.indexOf(WORKTREE_MARKER);
+        if (idx !== -1) {
+            return session.metadata.path.slice(idx + WORKTREE_MARKER.length);
+        }
         const segments = session.metadata.path.split('/').filter(Boolean);
         const lastSegment = segments.pop();
         if (!lastSegment) {

@@ -172,8 +172,11 @@ function buildSessionListViewData(
 
         for (const sess of sessList) {
             const machineId = sess.metadata?.machineId || '';
-            // Worktree sessions group under their base repo path, not the worktree path
-            const groupPath = sess.metadata?.worktree?.baseRepoPath || sess.metadata?.path || '';
+            const rawPath = sess.metadata?.path || '';
+            // Worktree sessions (path contains /.dev/worktree/) group under their base repo
+            const WORKTREE_MARKER = '/.dev/worktree/';
+            const worktreeIdx = rawPath.indexOf(WORKTREE_MARKER);
+            const groupPath = worktreeIdx !== -1 ? rawPath.slice(0, worktreeIdx) : rawPath;
             const key = `${machineId}|${groupPath}`;
 
             if (!groupMap.has(key)) {
