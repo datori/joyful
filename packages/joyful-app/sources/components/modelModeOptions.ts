@@ -88,15 +88,21 @@ export function getClaudeEffortLevels(translate: Translate): EffortLevel[] {
     ];
 }
 
-export function getCodexModelModes(translate: Translate): ModelMode[] {
+export function getCodexEffortLevels(translate: Translate): EffortLevel[] {
     return [
-        { key: 'gpt-5-codex-high', name: translate('agentInput.codexModel.gpt5CodexHigh'), description: null },
-        { key: 'gpt-5-codex-medium', name: translate('agentInput.codexModel.gpt5CodexMedium'), description: null },
-        { key: 'gpt-5-codex-low', name: translate('agentInput.codexModel.gpt5CodexLow'), description: null },
-        { key: 'gpt-5-minimal', name: translate('agentInput.codexModel.gpt5Minimal'), description: null },
-        { key: 'gpt-5-low', name: translate('agentInput.codexModel.gpt5Low'), description: null },
-        { key: 'gpt-5-medium', name: translate('agentInput.codexModel.gpt5Medium'), description: null },
-        { key: 'gpt-5-high', name: translate('agentInput.codexModel.gpt5High'), description: null },
+        { key: 'default', name: translate('agentInput.effort.default'), description: translate('agentInput.effort.defaultDescription') },
+        { key: 'low', name: translate('agentInput.effort.low'), description: null },
+        { key: 'medium', name: translate('agentInput.effort.medium'), description: null },
+        { key: 'high', name: translate('agentInput.effort.high'), description: null },
+    ];
+}
+
+export function getCodexModelModes(_translate: Translate): ModelMode[] {
+    return [
+        { key: 'gpt-5.4', name: 'GPT 5.4', description: 'Most capable' },
+        { key: 'gpt-5.4-mini', name: 'GPT 5.4 Mini', description: 'Fast & efficient' },
+        { key: 'gpt-5.3-codex', name: 'GPT 5.3 Codex', description: 'Optimized for code' },
+        { key: 'gpt-5.2-codex', name: 'GPT 5.2 Codex', description: 'Fast code generation' },
     ];
 }
 
@@ -175,7 +181,7 @@ export function resolveCurrentOption<T extends ModeOption>(
 
 export function getDefaultModelKey(flavor: AgentFlavor): string {
     if (flavor === 'codex') {
-        return 'gpt-5-codex-high';
+        return 'gpt-5.4';
     }
     if (flavor === 'gemini') {
         return 'gemini-2.5-pro';

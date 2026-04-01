@@ -1631,9 +1631,10 @@ export function NewSessionWizard({ onComplete, onCancel, initialPrompt = '' }: N
                                 { value: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5', description: 'Fast and capable', icon: 'speedometer-outline' },
                                 { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5', description: 'Fastest', icon: 'flash-outline' },
                             ] as const : [
-                                { value: 'gpt-5-codex-high', label: 'GPT-5 Codex High', description: 'Best for complex coding', icon: 'diamond-outline' },
-                                { value: 'gpt-5-codex-medium', label: 'GPT-5 Codex Medium', description: 'Balanced coding assistance', icon: 'cube-outline' },
-                                { value: 'gpt-5-codex-low', label: 'GPT-5 Codex Low', description: 'Fast coding help', icon: 'speedometer-outline' },
+                                { value: 'gpt-5.4', label: 'GPT 5.4', description: 'Most capable', icon: 'diamond-outline' },
+                                { value: 'gpt-5.4-mini', label: 'GPT 5.4 Mini', description: 'Fast & efficient', icon: 'speedometer-outline' },
+                                { value: 'gpt-5.3-codex', label: 'GPT 5.3 Codex', description: 'Optimized for code', icon: 'cube-outline' },
+                                { value: 'gpt-5.2-codex', label: 'GPT 5.2 Codex', description: 'Fast code generation', icon: 'flash-outline' },
                             ] as const).map((option, index, array) => (
                                 <Item
                                     key={option.value}

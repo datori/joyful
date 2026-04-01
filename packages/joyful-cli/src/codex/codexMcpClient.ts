@@ -190,7 +190,7 @@ export class CodexMcpClient {
         this.client.setRequestHandler(
             ElicitRequestSchema,
             async (request) => {
-                console.log('[CodexMCP] Received elicitation request:', request.params);
+                logger.debug('[CodexMCP] Received elicitation request:', request.params);
 
                 // Load params
                 const params = request.params as unknown as {
@@ -202,14 +202,20 @@ export class CodexMcpClient {
                     codex_command: string[],
                     codex_cwd: string
                 }
+
+                // MCP tool call approvals (no codex_command) are auto-approved —
+                // these come from our own joyful MCP server and don't need user oversight.
+                if (!params.codex_command) {
+                    logger.debug('[CodexMCP] Auto-approving MCP tool call elicitation (no shell command)');
+                    return { action: 'accept' as const, content: {} };
+                }
+
                 const toolName = 'CodexBash';
 
                 // If no permission handler set, deny by default
                 if (!this.permissionHandler) {
                     logger.debug('[CodexMCP] No permission handler set, denying by default');
-                    return {
-                        decision: 'denied' as const,
-                    };
+                    return { action: 'decline' as const };
                 }
 
                 try {
@@ -225,14 +231,12 @@ export class CodexMcpClient {
 
                     logger.debug('[CodexMCP] Permission result:', result);
                     return {
-                        decision: result.decision
-                    }
+                        action: result.decision === 'approved' ? 'accept' as const : 'decline' as const,
+                        content: {}
+                    };
                 } catch (error) {
                     logger.debug('[CodexMCP] Error handling permission request:', error);
-                    return {
-                        decision: 'denied' as const,
-                        reason: error instanceof Error ? error.message : 'Permission request failed'
-                    };
+                    return { action: 'decline' as const };
                 }
             }
         );

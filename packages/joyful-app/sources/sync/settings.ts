@@ -337,7 +337,7 @@ export const settingsDefaults: Settings = {
     alwaysShowContextSize: false,
     agentInputEnterToSend: true,
     avatarStyle: 'plasma',
-    showFlavorIcons: false,
+    showFlavorIcons: true,
     compactSessionView: true,
     hideInactiveSessions: false,
     reviewPromptAnswered: false,

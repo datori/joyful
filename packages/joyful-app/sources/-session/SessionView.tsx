@@ -4,6 +4,7 @@ import {
     getAvailableModels,
     getAvailablePermissionModes,
     getClaudeEffortLevels,
+    getCodexEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
@@ -237,7 +238,7 @@ function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage
     ), [availableModels, session.modelMode, session.metadata?.currentModelCode, flavor]);
 
     const availableEffortLevels = React.useMemo(() => (
-        flavor === 'claude' ? getClaudeEffortLevels(t) : []
+        flavor === 'claude' ? getClaudeEffortLevels(t) : flavor === 'codex' ? getCodexEffortLevels(t) : []
     ), [flavor]);
 
     const effortLevelMode = React.useMemo<ModelMode | null>(() => {

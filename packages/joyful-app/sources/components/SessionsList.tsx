@@ -153,6 +153,12 @@ const stylesheet = StyleSheet.create((theme) => ({
         marginBottom: 4,
         ...Typography.default(),
     },
+    agentLabel: {
+        fontSize: 10,
+        color: theme.colors.textSecondary,
+        marginLeft: 6,
+        ...Typography.default(),
+    },
     avatarContainer: {
         position: 'relative',
         width: 48,
@@ -595,14 +601,23 @@ const SessionItem = React.memo(({ session, selected, isFirst, isLast, isSingle, 
             }}
         >
             <View style={styles.sessionContent}>
-                <Text style={[
-                    styles.sessionTitle,
-                    sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
-                    isArchived ? styles.sessionTitleArchived : undefined,
-                    worktreeBranch ? { fontSize: 12 } : undefined,
-                ]} numberOfLines={1}>
-                    {sessionName}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={[
+                        styles.sessionTitle,
+                        sessionStatus.isConnected ? styles.sessionTitleConnected : styles.sessionTitleDisconnected,
+                        isArchived ? styles.sessionTitleArchived : undefined,
+                        worktreeBranch ? { fontSize: 12 } : undefined,
+                        { flexShrink: 1 },
+                    ]} numberOfLines={1}>
+                        {sessionName}
+                    </Text>
+                    {/* Agent type label for non-Claude sessions */}
+                    {session.metadata?.flavor && session.metadata.flavor !== 'claude' && (
+                        <Text style={styles.agentLabel}>
+                            {session.metadata.flavor === 'codex' ? t('agentInput.agent.codex') : session.metadata.flavor === 'gemini' ? t('agentInput.agent.gemini') : session.metadata.flavor}
+                        </Text>
+                    )}
+                </View>
                 {worktreeBranch && (
                     <Text style={styles.sessionSubtitle} numberOfLines={1}>
                         {worktreeBranch}

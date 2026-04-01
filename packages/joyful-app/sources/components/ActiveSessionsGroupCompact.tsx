@@ -395,6 +395,17 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder, machineCo
                     >
                         {sessionName}
                     </Text>
+                    {/* Agent type label for non-Claude sessions */}
+                    {session.metadata?.flavor && session.metadata.flavor !== 'claude' && (
+                        <Text style={{
+                            fontSize: 10,
+                            color: theme.colors.textSecondary,
+                            marginLeft: 6,
+                            ...Typography.default(),
+                        }}>
+                            {session.metadata.flavor === 'codex' ? t('agentInput.agent.codex') : session.metadata.flavor === 'gemini' ? t('agentInput.agent.gemini') : session.metadata.flavor}
+                        </Text>
+                    )}
                 </View>
             </View>
         </Pressable>

@@ -425,6 +425,15 @@ const CompactSessionRow = React.memo(({ session, selected, showBorder, machineCo
 
                     {/* Status indicators on the right side */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, transform: [{ translateY: 1 }] }}>
+                        {/* Agent type label for non-Claude sessions */}
+                        {session.metadata?.flavor && session.metadata.flavor !== 'claude' && (
+                            <View style={styles.taskStatusContainer}>
+                                <Text style={styles.taskStatusText}>
+                                    {session.metadata.flavor === 'codex' ? t('agentInput.agent.codex') : session.metadata.flavor === 'gemini' ? t('agentInput.agent.gemini') : session.metadata.flavor}
+                                </Text>
+                            </View>
+                        )}
+
                         {/* Draft status indicator */}
                         {session.draft && (
                             <View style={styles.taskStatusContainer}>

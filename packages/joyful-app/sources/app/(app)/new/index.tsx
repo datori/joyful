@@ -27,6 +27,7 @@ import {
     getAvailableModels,
     getAvailablePermissionModes,
     getClaudeEffortLevels,
+    getCodexEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
@@ -407,7 +408,7 @@ function NewSessionWizard() {
     });
 
     const availableEffortLevels = React.useMemo(() => (
-        agentType === 'claude' ? getClaudeEffortLevels(t) : []
+        agentType === 'claude' ? getClaudeEffortLevels(t) : agentType === 'codex' ? getCodexEffortLevels(t) : []
     ), [agentType]);
 
     const [effortLevel, setEffortLevel] = React.useState<string | null>(() => {

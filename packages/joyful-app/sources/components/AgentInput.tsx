@@ -1695,8 +1695,8 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                     </Pressable>
                                 )}
 
-                                {/* Agent selector button — Codex/Gemini only (Claude is always claude) */}
-                                {props.agentType && props.agentType !== 'claude' && props.onAgentClick && (
+                                {/* Agent selector button — always visible when onAgentClick is provided */}
+                                {props.agentType && props.onAgentClick && (
                                     <Pressable
                                         onPress={() => {
                                             hapticsLight();
@@ -1726,7 +1726,7 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                             fontWeight: '600',
                                             ...Typography.default('semiBold'),
                                         }}>
-                                            {props.agentType === 'codex' ? t('agentInput.agent.codex') : t('agentInput.agent.gemini')}
+                                            {props.agentType === 'codex' ? t('agentInput.agent.codex') : props.agentType === 'gemini' ? t('agentInput.agent.gemini') : t('agentInput.agent.claude')}
                                         </Text>
                                     </Pressable>
                                 )}

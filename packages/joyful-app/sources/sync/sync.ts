@@ -1842,9 +1842,12 @@ class Sync {
 
             // Get encryption
             const encryption = this.encryption.getSessionEncryption(updateData.body.sid);
-            if (!encryption) { // Should never happen
-                console.error(`Session ${updateData.body.sid} not found`);
-                this.fetchSessions(); // Just fetch sessions again
+            if (!encryption) {
+                console.error(`Session ${updateData.body.sid} not found, fetching sessions and queuing message fetch`);
+                this.fetchSessions();
+                // Also invalidate message sync so messages are fetched once encryption is ready.
+                // fetchMessages throws when encryption is missing, so backoff retries until fetchSessions completes.
+                this.getMessagesSync(updateData.body.sid).invalidate();
                 return;
             }
 

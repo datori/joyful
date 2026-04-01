@@ -75,6 +75,7 @@ export async function runCodex(opts: {
     interface EnhancedMode {
         permissionMode: PermissionMode;
         model?: string;
+        effortLevel?: string;
     }
 
     //
@@ -159,12 +160,14 @@ export async function runCodex(opts: {
     const messageQueue = new MessageQueue2<EnhancedMode>((mode) => hashObject({
         permissionMode: mode.permissionMode,
         model: mode.model,
+        effortLevel: mode.effortLevel,
     }));
 
     // Track current overrides to apply per message
     // Use shared PermissionMode type from api/types for cross-agent compatibility
     let currentPermissionMode: import('@/api/types').PermissionMode | undefined = undefined;
     let currentModel: string | undefined = undefined;
+    let currentEffortLevel: string | undefined = undefined;
 
     session.onUserMessage((message) => {
         // Resolve permission mode (accept all modes, will be mapped in switch statement)
@@ -187,9 +190,18 @@ export async function runCodex(opts: {
             logger.debug(`[Codex] User message received with no model override, using current: ${currentModel || 'default'}`);
         }
 
+        // Resolve effort level; explicit null resets to default (undefined)
+        let messageEffortLevel = currentEffortLevel;
+        if (message.meta?.hasOwnProperty('effortLevel')) {
+            messageEffortLevel = message.meta.effortLevel || undefined;
+            currentEffortLevel = messageEffortLevel;
+            logger.debug(`[Codex] Effort level updated from user message: ${messageEffortLevel || 'reset to default'}`);
+        }
+
         const enhancedMode: EnhancedMode = {
             permissionMode: messagePermissionMode || 'default',
             model: messageModel,
+            effortLevel: messageEffortLevel,
         };
         messageQueue.push(message.content.text, enhancedMode);
     });
@@ -622,6 +634,12 @@ export async function runCodex(opts: {
                     };
                     if (message.mode.model) {
                         startConfig.model = message.mode.model;
+                    }
+                    if (message.mode.effortLevel) {
+                        startConfig.config = {
+                            ...startConfig.config,
+                            model_reasoning_effort: message.mode.effortLevel,
+                        };
                     }
                     
                     // Check for resume file from multiple sources
