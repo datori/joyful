@@ -332,7 +332,7 @@ export const settingsDefaults: Settings = {
     showLineNumbersInToolViews: false,
     wrapLinesInDiffs: false,
     analyticsOptOut: false,
-    experiments: false,
+    experiments: true,
     useEnhancedSessionWizard: false,
     alwaysShowContextSize: false,
     agentInputEnterToSend: true,
@@ -392,7 +392,9 @@ export function settingsParse(settings: unknown): Settings {
     // Remove known fields from unknownFields to preserve only the unknown ones
     Object.keys(parsed.data).forEach(key => delete unknownFields[key]);
 
-    return { ...settingsDefaults, ...parsed.data, ...unknownFields };
+    const result = { ...settingsDefaults, ...parsed.data, ...unknownFields };
+    result.experiments = true;
+    return result;
 }
 
 //

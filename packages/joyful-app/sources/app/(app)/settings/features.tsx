@@ -8,7 +8,6 @@ import { Switch } from '@/components/Switch';
 import { t } from '@/text';
 
 export default function FeaturesSettingsScreen() {
-    const [experiments, setExperiments] = useSettingMutable('experiments');
     const [agentInputEnterToSend, setAgentInputEnterToSend] = useSettingMutable('agentInputEnterToSend');
     const [commandPaletteEnabled, setCommandPaletteEnabled] = useLocalSettingMutable('commandPaletteEnabled');
     const [markdownCopyV2, setMarkdownCopyV2] = useLocalSettingMutable('markdownCopyV2');
@@ -17,23 +16,11 @@ export default function FeaturesSettingsScreen() {
 
     return (
         <ItemList style={{ paddingTop: 0 }}>
-            {/* Experimental Features */}
-            <ItemGroup 
+            {/* Feature Flags */}
+            <ItemGroup
                 title={t('settingsFeatures.experiments')}
                 footer={t('settingsFeatures.experimentsDescription')}
             >
-                <Item
-                    title={t('settingsFeatures.experimentalFeatures')}
-                    subtitle={experiments ? t('settingsFeatures.experimentalFeaturesEnabled') : t('settingsFeatures.experimentalFeaturesDisabled')}
-                    icon={<Ionicons name="flask-outline" size={29} color="#5856D6" />}
-                    rightElement={
-                        <Switch
-                            value={experiments}
-                            onValueChange={setExperiments}
-                        />
-                    }
-                    showChevron={false}
-                />
                 <Item
                     title={t('settingsFeatures.markdownCopyV2')}
                     subtitle={t('settingsFeatures.markdownCopyV2Subtitle')}
