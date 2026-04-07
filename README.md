@@ -161,11 +161,11 @@ yarn dev:stack:start
 yarn dev:stack:seed
 ```
 
-The web app connects to the local server at `http://localhost:3007`:
+`yarn dev:stack:start` only starts the local server and Joyful daemon. The Expo web UI is a separate process and should be started in its own terminal:
 
 ```bash
 # In a separate terminal — starts Expo web on http://localhost:8081
-EXPO_PUBLIC_JOYFUL_SERVER_URL=http://localhost:3007 yarn web
+yarn dev:stack:web
 ```
 
 Open `http://localhost:8081` → Settings → Restore with Secret Key → paste the **base32** seed printed by `yarn dev:stack:seed`.
@@ -184,6 +184,7 @@ JOYFUL_HOME_DIR=~/.joyful-dev JOYFUL_SERVER_URL=http://localhost:3007 ./packages
 
 ```bash
 yarn dev:stack:start    # Start server + daemon
+yarn dev:stack:web      # Start Expo web UI on localhost:8081
 yarn dev:stack:stop     # Gracefully stop everything
 yarn dev:stack:status   # Show what's running
 yarn dev:stack:nuke     # Full reset: wipe DB, re-bootstrap, restart
@@ -191,6 +192,8 @@ yarn dev:stack:seed     # Print seed in base64url and base32 formats
 ```
 
 > ⚠️ **PGlite warning:** Never `kill -9` the server — it uses an embedded WASM database that corrupts on hard kills. Always use `yarn dev:stack:stop`.
+
+> ℹ️ **Expo web note:** if Expo claims port `8081` is already in use but `http://localhost:8081` is not responding, the previous web process likely exited without cleaning up Expo's local state. Start the UI again with `yarn dev:stack:web`; if the problem persists, stop the stale Expo process and rerun the same command.
 
 <h3 align="center">
 Release (Maintainers)

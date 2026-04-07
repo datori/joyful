@@ -12,13 +12,18 @@ import { logger } from "@/ui/logger";
 import { ApiSessionClient } from "@/api/apiSession";
 import { randomUUID } from "node:crypto";
 
-export async function startHappyServer(client: ApiSessionClient) {
-    logger.debug(`[joyfulMCP] server:start sessionId=${client.sessionId}`);
+export async function startHappyServer(clientOrGetter: ApiSessionClient | (() => ApiSessionClient)) {
+    const getClient = typeof clientOrGetter === 'function'
+        ? clientOrGetter
+        : () => clientOrGetter;
+
+    logger.debug(`[joyfulMCP] server:start sessionId=${getClient().sessionId}`);
 
     // Handler that sends title updates via the client
     const handler = async (title: string) => {
         logger.debug('[joyfulMCP] Changing title to:', title);
         try {
+            const client = getClient();
             // Send title as a summary message, similar to title generator
             client.sendClaudeSessionMessage({
                 type: 'summary',
@@ -103,13 +108,13 @@ export async function startHappyServer(client: ApiSessionClient) {
         });
     });
 
-    logger.debug(`[joyfulMCP] server:ready sessionId=${client.sessionId} url=${baseUrl.toString()}`);
+    logger.debug(`[joyfulMCP] server:ready sessionId=${getClient().sessionId} url=${baseUrl.toString()}`);
 
     return {
         url: baseUrl.toString(),
         toolNames: ['change_title'],
         stop: () => {
-            logger.debug(`[joyfulMCP] server:stop sessionId=${client.sessionId}`);
+            logger.debug(`[joyfulMCP] server:stop sessionId=${getClient().sessionId}`);
             mcp.close();
             server.close();
         }

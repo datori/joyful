@@ -5,6 +5,7 @@
         "cli": "yarn workspace joyful cli",
         "release": "node ./scripts/release.cjs",
         "web": "yarn workspace joyful-app web",
+        "dev:stack:web": "yarn workspace joyful-app web --port 8081",
         "postinstall": "node ./scripts/postinstall.cjs",
         "dev:daemon:restart": "yarn workspace joyful dev:daemon:rebuild-restart",
         "dev:stack": "./scripts/dev-stack.sh",

@@ -152,4 +152,18 @@ describe('CodexMcpClient sandbox integration', () => {
             }),
         );
     });
+
+    it('defaults to mcp-server when version output format changes', async () => {
+        mockExecSync.mockReturnValue('Codex 0.43.0');
+        const client = new CodexMcpClient();
+
+        await client.connect();
+
+        expect(mockStdioCtor).toHaveBeenCalledWith(
+            expect.objectContaining({
+                command: 'codex',
+                args: ['mcp-server'],
+            }),
+        );
+    });
 });

@@ -59,6 +59,17 @@ export abstract class BasePermissionHandler {
     }
 
     /**
+     * Hook for subclasses that need to persist extra state when a permission is resolved.
+     */
+    protected onPermissionResolved(
+        _response: PermissionResponse,
+        _pending: PendingRequest,
+        _result: PermissionResult,
+    ): void {
+        // Default no-op.
+    }
+
+    /**
      * Update the session reference (used after offline reconnection swaps sessions).
      * This is critical for avoiding stale session references after onSessionSwap.
      */
@@ -90,6 +101,7 @@ export abstract class BasePermissionHandler {
                     ? { decision: response.decision === 'approved_for_session' ? 'approved_for_session' : 'approved' }
                     : { decision: response.decision === 'denied' ? 'denied' : 'abort' };
 
+                this.onPermissionResolved(response, pending, result);
                 pending.resolve(result);
 
                 // Move request to completed in agent state

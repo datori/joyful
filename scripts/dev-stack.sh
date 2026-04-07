@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# dev-stack.sh — Manage the joyful dev stack (server + daemon + webapp).
+# dev-stack.sh — Manage the joyful dev stack (server + daemon).
+# The Expo web UI runs separately via `yarn dev:stack:web`.
 #
 # Usage:
 #   ./scripts/dev-stack.sh start          Start server + daemon
@@ -9,6 +10,7 @@
 #   ./scripts/dev-stack.sh status         Show what's running
 #   ./scripts/dev-stack.sh nuke           Full reset: wipe PGlite, re-bootstrap, restart
 #   ./scripts/dev-stack.sh seed           Print the current bootstrap seed in both formats
+#   yarn dev:stack:web                    Start the Expo web UI on http://localhost:8081
 #
 # Environment:
 #   SERVER_PORT  (default: 3007)
@@ -257,7 +259,7 @@ console.log(groups.join('-'));
     echo "  base64url (for CLI):   $b64_secret"
     echo "  base32 (for web app):  $b32_seed"
     echo ""
-    info "Web app: http://localhost:8081 -> Settings -> Restore with Secret Key -> paste the base32 seed"
+    info "Web app: run 'yarn dev:stack:web', then open http://localhost:8081 -> Settings -> Restore with Secret Key -> paste the base32 seed"
 }
 
 # ── Main ─────────────────────────────────────────────────────────────────────

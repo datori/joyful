@@ -536,7 +536,7 @@ export async function runCodex(opts: {
     });
 
     // Start Happy MCP server (HTTP) and prepare STDIO bridge config for Codex
-    const joyfulServer = await startHappyServer(session);
+    const joyfulServer = await startHappyServer(() => session);
     const bridgeCommand = join(projectPath(), 'bin', 'joyful-mcp.mjs');
     const mcpServers = {
         joyful: {
@@ -605,6 +605,7 @@ export async function runCodex(opts: {
                 currentModeHash = null;
                 pending = message;
                 // Reset processors/permissions like end-of-turn cleanup
+                permissionHandler.clearSessionApprovals();
                 permissionHandler.reset();
                 reasoningProcessor.abort();
                 diffProcessor.reset();
@@ -698,6 +699,12 @@ export async function runCodex(opts: {
                         storedSessionIdForResume = client.storeSessionForResume();
                         logger.debug('[Codex] Stored session after unexpected error:', storedSessionIdForResume);
                     }
+                    try {
+                        await client.forceCloseSession();
+                    } catch (closeError) {
+                        logger.debug('[Codex] Failed to fully reset Codex client after unexpected error:', closeError);
+                    }
+                    wasCreated = false;
                 }
             } finally {
                 // Reset permission handler, reasoning processor, and diff processor

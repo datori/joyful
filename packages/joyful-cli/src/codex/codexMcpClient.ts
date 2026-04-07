@@ -23,10 +23,10 @@ const DEFAULT_TIMEOUT = 14 * 24 * 60 * 60 * 1000; // 14 days, which is the half 
 function getCodexMcpCommand(): string | null {
     try {
         const version = execSync('codex --version', { encoding: 'utf8' }).trim();
-        const match = version.match(/codex-cli\s+(\d+\.\d+\.\d+(?:-alpha\.\d+)?)/);
+        const match = version.match(/(\d+\.\d+\.\d+(?:-alpha\.\d+)?)/);
         if (!match) {
-            logger.debug('[CodexMCP] Could not parse codex version:', version);
-            return null;
+            logger.warn('[CodexMCP] Could not parse Codex version output, defaulting to mcp-server:', version);
+            return 'mcp-server';
         }
 
         const versionStr = match[1];
@@ -231,7 +231,9 @@ export class CodexMcpClient {
 
                     logger.debug('[CodexMCP] Permission result:', result);
                     return {
-                        action: result.decision === 'approved' ? 'accept' as const : 'decline' as const,
+                        action: (result.decision === 'approved' || result.decision === 'approved_for_session')
+                            ? 'accept' as const
+                            : 'decline' as const,
                         content: {}
                     };
                 } catch (error) {
