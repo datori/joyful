@@ -24,10 +24,9 @@ import { machineBash } from '@/sync/ops';
 import { getTempData, type NewSessionData } from '@/utils/tempDataStore';
 import type { PermissionMode } from '@/components/PermissionModeSelector';
 import {
+    getAvailableEffortLevels,
     getAvailableModels,
     getAvailablePermissionModes,
-    getClaudeEffortLevels,
-    getCodexEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
@@ -408,8 +407,8 @@ function NewSessionWizard() {
     });
 
     const availableEffortLevels = React.useMemo(() => (
-        agentType === 'claude' ? getClaudeEffortLevels(t) : agentType === 'codex' ? getCodexEffortLevels(t) : []
-    ), [agentType]);
+        getAvailableEffortLevels(agentType, null, t)
+    ), [agentType, t]);
 
     const [effortLevel, setEffortLevel] = React.useState<string | null>(() => {
         return machines.find(m => m.id === selectedMachineId)?.metadata?.claudeDefaultEffortLevel ?? null;
@@ -864,8 +863,8 @@ function NewSessionWizard() {
     }, [scrollToSection]);
 
     const handleAgentInputAgentClick = React.useCallback(() => {
-        scrollToSection(profileSectionRef); // Agent tied to profile section
-    }, [scrollToSection]);
+        handleAgentClick();
+    }, [handleAgentClick]);
 
     const handleAddProfile = React.useCallback(() => {
         const newProfile: AIBackendProfile = {

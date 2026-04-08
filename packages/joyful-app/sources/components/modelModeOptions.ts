@@ -97,6 +97,26 @@ export function getCodexEffortLevels(translate: Translate): EffortLevel[] {
     ];
 }
 
+export function getAvailableEffortLevels(
+    flavor: AgentFlavor,
+    metadata: Metadata | null | undefined,
+    translate: Translate,
+): EffortLevel[] {
+    const metadataEffortLevels = mapMetadataOptions(metadata?.thoughtLevels);
+    if (metadataEffortLevels.length > 0) {
+        return metadataEffortLevels;
+    }
+
+    if (flavor === 'claude') {
+        return getClaudeEffortLevels(translate);
+    }
+    if (flavor === 'codex') {
+        return getCodexEffortLevels(translate);
+    }
+
+    return [];
+}
+
 export function getCodexModelModes(_translate: Translate): ModelMode[] {
     return [
         { key: 'gpt-5.4', name: 'GPT 5.4', description: 'Most capable' },

@@ -1769,17 +1769,17 @@ export const AgentInput = React.memo(React.forwardRef<MultiTextInputHandle, Agen
                                 <GitStatusButton sessionId={props.sessionId} onPress={props.onFileViewerPress} />
                                 </View>
 
-                                {/* Effort + Permission tap-to-cycle selectors — Claude only, right side */}
-                                {isClaude && (
+                                {/* Effort + Permission tap-to-cycle selectors */}
+                                {(isClaude || isCodex) && (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 4 }}>
                                         {availableEffortLevels.length > 0 && props.onEffortLevelChange && (() => {
-                                            const effortChevrons: Record<string, number> = { default: 0, low: 1, medium: 2, high: 3, max: 4 };
-                                            const chevronCount = effortChevrons[props.effortLevel?.key ?? 'default'] ?? 0;
+                                            const currentKey = props.effortLevel?.key ?? 'default';
+                                            const chevronCount = Math.max(0, availableEffortLevels.findIndex((level) => level.key === currentKey));
                                             return (
                                                 <Pressable
                                                     onPress={() => {
                                                         hapticsLight();
-                                                        const next = cycleNext(availableEffortLevels, props.effortLevel?.key ?? 'default');
+                                                        const next = cycleNext(availableEffortLevels, currentKey);
                                                         props.onEffortLevelChange?.(next);
                                                     }}
                                                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}

@@ -1,10 +1,9 @@
 import { AgentContentView } from '@/components/AgentContentView';
 import { AgentInput } from '@/components/AgentInput';
 import {
+    getAvailableEffortLevels,
     getAvailableModels,
     getAvailablePermissionModes,
-    getClaudeEffortLevels,
-    getCodexEffortLevels,
     getDefaultModelKey,
     getDefaultPermissionModeKey,
     resolveCurrentOption,
@@ -238,14 +237,16 @@ function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage
     ), [availableModels, session.modelMode, session.metadata?.currentModelCode, flavor]);
 
     const availableEffortLevels = React.useMemo(() => (
-        flavor === 'claude' ? getClaudeEffortLevels(t) : flavor === 'codex' ? getCodexEffortLevels(t) : []
-    ), [flavor]);
+        getAvailableEffortLevels(flavor, session.metadata, t)
+    ), [flavor, session.metadata]);
 
     const effortLevelMode = React.useMemo<ModelMode | null>(() => {
-        if (availableEffortLevels.length === 0) return null;
-        const key = session.effortLevel ?? 'default';
-        return availableEffortLevels.find(e => e.key === key) ?? availableEffortLevels[0];
-    }, [availableEffortLevels, session.effortLevel]);
+        return resolveCurrentOption(availableEffortLevels, [
+            session.effortLevel,
+            session.metadata?.currentThoughtLevelCode,
+            'default',
+        ]) ?? availableEffortLevels[0] ?? null;
+    }, [availableEffortLevels, session.effortLevel, session.metadata?.currentThoughtLevelCode]);
     const sessionStatus = useSessionStatus(session);
     const sessionUsage = useSessionUsage(sessionId);
     const alwaysShowContextSize = useSetting('alwaysShowContextSize');
