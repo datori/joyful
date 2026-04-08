@@ -89,6 +89,7 @@ class Sync {
     private sessionMessageQueue = new Map<string, NormalizedMessage[]>();
     private sessionQueueProcessing = new Set<string>();
     private sessionMessageLocks = new Map<string, AsyncLock>();
+    private handleUpdateLocks = new Map<string, AsyncLock>();
     private sessionDataKeys = new Map<string, Uint8Array>(); // Store session data encryption keys internally
     private machineDataKeys = new Map<string, Uint8Array>(); // Store machine data encryption keys internally
     private artifactDataKeys = new Map<string, Uint8Array>(); // Store artifact data encryption keys internally
@@ -287,6 +288,15 @@ class Sync {
         if (!lock) {
             lock = new AsyncLock();
             this.sessionMessageLocks.set(sessionId, lock);
+        }
+        return lock;
+    }
+
+    private getHandleUpdateLock(sessionId: string): AsyncLock {
+        let lock = this.handleUpdateLocks.get(sessionId);
+        if (!lock) {
+            lock = new AsyncLock();
+            this.handleUpdateLocks.set(sessionId, lock);
         }
         return lock;
     }
@@ -1851,11 +1861,26 @@ class Sync {
                 return;
             }
 
-            // Decrypt message
+            // Capture narrowed types before entering the lock callback
+            const sessionId = updateData.body.sid;
+            const messagePayload = updateData.body.message;
+            const updateSeq = updateData.seq;
+            const updateCreatedAt = updateData.createdAt;
+
+            // Decrypt message outside the lock (CPU-bound, safe to parallelize)
             const decryptStart = Date.now();
-            let lastMessage: NormalizedMessage | null = null;
-            if (updateData.body.message) {
-                const decrypted = await encryption.decryptMessage(updateData.body.message);
+            let decrypted: Awaited<ReturnType<typeof encryption.decryptMessage>> | null = null;
+            if (messagePayload) {
+                decrypted = await encryption.decryptMessage(messagePayload);
+            }
+
+            // Serialize per-session processing to prevent concurrent handleUpdate calls
+            // from reading stale sessionLastSeq values and triggering false seq gaps.
+            // Without this lock, rapid message bursts (common with tool/subagent returns)
+            // cause cascading slow-path refetches that delay message delivery.
+            const updateLock = this.getHandleUpdateLock(sessionId);
+            await updateLock.inLock(async () => {
+                let lastMessage: NormalizedMessage | null = null;
                 if (decrypted) {
                     lastMessage = normalizeRawMessage(decrypted.id, decrypted.localId, decrypted.createdAt, decrypted.content);
 
@@ -1874,32 +1899,23 @@ class Sync {
                     const contentType = rawContent?.content?.type;
                     const dataType = rawContent?.content?.data?.type;
                     const sessionEventType = rawContent?.content?.data?.ev?.t;
-                    
-                    // Debug logging to trace lifecycle events
-                    if (dataType === 'task_complete' || dataType === 'turn_aborted' || dataType === 'task_started' || sessionEventType === 'turn-start' || sessionEventType === 'turn-end') {
-                        console.log(`🔄 [Sync] Lifecycle event detected: contentType=${contentType}, dataType=${dataType}, sessionEventType=${sessionEventType}`);
-                    }
-                    
-                    const isTaskComplete = 
-                        ((contentType === 'acp' || contentType === 'codex') && 
+
+                    const isTaskComplete =
+                        ((contentType === 'acp' || contentType === 'codex') &&
                             (dataType === 'task_complete' || dataType === 'turn_aborted')) ||
                         (contentType === 'session' && sessionEventType === 'turn-end');
-                    
-                    const isTaskStarted = 
+
+                    const isTaskStarted =
                         ((contentType === 'acp' || contentType === 'codex') && dataType === 'task_started') ||
                         (contentType === 'session' && sessionEventType === 'turn-start');
-                    
-                    if (isTaskComplete || isTaskStarted) {
-                        console.log(`🔄 [Sync] Updating thinking state: isTaskComplete=${isTaskComplete}, isTaskStarted=${isTaskStarted}`);
-                    }
 
                     // Update session
-                    const session = storage.getState().sessions[updateData.body.sid];
+                    const session = storage.getState().sessions[sessionId];
                     if (session) {
                         this.applySessions([{
                             ...session,
-                            updatedAt: updateData.createdAt,
-                            seq: updateData.seq,
+                            updatedAt: updateCreatedAt,
+                            seq: updateSeq,
                             // Update thinking state based on task lifecycle events
                             ...(isTaskComplete ? { thinking: false } : {}),
                             ...(isTaskStarted ? { thinking: true } : {})
@@ -1910,27 +1926,33 @@ class Sync {
                     }
 
                     // Fast-path only on consecutive seq values, otherwise fetch from server.
-                    const currentLastSeq = this.sessionLastSeq.get(updateData.body.sid);
-                    const incomingSeq = updateData.body.message.seq;
+                    const currentLastSeq = this.sessionLastSeq.get(sessionId);
+                    const incomingSeq = messagePayload!.seq;
                     if (lastMessage && currentLastSeq !== undefined && incomingSeq === currentLastSeq + 1) {
-                        console.log('🔄 Sync: Applying message (fast path):', JSON.stringify(lastMessage));
-                        this.enqueueMessages(updateData.body.sid, [lastMessage]);
-                        this.sessionLastSeq.set(updateData.body.sid, incomingSeq);
+                        // Content message with consecutive seq — apply immediately
+                        this.enqueueMessages(sessionId, [lastMessage]);
+                        this.sessionLastSeq.set(sessionId, incomingSeq);
                         perfMark('ws.msg.fast', { seq: incomingSeq, dur_ms: Date.now() - decryptStart });
                         let hasMutableTool = false;
                         if (lastMessage.role === 'agent' && lastMessage.content[0] && lastMessage.content[0].type === 'tool-result') {
-                            hasMutableTool = storage.getState().isMutableToolCall(updateData.body.sid, lastMessage.content[0].tool_use_id);
+                            hasMutableTool = storage.getState().isMutableToolCall(sessionId, lastMessage.content[0].tool_use_id);
                         }
                         if (hasMutableTool) {
-                            gitStatusSync.invalidate(updateData.body.sid);
+                            gitStatusSync.invalidate(sessionId);
                         }
+                    } else if (!lastMessage && currentLastSeq !== undefined && incomingSeq === currentLastSeq + 1) {
+                        // Null-normalized message (lifecycle event like turn-start/end, subagent start/stop)
+                        // with consecutive seq — advance seq counter without enqueuing to prevent
+                        // cascading seq gaps that trigger unnecessary slow-path refetches.
+                        this.sessionLastSeq.set(sessionId, incomingSeq);
+                        perfMark('ws.msg.skip', { seq: incomingSeq, reason: 'null_consecutive' });
                     } else {
                         const slowReason = currentLastSeq === undefined ? 'first_load' : 'seq_gap';
                         perfMark('ws.msg.slow', { seq: incomingSeq, reason: slowReason });
-                        this.getMessagesSync(updateData.body.sid).invalidate();
+                        this.getMessagesSync(sessionId).invalidate();
                     }
                 }
-            }
+            });
 
         } else if (updateData.body.t === 'new-session') {
             log.log('🆕 New session update received');
@@ -1955,6 +1977,7 @@ class Sync {
             this.pendingOutbox.delete(sessionId);
             this.sessionLastSeq.delete(sessionId);
             this.sessionMessageLocks.delete(sessionId);
+            this.handleUpdateLocks.delete(sessionId);
             this.sessionMessageQueue.delete(sessionId);
             this.sessionQueueProcessing.delete(sessionId);
 
