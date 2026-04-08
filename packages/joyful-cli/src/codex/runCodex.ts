@@ -33,34 +33,11 @@ import { setupOfflineReconnection } from '@/utils/setupOfflineReconnection';
 import type { ApiSessionClient } from '@/api/apiSession';
 import { resolveCodexExecutionPolicy } from './executionPolicy';
 import { mapCodexMcpMessageToSessionEnvelopes, mapCodexProcessorMessageToSessionEnvelopes } from './utils/sessionProtocolMapper';
-
-type ReadyEventOptions = {
-    pending: unknown;
-    queueSize: () => number;
-    shouldExit: boolean;
-    sendReady: () => void;
-    notify?: () => void;
-};
-
-/**
- * Notify connected clients when Codex finishes processing and the queue is idle.
- * Returns true when a ready event was emitted.
- */
-export function emitReadyIfIdle({ pending, queueSize, shouldExit, sendReady, notify }: ReadyEventOptions): boolean {
-    if (shouldExit) {
-        return false;
-    }
-    if (pending) {
-        return false;
-    }
-    if (queueSize() > 0) {
-        return false;
-    }
-
-    sendReady();
-    notify?.();
-    return true;
-}
+import {
+    emitReadyIfIdle,
+    isAbortLikeError,
+    isRecoverableCodexSessionError,
+} from './runCodex.helpers';
 
 /**
  * Main entry point for the codex command with ink UI
@@ -429,6 +406,50 @@ export async function runCodex(opts: {
             session.sendSessionProtocolMessage(envelope);
         }
     });
+    let wasCreated = false;
+    let nextExperimentalResume: string | null = null;
+
+    const resetTurnState = () => {
+        permissionHandler.clearSessionApprovals();
+        permissionHandler.reset();
+        reasoningProcessor.abort();
+        diffProcessor.reset();
+        thinking = false;
+        session.keepAlive(thinking, 'remote');
+    };
+
+    const prepareSessionRecovery = async (): Promise<boolean> => {
+        let resumeSessionId = storedSessionIdForResume;
+        if (!resumeSessionId && client.hasActiveSession()) {
+            resumeSessionId = client.storeSessionForResume();
+        }
+        if (!resumeSessionId) {
+            logger.debug('[Codex] Session recovery skipped: no session id available');
+            return false;
+        }
+
+        const resumeFile = findCodexResumeFile(resumeSessionId);
+        if (!resumeFile) {
+            logger.debug(`[Codex] Session recovery skipped: no transcript found for ${resumeSessionId}`);
+            return false;
+        }
+
+        nextExperimentalResume = resumeFile;
+        storedSessionIdForResume = null;
+        messageBuffer.addMessage('Restoring previous Codex context...', 'status');
+        logger.debug('[Codex] Recovering session using resume file:', resumeFile);
+
+        try {
+            await client.forceCloseSession();
+        } catch (closeError) {
+            logger.debug('[Codex] Failed to reset Codex client during recovery:', closeError);
+        }
+
+        wasCreated = false;
+        resetTurnState();
+        return true;
+    };
+
     client.setPermissionHandler(permissionHandler);
     client.setHandler((msg) => {
         logger.debug(`[Codex] MCP message: ${JSON.stringify(msg)}`);
@@ -550,11 +571,8 @@ export async function runCodex(opts: {
         logger.debug('[codex]: client.connect begin');
         await client.connect();
         logger.debug('[codex]: client.connect done');
-        let wasCreated = false;
         let currentModeHash: string | null = null;
         let pending: { message: string; mode: EnhancedMode; isolate: boolean; hash: string } | null = null;
-        // If we restart (e.g., mode change), use this to carry a resume file
-        let nextExperimentalResume: string | null = null;
 
         while (!shouldExit) {
             logActiveHandles('loop-top');
@@ -604,13 +622,7 @@ export async function runCodex(opts: {
                 wasCreated = false;
                 currentModeHash = null;
                 pending = message;
-                // Reset processors/permissions like end-of-turn cleanup
-                permissionHandler.clearSessionApprovals();
-                permissionHandler.reset();
-                reasoningProcessor.abort();
-                diffProcessor.reset();
-                thinking = false;
-                session.keepAlive(thinking, 'remote');
+                resetTurnState();
                 continue;
             }
 
@@ -619,100 +631,113 @@ export async function runCodex(opts: {
             currentModeHash = message.hash;
 
             try {
-                // Map permission mode to approval policy and sandbox for startSession
-                const sandboxManagedByHappy = client.sandboxEnabled;
-                const executionPolicy = resolveCodexExecutionPolicy(
-                    message.mode.permissionMode,
-                    sandboxManagedByHappy,
-                );
+                let recovered = false;
 
-                if (!wasCreated) {
-                    const startConfig: CodexSessionConfig = {
-                        prompt: first ? message.message + '\n\n' + CHANGE_TITLE_INSTRUCTION : message.message,
-                        sandbox: executionPolicy.sandbox,
-                        'approval-policy': executionPolicy.approvalPolicy,
-                        config: { mcp_servers: mcpServers }
-                    };
-                    if (message.mode.model) {
-                        startConfig.model = message.mode.model;
-                    }
-                    if (message.mode.effortLevel) {
-                        startConfig.config = {
-                            ...startConfig.config,
-                            model_reasoning_effort: message.mode.effortLevel,
-                        };
-                    }
-                    
-                    // Check for resume file from multiple sources
-                    let resumeFile: string | null = null;
-                    
-                    // Priority 1: Explicit resume file from mode change
-                    if (nextExperimentalResume) {
-                        resumeFile = nextExperimentalResume;
-                        nextExperimentalResume = null; // consume once
-                        logger.debug('[Codex] Using resume file from mode change:', resumeFile);
-                    }
-                    // Priority 2: Resume from stored abort session
-                    else if (storedSessionIdForResume) {
-                        const abortResumeFile = findCodexResumeFile(storedSessionIdForResume);
-                        if (abortResumeFile) {
-                            resumeFile = abortResumeFile;
-                            logger.debug('[Codex] Using resume file from aborted session:', resumeFile);
-                            messageBuffer.addMessage('Resuming from aborted session...', 'status');
-                        }
-                        storedSessionIdForResume = null; // consume once
-                    }
-                    
-                    // Apply resume file if found
-                    if (resumeFile) {
-                        (startConfig.config as any).experimental_resume = resumeFile;
-                    }
-                    
-                    await client.startSession(
-                        startConfig,
-                        { signal: abortController.signal }
-                    );
-                    wasCreated = true;
-                    first = false;
-                } else {
-                    const response = await client.continueSession(
-                        message.message,
-                        { signal: abortController.signal }
-                    );
-                    logger.debug('[Codex] continueSession response:', response);
-                }
-            } catch (error) {
-                logger.warn('Error in codex session:', error);
-                const isAbortError = error instanceof Error && error.name === 'AbortError';
-                
-                if (isAbortError) {
-                    messageBuffer.addMessage('Aborted by user', 'status');
-                    session.sendSessionEvent({ type: 'message', message: 'Aborted by user' });
-                    // Abort cancels the current task/inference but keeps the Codex session alive.
-                    // Do not clear session state here; the next user message should continue on the
-                    // existing session if possible.
-                } else {
-                    messageBuffer.addMessage('Process exited unexpectedly', 'status');
-                    session.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' });
-                    // For unexpected exits, try to store session for potential recovery
-                    if (client.hasActiveSession()) {
-                        storedSessionIdForResume = client.storeSessionForResume();
-                        logger.debug('[Codex] Stored session after unexpected error:', storedSessionIdForResume);
-                    }
+                while (true) {
+                    const requestSignal = abortController.signal;
+
                     try {
-                        await client.forceCloseSession();
-                    } catch (closeError) {
-                        logger.debug('[Codex] Failed to fully reset Codex client after unexpected error:', closeError);
+                        // Map permission mode to approval policy and sandbox for startSession
+                        const sandboxManagedByHappy = client.sandboxEnabled;
+                        const executionPolicy = resolveCodexExecutionPolicy(
+                            message.mode.permissionMode,
+                            sandboxManagedByHappy,
+                        );
+
+                        if (!wasCreated) {
+                            const startConfig: CodexSessionConfig = {
+                                prompt: first ? message.message + '\n\n' + CHANGE_TITLE_INSTRUCTION : message.message,
+                                sandbox: executionPolicy.sandbox,
+                                'approval-policy': executionPolicy.approvalPolicy,
+                                config: { mcp_servers: mcpServers }
+                            };
+                            if (message.mode.model) {
+                                startConfig.model = message.mode.model;
+                            }
+                            if (message.mode.effortLevel) {
+                                startConfig.config = {
+                                    ...startConfig.config,
+                                    model_reasoning_effort: message.mode.effortLevel,
+                                };
+                            }
+
+                            // Check for resume file from multiple sources
+                            let resumeFile: string | null = null;
+
+                            // Priority 1: Explicit resume file from mode change or recovery
+                            if (nextExperimentalResume) {
+                                resumeFile = nextExperimentalResume;
+                                nextExperimentalResume = null; // consume once
+                                logger.debug('[Codex] Using resume file for new session:', resumeFile);
+                            }
+                            // Priority 2: Resume from stored abort session
+                            else if (storedSessionIdForResume) {
+                                const abortResumeFile = findCodexResumeFile(storedSessionIdForResume);
+                                if (abortResumeFile) {
+                                    resumeFile = abortResumeFile;
+                                    logger.debug('[Codex] Using resume file from aborted session:', resumeFile);
+                                    messageBuffer.addMessage('Resuming from aborted session...', 'status');
+                                }
+                                storedSessionIdForResume = null; // consume once
+                            }
+
+                            // Apply resume file if found
+                            if (resumeFile) {
+                                (startConfig.config as any).experimental_resume = resumeFile;
+                            }
+
+                            await client.startSession(
+                                startConfig,
+                                { signal: requestSignal }
+                            );
+                            wasCreated = true;
+                            first = false;
+                        } else {
+                            const response = await client.continueSession(
+                                message.message,
+                                { signal: requestSignal }
+                            );
+                            logger.debug('[Codex] continueSession response:', response);
+                        }
+
+                        break;
+                    } catch (error) {
+                        logger.warn('Error in codex session:', error);
+
+                        if (isAbortLikeError(error, requestSignal)) {
+                            messageBuffer.addMessage('Aborted by user', 'status');
+                            session.sendSessionEvent({ type: 'message', message: 'Aborted by user' });
+                            break;
+                        }
+
+                        const canRecover =
+                            !recovered &&
+                            wasCreated &&
+                            !shouldExit &&
+                            isRecoverableCodexSessionError(error);
+                        if (canRecover && await prepareSessionRecovery()) {
+                            recovered = true;
+                            continue;
+                        }
+
+                        messageBuffer.addMessage('Process exited unexpectedly', 'status');
+                        session.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' });
+                        // For unexpected exits, try to store session for potential recovery
+                        if (client.hasActiveSession()) {
+                            storedSessionIdForResume = client.storeSessionForResume();
+                            logger.debug('[Codex] Stored session after unexpected error:', storedSessionIdForResume);
+                        }
+                        try {
+                            await client.forceCloseSession();
+                        } catch (closeError) {
+                            logger.debug('[Codex] Failed to fully reset Codex client after unexpected error:', closeError);
+                        }
+                        wasCreated = false;
+                        break;
                     }
-                    wasCreated = false;
                 }
             } finally {
-                // Reset permission handler, reasoning processor, and diff processor
-                permissionHandler.reset();
-                reasoningProcessor.abort();  // Use abort to properly finish any in-progress tool calls
-                diffProcessor.reset();
-                thinking = false;
-                session.keepAlive(thinking, 'remote');
+                resetTurnState();
                 emitReadyIfIdle({
                     pending,
                     queueSize: () => messageQueue.size(),
