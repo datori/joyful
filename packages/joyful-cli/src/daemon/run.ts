@@ -1,6 +1,5 @@
 import fs from 'fs/promises';
 import os from 'os';
-import * as tmp from 'tmp';
 
 import { ApiClient } from '@/api/api';
 import { TrackedSession } from './types';
@@ -10,6 +9,7 @@ import { logger } from '@/ui/logger';
 import { authAndSetupMachineIfNeeded } from '@/ui/auth';
 import { configuration } from '@/configuration';
 import { startCaffeinate, stopCaffeinate } from '@/utils/caffeinate';
+import { prepareCodexAuthHome } from '@/codex/auth';
 import packageJson from '../../package.json';
 import { getEnvironmentInfo } from '@/ui/doctor';
 import { spawnJoyfulCLI } from '@/utils/spawnJoyfulCLI';
@@ -342,15 +342,7 @@ export async function startDaemon(): Promise<void> {
         const authEnv: Record<string, string> = {};
         if (options.token) {
           if (options.agent === 'codex') {
-
-            // Create a temporary directory for Codex
-            const codexHomeDir = tmp.dirSync();
-
-            // Write the token to the temporary directory
-            fs.writeFile(join(codexHomeDir.name, 'auth.json'), options.token);
-
-            // Set the environment variable for Codex
-            authEnv.CODEX_HOME = codexHomeDir.name;
+            authEnv.CODEX_HOME = await prepareCodexAuthHome(options.token, configuration.joyfulHomeDir);
           } else { // Assuming claude
             authEnv.CLAUDE_CODE_OAUTH_TOKEN = options.token;
           }

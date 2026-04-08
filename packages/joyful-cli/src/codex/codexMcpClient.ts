@@ -15,6 +15,12 @@ import { initializeSandbox, wrapForMcpTransport } from '@/sandbox/manager';
 
 const DEFAULT_TIMEOUT = 14 * 24 * 60 * 60 * 1000; // 14 days, which is the half of the maximum possible timeout (~28 days for int32 value in NodeJS)
 
+function summarizeIdentifier(value: string | null): string | null {
+    if (!value) return null;
+    if (value.length <= 14) return value;
+    return `${value.slice(0, 8)}…${value.slice(-6)}`;
+}
+
 /**
  * Get the correct MCP subcommand based on installed codex version
  * Versions >= 0.43.0-alpha.5 use 'mcp-server', older versions use 'mcp'
@@ -56,6 +62,7 @@ export class CodexMcpClient {
     private sessionId: string | null = null;
     private conversationId: string | null = null;
     private handler: ((event: any) => void) | null = null;
+    private identifierUpdateHandler: ((ids: { sessionId: string | null; conversationId: string | null }) => void) | null = null;
     private permissionHandler: CodexPermissionHandler | null = null;
     private sandboxConfig?: SandboxConfig;
     private sandboxCleanup: (() => Promise<void>) | null = null;
@@ -82,6 +89,34 @@ export class CodexMcpClient {
 
     setHandler(handler: ((event: any) => void) | null): void {
         this.handler = handler;
+    }
+
+    setIdentifierUpdateHandler(
+        handler: ((ids: { sessionId: string | null; conversationId: string | null }) => void) | null
+    ): void {
+        this.identifierUpdateHandler = handler;
+    }
+
+    hydrateIdentifiers(ids: { sessionId?: string | null; conversationId?: string | null }): void {
+        let changed = false;
+
+        if (ids.sessionId !== undefined && ids.sessionId !== this.sessionId) {
+            this.sessionId = ids.sessionId;
+            changed = true;
+        }
+
+        if (ids.conversationId !== undefined && ids.conversationId !== this.conversationId) {
+            this.conversationId = ids.conversationId;
+            changed = true;
+        }
+
+        if (changed) {
+            logger.debug('[CodexMCP] Hydrated persisted identifiers', {
+                sessionId: summarizeIdentifier(this.sessionId),
+                conversationId: summarizeIdentifier(this.conversationId),
+            });
+            this.publishIdentifierUpdate();
+        }
     }
 
     /**
@@ -275,13 +310,12 @@ export class CodexMcpClient {
             throw new Error('No active session. Call startSession first.');
         }
 
-        if (!this.conversationId) {
-            // Some Codex deployments reuse the session ID as the conversation identifier
-            this.conversationId = this.sessionId;
-            logger.debug('[CodexMCP] conversationId missing, defaulting to sessionId:', this.conversationId);
+        const conversationId = this.conversationId ?? this.sessionId;
+        if (!conversationId) {
+            throw new Error('No active conversation. Call startSession first.');
         }
 
-        const args = { sessionId: this.sessionId, conversationId: this.conversationId, prompt };
+        const args = { sessionId: this.sessionId, conversationId, prompt };
         logger.debug('[CodexMCP] Continuing Codex session:', args);
 
         const response = await this.client.callTool({
@@ -304,6 +338,7 @@ export class CodexMcpClient {
             return;
         }
 
+        let changed = false;
         const candidates: any[] = [event];
         if (event.data && typeof event.data === 'object') {
             candidates.push(event.data);
@@ -311,34 +346,53 @@ export class CodexMcpClient {
 
         for (const candidate of candidates) {
             const sessionId = candidate.session_id ?? candidate.sessionId;
-            if (sessionId) {
+            if (sessionId && sessionId !== this.sessionId) {
                 this.sessionId = sessionId;
                 logger.debug('[CodexMCP] Session ID extracted from event:', this.sessionId);
+                changed = true;
             }
 
             const conversationId = candidate.conversation_id ?? candidate.conversationId;
-            if (conversationId) {
+            if (conversationId && conversationId !== this.conversationId) {
                 this.conversationId = conversationId;
                 logger.debug('[CodexMCP] Conversation ID extracted from event:', this.conversationId);
+                changed = true;
             }
+        }
+
+        if (changed) {
+            this.publishIdentifierUpdate();
         }
     }
     private extractIdentifiers(response: any): void {
         const meta = response?.meta || {};
+        let changed = false;
         if (meta.sessionId) {
-            this.sessionId = meta.sessionId;
-            logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
+            if (meta.sessionId !== this.sessionId) {
+                this.sessionId = meta.sessionId;
+                logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
+                changed = true;
+            }
         } else if (response?.sessionId) {
-            this.sessionId = response.sessionId;
-            logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
+            if (response.sessionId !== this.sessionId) {
+                this.sessionId = response.sessionId;
+                logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
+                changed = true;
+            }
         }
 
         if (meta.conversationId) {
-            this.conversationId = meta.conversationId;
-            logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
+            if (meta.conversationId !== this.conversationId) {
+                this.conversationId = meta.conversationId;
+                logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
+                changed = true;
+            }
         } else if (response?.conversationId) {
-            this.conversationId = response.conversationId;
-            logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
+            if (response.conversationId !== this.conversationId) {
+                this.conversationId = response.conversationId;
+                logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
+                changed = true;
+            }
         }
 
         const content = response?.content;
@@ -347,17 +401,27 @@ export class CodexMcpClient {
                 if (!this.sessionId && item?.sessionId) {
                     this.sessionId = item.sessionId;
                     logger.debug('[CodexMCP] Session ID extracted from content:', this.sessionId);
+                    changed = true;
                 }
                 if (!this.conversationId && item && typeof item === 'object' && 'conversationId' in item && item.conversationId) {
                     this.conversationId = item.conversationId;
                     logger.debug('[CodexMCP] Conversation ID extracted from content:', this.conversationId);
+                    changed = true;
                 }
             }
+        }
+
+        if (changed) {
+            this.publishIdentifierUpdate();
         }
     }
 
     getSessionId(): string | null {
         return this.sessionId;
+    }
+
+    getConversationId(): string | null {
+        return this.conversationId;
     }
 
     hasActiveSession(): boolean {
@@ -370,6 +434,7 @@ export class CodexMcpClient {
         this.sessionId = null;
         this.conversationId = null;
         logger.debug('[CodexMCP] Session cleared, previous sessionId:', previousSessionId);
+        this.publishIdentifierUpdate();
     }
 
     /**
@@ -439,5 +504,16 @@ export class CodexMcpClient {
         this.sandboxEnabled = false;
         // Preserve session/conversation identifiers for potential reconnection / recovery flows.
         logger.debug(`[CodexMCP] Disconnected; session ${this.sessionId ?? 'none'} preserved`);
+    }
+
+    private publishIdentifierUpdate(): void {
+        logger.debug('[CodexMCP] Identifier state updated', {
+            sessionId: summarizeIdentifier(this.sessionId),
+            conversationId: summarizeIdentifier(this.conversationId),
+        });
+        this.identifierUpdateHandler?.({
+            sessionId: this.sessionId,
+            conversationId: this.conversationId,
+        });
     }
 }

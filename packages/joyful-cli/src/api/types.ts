@@ -275,6 +275,8 @@ export type Metadata = {
   },
   machineId?: string,
   claudeSessionId?: string, // Claude Code session ID
+  codexSessionId?: string, // Codex provider session ID
+  codexConversationId?: string, // Codex provider conversation ID
   tools?: string[],
   slashCommands?: string[],
   homeDir: string,

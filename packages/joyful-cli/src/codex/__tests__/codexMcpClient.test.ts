@@ -9,6 +9,8 @@ const {
     mockSandboxCleanup,
     mockClientConnect,
     mockClientClose,
+    mockClientCallTool,
+    mockSetNotificationHandler,
     mockStdioCtor,
 } = vi.hoisted(() => ({
     mockExecSync: vi.fn(),
@@ -17,6 +19,8 @@ const {
     mockSandboxCleanup: vi.fn(),
     mockClientConnect: vi.fn(),
     mockClientClose: vi.fn(),
+    mockClientCallTool: vi.fn(),
+    mockSetNotificationHandler: vi.fn(),
     mockStdioCtor: vi.fn(),
 }));
 
@@ -39,11 +43,11 @@ vi.mock('@/ui/logger', () => ({
 
 vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
     Client: class MockClient {
-        setNotificationHandler = vi.fn();
+        setNotificationHandler = mockSetNotificationHandler;
         setRequestHandler = vi.fn();
         connect = mockClientConnect;
         close = mockClientClose;
-        callTool = vi.fn();
+        callTool = mockClientCallTool;
         constructor() {}
     },
 }));
@@ -81,6 +85,7 @@ describe('CodexMcpClient sandbox integration', () => {
         mockExecSync.mockReturnValue('codex-cli 0.43.0');
         mockClientConnect.mockResolvedValue(undefined);
         mockClientClose.mockResolvedValue(undefined);
+        mockClientCallTool.mockReset();
         mockInitializeSandbox.mockResolvedValue(mockSandboxCleanup);
         mockWrapForMcpTransport.mockResolvedValue({ command: 'sh', args: ['-c', 'wrapped codex mcp'] });
     });
@@ -165,5 +170,88 @@ describe('CodexMcpClient sandbox integration', () => {
                 args: ['mcp-server'],
             }),
         );
+    });
+
+    it('publishes identifiers extracted from startSession responses', async () => {
+        const client = new CodexMcpClient();
+        const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
+        client.setIdentifierUpdateHandler((ids) => identifierUpdates.push(ids));
+
+        mockClientCallTool.mockResolvedValue({
+            meta: {
+                sessionId: 'codex-session-1',
+                conversationId: 'codex-convo-1',
+            },
+            content: [],
+        });
+
+        await client.startSession({ prompt: 'hello' });
+
+        expect(identifierUpdates).toContainEqual({
+            sessionId: 'codex-session-1',
+            conversationId: 'codex-convo-1',
+        });
+    });
+
+    it('hydrates persisted identifiers and uses them for continueSession', async () => {
+        const client = new CodexMcpClient();
+        client.hydrateIdentifiers({
+            sessionId: 'persisted-session',
+            conversationId: 'persisted-conversation',
+        });
+
+        mockClientCallTool.mockResolvedValue({ content: [] });
+
+        await client.continueSession('continue here');
+
+        expect(mockClientCallTool).toHaveBeenCalledWith(
+            {
+                name: 'codex-reply',
+                arguments: {
+                    sessionId: 'persisted-session',
+                    conversationId: 'persisted-conversation',
+                    prompt: 'continue here',
+                },
+            },
+            undefined,
+            expect.objectContaining({
+                timeout: expect.any(Number),
+            }),
+        );
+    });
+
+    it('does not persist a synthetic conversation id when only session id exists', async () => {
+        const client = new CodexMcpClient();
+        const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
+        client.setIdentifierUpdateHandler((ids) => identifierUpdates.push(ids));
+        client.hydrateIdentifiers({
+            sessionId: 'persisted-session',
+            conversationId: null,
+        });
+
+        mockClientCallTool.mockResolvedValue({ content: [] });
+
+        await client.continueSession('continue here');
+
+        expect(mockClientCallTool).toHaveBeenCalledWith(
+            {
+                name: 'codex-reply',
+                arguments: {
+                    sessionId: 'persisted-session',
+                    conversationId: 'persisted-session',
+                    prompt: 'continue here',
+                },
+            },
+            undefined,
+            expect.objectContaining({
+                timeout: expect.any(Number),
+            }),
+        );
+        expect(identifierUpdates).toEqual([
+            {
+                sessionId: 'persisted-session',
+                conversationId: null,
+            },
+        ]);
     });
 });
