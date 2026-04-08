@@ -17,7 +17,7 @@ import { writeDaemonState, DaemonLocallyPersistedState, readDaemonState, acquire
 
 import { cleanupDaemonState, isDaemonRunningCurrentlyInstalledHappyVersion, stopDaemon } from './controlClient';
 import { startDaemonControlServer } from './controlServer';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { projectPath } from '@/projectPath';
 import { getTmuxUtilities, isTmuxAvailable, parseTmuxSessionIdentifier, formatTmuxSessionIdentifier } from '@/utils/tmux';
@@ -32,6 +32,58 @@ function readClaudeCodeDefaults(): { claudeDefaultModel?: string; claudeDefaultE
     ...(settings.model ? { claudeDefaultModel: settings.model } : {}),
     ...(settings.effortLevel ? { claudeDefaultEffortLevel: settings.effortLevel } : {}),
   };
+}
+
+function compareLooseSemverDesc(a: string, b: string): number {
+  const aParts = a.replace(/^v/, '').split('.').map(v => Number.parseInt(v, 10) || 0);
+  const bParts = b.replace(/^v/, '').split('.').map(v => Number.parseInt(v, 10) || 0);
+  const len = Math.max(aParts.length, bParts.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (bParts[i] ?? 0) - (aParts[i] ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
+
+function prependExistingPath(dir: string, nextEntries: string[]): void {
+  if (existsSync(dir) && !nextEntries.includes(dir)) {
+    nextEntries.push(dir);
+  }
+}
+
+function augmentPathWithKnownCliBins(): void {
+  const homeDir = os.homedir();
+  const currentPathEntries = (process.env.PATH || '').split(':').filter(Boolean);
+  const prependEntries: string[] = [];
+
+  prependExistingPath(join(homeDir, '.local', 'bin'), prependEntries);
+  prependExistingPath(join(homeDir, 'bin'), prependEntries);
+
+  const nvmVersionsDir = join(homeDir, '.nvm', 'versions', 'node');
+  if (existsSync(nvmVersionsDir)) {
+    try {
+      const versionDirs = readdirSync(nvmVersionsDir, { withFileTypes: true })
+        .filter(entry => entry.isDirectory())
+        .map(entry => entry.name)
+        .sort(compareLooseSemverDesc);
+
+      for (const versionDir of versionDirs) {
+        prependExistingPath(join(nvmVersionsDir, versionDir, 'bin'), prependEntries);
+      }
+    } catch (error) {
+      logger.debug('[DAEMON RUN] Failed to inspect nvm versions dir', error);
+    }
+  }
+
+  if (prependEntries.length === 0) {
+    return;
+  }
+
+  const mergedPath = [...prependEntries, ...currentPathEntries.filter(entry => !prependEntries.includes(entry))];
+  process.env.PATH = mergedPath.join(':');
+  logger.debug('[DAEMON RUN] PATH augmented for local CLI discovery', { prependEntries });
 }
 
 // Prepare initial metadata
@@ -77,6 +129,8 @@ async function getProfileEnvironmentVariablesForAgent(
 }
 
 export async function startDaemon(): Promise<void> {
+  augmentPathWithKnownCliBins();
+
   // We don't have cleanup function at the time of server construction
   // Control flow is:
   // 1. Create promise that will resolve when shutdown is requested
