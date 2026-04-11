@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { emitReadyIfIdle, isAbortLikeError, isRecoverableCodexSessionError } from '../runCodex.helpers';
+import {
+    emitReadyIfIdle,
+    getCodexResumeIdentifiersFromEnv,
+    isAbortLikeError,
+    isRecoverableCodexSessionError,
+    mergeCodexSessionConfigIntoMetadata,
+} from '../runCodex.helpers';
 
 describe('emitReadyIfIdle', () => {
     it('emits ready and notification when queue is idle', () => {
@@ -89,5 +95,75 @@ describe('isRecoverableCodexSessionError', () => {
     it('does not retry on ordinary model or application errors', () => {
         expect(isRecoverableCodexSessionError(new Error('Model not found'))).toBe(false);
         expect(isRecoverableCodexSessionError(new Error('Permission denied'))).toBe(false);
+    });
+});
+
+describe('getCodexResumeIdentifiersFromEnv', () => {
+    it('reads Codex resume identifiers when the daemon seeded them', () => {
+        expect(getCodexResumeIdentifiersFromEnv({
+            JOYFUL_CODEX_RESUME_SESSION_ID: 'session-123',
+            JOYFUL_CODEX_RESUME_CONVERSATION_ID: 'conversation-456',
+        })).toEqual({
+            sessionId: 'session-123',
+            conversationId: 'conversation-456',
+        });
+    });
+
+    it('normalizes blank env vars to null', () => {
+        expect(getCodexResumeIdentifiersFromEnv({
+            JOYFUL_CODEX_RESUME_SESSION_ID: '   ',
+            JOYFUL_CODEX_RESUME_CONVERSATION_ID: undefined,
+        })).toEqual({
+            sessionId: null,
+            conversationId: null,
+        });
+    });
+});
+
+describe('mergeCodexSessionConfigIntoMetadata', () => {
+    it('publishes codex config options and current explicit selections', () => {
+        const next = mergeCodexSessionConfigIntoMetadata({
+            path: '/tmp/project',
+            host: 'machine',
+            homeDir: '/home/test',
+            joyfulHomeDir: '/home/test/.joyful',
+            joyfulLibDir: '/home/test/.joyful/lib',
+            joyfulToolsDir: '/home/test/.joyful/tools',
+            flavor: 'codex',
+        }, {
+            permissionMode: 'safe-yolo',
+            model: 'gpt-5.4-mini',
+            effortLevel: 'high',
+        });
+
+        expect(next.operatingModes?.map((option) => option.code)).toEqual(['read-only', 'safe-yolo', 'yolo']);
+        expect(next.models?.map((option) => option.code)).toEqual(['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex', 'gpt-5.2-codex']);
+        expect(next.thoughtLevels?.map((option) => option.code)).toEqual(['low', 'medium', 'high']);
+        expect(next.currentOperatingModeCode).toBe('safe-yolo');
+        expect(next.currentModelCode).toBe('gpt-5.4-mini');
+        expect(next.currentThoughtLevelCode).toBe('high');
+    });
+
+    it('clears stale current selections when Codex falls back to defaults', () => {
+        const next = mergeCodexSessionConfigIntoMetadata({
+            path: '/tmp/project',
+            host: 'machine',
+            homeDir: '/home/test',
+            joyfulHomeDir: '/home/test/.joyful',
+            joyfulLibDir: '/home/test/.joyful/lib',
+            joyfulToolsDir: '/home/test/.joyful/tools',
+            flavor: 'codex',
+            currentOperatingModeCode: 'yolo',
+            currentModelCode: 'gpt-5.4',
+            currentThoughtLevelCode: 'medium',
+        }, {
+            permissionMode: 'default',
+            model: undefined,
+            effortLevel: undefined,
+        });
+
+        expect(next.currentOperatingModeCode).toBeUndefined();
+        expect(next.currentModelCode).toBeUndefined();
+        expect(next.currentThoughtLevelCode).toBeUndefined();
     });
 });

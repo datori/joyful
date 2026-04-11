@@ -35,8 +35,10 @@ import { resolveCodexExecutionPolicy } from './executionPolicy';
 import { mapCodexMcpMessageToSessionEnvelopes, mapCodexProcessorMessageToSessionEnvelopes } from './utils/sessionProtocolMapper';
 import {
     emitReadyIfIdle,
+    getCodexResumeIdentifiersFromEnv,
     isAbortLikeError,
     isRecoverableCodexSessionError,
+    mergeCodexSessionConfigIntoMetadata,
 } from './runCodex.helpers';
 
 /**
@@ -112,12 +114,24 @@ export async function runCodex(opts: {
     // Create session
     //
 
-    const { state, metadata } = createSessionMetadata({
+    const envResumeIdentifiers = getCodexResumeIdentifiersFromEnv();
+    const { state, metadata: baseMetadata } = createSessionMetadata({
         flavor: 'codex',
         machineId,
         startedBy: opts.startedBy,
         sandbox: sandboxConfig,
     });
+    const metadata = {
+        ...baseMetadata,
+        ...(envResumeIdentifiers.sessionId ? { codexSessionId: envResumeIdentifiers.sessionId } : {}),
+        ...(envResumeIdentifiers.conversationId ? { codexConversationId: envResumeIdentifiers.conversationId } : {}),
+    };
+    if (envResumeIdentifiers.sessionId || envResumeIdentifiers.conversationId) {
+        logger.debug('[Codex] Seeding new Joyful session with resume identifiers from environment', {
+            sessionId: summarizeIdentifier(envResumeIdentifiers.sessionId),
+            conversationId: summarizeIdentifier(envResumeIdentifiers.conversationId),
+        });
+    }
     const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state });
     let persistedCodexSessionId = response?.metadata?.codexSessionId ?? null;
     let persistedCodexConversationId = response?.metadata?.codexConversationId ?? null;
@@ -151,6 +165,7 @@ export async function runCodex(opts: {
                 permissionHandler.updateSession(newSession);
             }
             syncPersistedCodexIdentifiersToSession(newSession);
+            syncCodexConfigMetadataToSession(newSession);
         }
     });
     session = initialSession;
@@ -181,6 +196,17 @@ export async function runCodex(opts: {
     let currentPermissionMode: import('@/api/types').PermissionMode | undefined = undefined;
     let currentModel: string | undefined = undefined;
     let currentEffortLevel: string | undefined = undefined;
+    const syncCodexConfigMetadataToSession = (targetSession: ApiSessionClient) => {
+        targetSession.updateMetadata((currentMetadata) => (
+            mergeCodexSessionConfigIntoMetadata(currentMetadata, {
+                permissionMode: currentPermissionMode,
+                model: currentModel,
+                effortLevel: currentEffortLevel,
+            })
+        ));
+    };
+
+    syncCodexConfigMetadataToSession(session);
 
     session.onUserMessage((message) => {
         // Resolve permission mode (accept all modes, will be mapped in switch statement)
@@ -216,6 +242,7 @@ export async function runCodex(opts: {
             model: messageModel,
             effortLevel: messageEffortLevel,
         };
+        syncCodexConfigMetadataToSession(session);
         messageQueue.push(message.content.text, enhancedMode);
     });
     let thinking = false;
