@@ -4,7 +4,7 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 ### Changes from upstream
 
-<!-- changelog-summary: 2026-03-29 (fork base: d343330c) -->
+<!-- changelog-summary: 2026-04-11 (fork base: d343330c) -->
 
 <details>
 <summary><strong>🌿 Worktrees</strong> — isolated branch sessions with AI-assisted merge</summary>
@@ -39,6 +39,20 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 </details>
 
 <details>
+<summary><strong>🧠 Codex</strong> — continuity, recovery, and cross-device state</summary>
+
+| Feature | What it does |
+|---------|--------------|
+| Continuity across reconnects | Joyful now persists Codex provider lineage across reconnects so active chats are less likely to restart from scratch |
+| Archived Codex resume | Archived Codex sessions can fork forward into a new Joyful session using stored provider identifiers |
+| Cross-device mode sync | Codex model, effort, and permission choices stay aligned between UI metadata and outgoing messages, reducing accidental restarts when switching devices |
+| Recovery & transcript replay | Joyful can recover from stale or interrupted Codex sessions and fall back to transcript replay when provider continuity is no longer safe |
+| Session diagnostics | Session info now shows Codex session/conversation IDs and continuity notes to make reset behavior visible instead of opaque |
+| Codex session browser | `yarn codex:sessions` lists, inspects, resumes, and forks Codex sessions that do not show up in the default picker |
+
+</details>
+
+<details>
 <summary><strong>📋 Sessions</strong> — resume, browse, archive, and persist state</summary>
 
 | Feature | What it does |
@@ -56,6 +70,8 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 | Feature | What it does |
 |---------|--------------|
+| Experiments always enabled | Experimental features now stay on by default; the old toggle has been removed |
+| Serialized live session updates | Session and message updates are applied in order, reducing missing or out-of-order chat state during reconnects |
 | Project group session list | Sessions grouped by project with collapsible headers; state persisted per device |
 | Stable session order | Active sessions within a project group stay in creation-date order rather than jumping on each activity update |
 | Stable group ordering | Group order persisted; reorder modal (≡) to move groups up/down |
@@ -98,6 +114,7 @@ This is a fork of [Happy Coder](https://github.com/slopus/happy), maintained wit
 
 | Feature | What it does |
 |---------|--------------|
+| Local agent binary discovery | The daemon is better at finding locally-built Claude/Codex binaries in from-source setups |
 | Reconnect batching | Single batch request on reconnect instead of one per session (~92% fewer) |
 | Streaming seq fix | Batched seq allocation eliminates gaps that caused slow REST fallback |
 | Socket.IO polling fallback | `['polling', 'websocket']` fixes connections behind restrictive networks |
