@@ -276,23 +276,45 @@ function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Resume an archived session by forking it via machineSpawnNewSession with resumeNativeSessionId
-    const [, performResume] = useJoyfulAction(React.useCallback(async () => {
-        const claudeSessionId = session.metadata?.claudeSessionId;
+    const archivedResumeSpec = React.useMemo(() => {
         const machineId = session.metadata?.machineId;
         const directory = session.metadata?.path;
+        if (!machineId || !directory) {
+            return null;
+        }
+
+        if (session.metadata?.claudeSessionId) {
+            return {
+                machineId,
+                directory,
+                approvedNewDirectoryCreation: false,
+                resumeNativeSessionId: session.metadata.claudeSessionId,
+            } as const;
+        }
+
+        if (session.metadata?.flavor === 'codex' && session.metadata?.codexSessionId) {
+            return {
+                machineId,
+                directory,
+                approvedNewDirectoryCreation: false,
+                agent: 'codex' as const,
+                resumeCodexSessionId: session.metadata.codexSessionId,
+                resumeCodexConversationId: session.metadata.codexConversationId,
+            } as const;
+        }
+
+        return null;
+    }, [session.metadata]);
+
+    // Resume an archived session by forking it into a new Joyful session with provider lineage.
+    const [, performResume] = useJoyfulAction(React.useCallback(async () => {
         const currentMessage = messageRef.current;
 
-        if (!claudeSessionId || !machineId || !directory) {
+        if (!archivedResumeSpec) {
             throw new JoyfulError(t('session.resumeSessionFailed'), false);
         }
 
-        const result = await machineSpawnNewSession({
-            machineId,
-            directory,
-            resumeNativeSessionId: claudeSessionId,
-            approvedNewDirectoryCreation: false,
-        });
+        const result = await machineSpawnNewSession(archivedResumeSpec);
 
         if (result.type === 'error') {
             throw new JoyfulError(result.errorMessage, false);
@@ -302,7 +324,7 @@ function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage
         }
 
         router.push({ pathname: '/session/[id]', params: { id: result.sessionId, initialMessage: currentMessage } });
-    }, [session.metadata, router]));
+    }, [archivedResumeSpec, router]));
 
     // Handle dismissing CLI version warning
     const handleDismissCliWarning = React.useCallback(() => {
@@ -427,25 +449,28 @@ function SessionViewLoaded({ sessionId, session, initialMessage, autoSendMessage
             }}
             onSend={() => {
                 if (message.trim()) {
-                    console.log('[resume-debug] active:', session.active, 'claudeSessionId:', session.metadata?.claudeSessionId, 'machineId:', session.metadata?.machineId, 'path:', session.metadata?.path);
-                    if (!session.active && session.metadata?.claudeSessionId) {
-                        // Session is archived and has a Claude session ID — fork it via resume
-                        performResume();
-                    } else {
-                        const prefix = exploreModeArmed ? '/opsx:explore '
-                            : patchModeArmed ? '/opsx:patch '
-                            : applyModeArmed ? '/opsx:apply '
-                            : ffModeArmed ? '/opsx:ff '
-                            : '';
-                        setExploreModeArmed(false);
-                        setPatchModeArmed(false);
-                        setApplyModeArmed(false);
-                        setFfModeArmed(false);
-                        setMessage('');
-                        clearDraft();
-                        sync.sendMessage(sessionId, prefix + message);
-                        trackMessageSent();
+                    if (!session.active) {
+                        if (archivedResumeSpec) {
+                            performResume();
+                        } else {
+                            Modal.alert(t('common.error'), t('session.resumeSessionFailed'));
+                        }
+                        return;
                     }
+
+                    const prefix = exploreModeArmed ? '/opsx:explore '
+                        : patchModeArmed ? '/opsx:patch '
+                        : applyModeArmed ? '/opsx:apply '
+                        : ffModeArmed ? '/opsx:ff '
+                        : '';
+                    setExploreModeArmed(false);
+                    setPatchModeArmed(false);
+                    setApplyModeArmed(false);
+                    setFfModeArmed(false);
+                    setMessage('');
+                    clearDraft();
+                    sync.sendMessage(sessionId, prefix + message);
+                    trackMessageSent();
                 }
             }}
             onMicPress={micButtonState.onMicPress}

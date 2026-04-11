@@ -124,6 +124,10 @@ export interface SpawnSessionOptions {
     token?: string;
     /** Native Claude Code session ID to resume (fork) when the session first starts */
     resumeNativeSessionId?: string;
+    /** Codex provider session ID to continue when the session first starts */
+    resumeCodexSessionId?: string;
+    /** Codex provider conversation/thread ID to continue when the session first starts */
+    resumeCodexConversationId?: string;
     environmentVariables?: {
         // Anthropic Claude API configuration
         ANTHROPIC_BASE_URL?: string;        // Custom API endpoint (overrides default)

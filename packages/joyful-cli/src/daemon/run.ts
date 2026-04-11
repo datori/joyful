@@ -285,7 +285,15 @@ export async function startDaemon(): Promise<void> {
     const spawnSession = async (options: SpawnSessionOptions): Promise<SpawnSessionResult> => {
       logger.debugLargeJson('[DAEMON RUN] Spawning session', options);
 
-      const { directory, sessionId, machineId, approvedNewDirectoryCreation = true, resumeNativeSessionId } = options;
+      const {
+        directory,
+        sessionId,
+        machineId,
+        approvedNewDirectoryCreation = true,
+        resumeNativeSessionId,
+        resumeCodexSessionId,
+        resumeCodexConversationId,
+      } = options;
       let directoryCreated = false;
 
       try {
@@ -560,7 +568,9 @@ export async function startDaemon(): Promise<void> {
             env: {
               ...process.env,
               ...extraEnv,
-              ...(resumeNativeSessionId ? { JOYFUL_RESUME_NATIVE_SESSION: resumeNativeSessionId } : {})
+              ...(resumeNativeSessionId ? { JOYFUL_RESUME_NATIVE_SESSION: resumeNativeSessionId } : {}),
+              ...(resumeCodexSessionId ? { JOYFUL_CODEX_RESUME_SESSION_ID: resumeCodexSessionId } : {}),
+              ...(resumeCodexConversationId ? { JOYFUL_CODEX_RESUME_CONVERSATION_ID: resumeCodexConversationId } : {}),
             }
           });
 

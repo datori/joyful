@@ -152,6 +152,10 @@ export interface SpawnSessionOptions {
     environmentVariables?: Record<string, string>;
     /** Native Claude Code session ID to resume (fork) when the session first starts */
     resumeNativeSessionId?: string;
+    /** Codex provider session ID to continue from when the session first starts */
+    resumeCodexSessionId?: string;
+    /** Codex provider conversation/thread ID to continue from when the session first starts */
+    resumeCodexConversationId?: string;
 }
 
 /**
@@ -171,7 +175,17 @@ export type NativeSessionInfo = {
  */
 export async function machineSpawnNewSession(options: SpawnSessionOptions): Promise<SpawnSessionResult> {
 
-    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, environmentVariables, resumeNativeSessionId } = options;
+    const {
+        machineId,
+        directory,
+        approvedNewDirectoryCreation = false,
+        token,
+        agent,
+        environmentVariables,
+        resumeNativeSessionId,
+        resumeCodexSessionId,
+        resumeCodexConversationId,
+    } = options;
 
     try {
         const result = await apiSocket.machineRPC<SpawnSessionResult, {
@@ -182,10 +196,22 @@ export async function machineSpawnNewSession(options: SpawnSessionOptions): Prom
             agent?: 'codex' | 'claude' | 'gemini',
             environmentVariables?: Record<string, string>;
             resumeNativeSessionId?: string;
+            resumeCodexSessionId?: string;
+            resumeCodexConversationId?: string;
         }>(
             machineId,
             'spawn-joyful-session',
-            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, environmentVariables, resumeNativeSessionId }
+            {
+                type: 'spawn-in-directory',
+                directory,
+                approvedNewDirectoryCreation,
+                token,
+                agent,
+                environmentVariables,
+                resumeNativeSessionId,
+                resumeCodexSessionId,
+                resumeCodexConversationId,
+            }
         );
         return result;
     } catch (error) {
