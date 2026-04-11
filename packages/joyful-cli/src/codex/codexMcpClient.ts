@@ -14,11 +14,62 @@ import type { SandboxConfig } from '@/persistence';
 import { initializeSandbox, wrapForMcpTransport } from '@/sandbox/manager';
 
 const DEFAULT_TIMEOUT = 14 * 24 * 60 * 60 * 1000; // 14 days, which is the half of the maximum possible timeout (~28 days for int32 value in NodeJS)
+const CODEX_LINEAGE_ENV_KEYS = [
+    'CODEX_THREAD_ID',
+    'CODEX_SESSION_ID',
+    'CODEX_CONVERSATION_ID',
+] as const;
 
 function summarizeIdentifier(value: string | null): string | null {
     if (!value) return null;
     if (value.length <= 14) return value;
     return `${value.slice(0, 8)}…${value.slice(-6)}`;
+}
+
+function isRecord(value: unknown): value is Record<string, any> {
+    return typeof value === 'object' && value !== null;
+}
+
+function getIdentifierCandidates(value: unknown): Record<string, any>[] {
+    if (!isRecord(value)) {
+        return [];
+    }
+
+    const candidates = [value];
+    for (const key of ['data', 'meta', 'structuredContent']) {
+        const nestedValue = value[key];
+        if (isRecord(nestedValue)) {
+            candidates.push(nestedValue);
+        }
+    }
+
+    return candidates;
+}
+
+function getStringProperty(value: unknown, keys: string[]): string | null {
+    for (const candidate of getIdentifierCandidates(value)) {
+        for (const key of keys) {
+            const prop = candidate[key];
+            if (typeof prop === 'string' && prop.length > 0) {
+                return prop;
+            }
+        }
+    }
+
+    return null;
+}
+
+function sanitizeCodexTransportEnv(env: Record<string, string>): string[] {
+    const removedKeys: string[] = [];
+
+    for (const key of CODEX_LINEAGE_ENV_KEYS) {
+        if (key in env) {
+            delete env[key];
+            removedKeys.push(key);
+        }
+    }
+
+    return removedKeys;
 }
 
 /**
@@ -176,6 +227,13 @@ export class CodexMcpClient {
                 if (typeof value === 'string') acc[key] = value;
                 return acc;
             }, {} as Record<string, string>);
+            const removedLineageEnvKeys = sanitizeCodexTransportEnv(transportEnv);
+
+            if (removedLineageEnvKeys.length > 0) {
+                logger.warn('[CodexMCP] Removed inherited Codex lineage environment variables before launch', {
+                    removedKeys: removedLineageEnvKeys,
+                });
+            }
 
             // Codex currently logs noisy rollout fallback messages at ERROR level during
             // state-db migration. Keep all other logs intact, only mute this module.
@@ -299,6 +357,7 @@ export class CodexMcpClient {
 
         // Extract session / conversation identifiers from response if present
         this.extractIdentifiers(response);
+        this.logLineageState('startSession');
 
         return response as CodexToolResponse;
     }
@@ -310,9 +369,16 @@ export class CodexMcpClient {
             throw new Error('No active session. Call startSession first.');
         }
 
+        const usedSyntheticConversationId = !this.conversationId;
         const conversationId = this.conversationId ?? this.sessionId;
         if (!conversationId) {
             throw new Error('No active conversation. Call startSession first.');
+        }
+
+        if (usedSyntheticConversationId) {
+            logger.warn('[CodexMCP] Continuing with synthesized conversation lineage derived from session id', {
+                sessionId: summarizeIdentifier(this.sessionId),
+            });
         }
 
         const args = { sessionId: this.sessionId, conversationId, prompt };
@@ -328,6 +394,7 @@ export class CodexMcpClient {
 
         logger.debug('[CodexMCP] continueSession response:', response);
         this.extractIdentifiers(response);
+        this.logLineageState('continueSession');
 
         return response as CodexToolResponse;
     }
@@ -338,25 +405,68 @@ export class CodexMcpClient {
             return;
         }
 
-        let changed = false;
-        const candidates: any[] = [event];
-        if (event.data && typeof event.data === 'object') {
-            candidates.push(event.data);
+        if (this.updateIdentifiersFromCandidate(event, 'event')) {
+            this.publishIdentifierUpdate();
+        }
+    }
+
+    private extractConversationLineage(value: unknown): {
+        conversationId: string | null;
+        source: 'conversation_id' | 'thread_id' | null;
+    } {
+        const conversationId = getStringProperty(value, ['conversationId', 'conversation_id']);
+        if (conversationId) {
+            return { conversationId, source: 'conversation_id' };
         }
 
-        for (const candidate of candidates) {
-            const sessionId = candidate.session_id ?? candidate.sessionId;
-            if (sessionId && sessionId !== this.sessionId) {
-                this.sessionId = sessionId;
-                logger.debug('[CodexMCP] Session ID extracted from event:', this.sessionId);
+        const threadId = getStringProperty(value, ['threadId', 'thread_id']);
+        if (threadId) {
+            return { conversationId: threadId, source: 'thread_id' };
+        }
+
+        return { conversationId: null, source: null };
+    }
+
+    private updateIdentifiersFromCandidate(
+        candidate: unknown,
+        source: 'event' | 'response' | 'response_content',
+    ): boolean {
+        let changed = false;
+
+        const sessionId = getStringProperty(candidate, ['sessionId', 'session_id']);
+        const conversationLineage = this.extractConversationLineage(candidate);
+
+        if (sessionId && sessionId !== this.sessionId) {
+            this.sessionId = sessionId;
+            logger.debug(`[CodexMCP] Session ID extracted from ${source}:`, this.sessionId);
+            changed = true;
+
+            if (!conversationLineage.conversationId && this.conversationId !== null) {
+                this.conversationId = null;
+                logger.debug(`[CodexMCP] Cleared stale conversation ID after session change from ${source}`);
                 changed = true;
             }
+        }
 
-            const conversationId = candidate.conversation_id ?? candidate.conversationId;
-            if (conversationId && conversationId !== this.conversationId) {
-                this.conversationId = conversationId;
-                logger.debug('[CodexMCP] Conversation ID extracted from event:', this.conversationId);
-                changed = true;
+        if (conversationLineage.conversationId && conversationLineage.conversationId !== this.conversationId) {
+            this.conversationId = conversationLineage.conversationId;
+            const lineageLabel = conversationLineage.source === 'thread_id'
+                ? 'Conversation ID extracted from thread identifier'
+                : 'Conversation ID extracted';
+            logger.debug(`[CodexMCP] ${lineageLabel} from ${source}:`, this.conversationId);
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private extractIdentifiers(response: any): void {
+        let changed = false;
+        changed = this.updateIdentifiersFromCandidate(response, 'response') || changed;
+
+        if (Array.isArray(response?.content)) {
+            for (const item of response.content) {
+                changed = this.updateIdentifiersFromCandidate(item, 'response_content') || changed;
             }
         }
 
@@ -364,56 +474,26 @@ export class CodexMcpClient {
             this.publishIdentifierUpdate();
         }
     }
-    private extractIdentifiers(response: any): void {
-        const meta = response?.meta || {};
-        let changed = false;
-        if (meta.sessionId) {
-            if (meta.sessionId !== this.sessionId) {
-                this.sessionId = meta.sessionId;
-                logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
-                changed = true;
-            }
-        } else if (response?.sessionId) {
-            if (response.sessionId !== this.sessionId) {
-                this.sessionId = response.sessionId;
-                logger.debug('[CodexMCP] Session ID extracted:', this.sessionId);
-                changed = true;
-            }
+
+    private logLineageState(operation: 'startSession' | 'continueSession'): void {
+        if (!this.sessionId) {
+            return;
         }
 
-        if (meta.conversationId) {
-            if (meta.conversationId !== this.conversationId) {
-                this.conversationId = meta.conversationId;
-                logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
-                changed = true;
-            }
-        } else if (response?.conversationId) {
-            if (response.conversationId !== this.conversationId) {
-                this.conversationId = response.conversationId;
-                logger.debug('[CodexMCP] Conversation ID extracted:', this.conversationId);
-                changed = true;
-            }
+        if (!this.conversationId) {
+            logger.warn('[CodexMCP] Response did not include conversation/thread lineage', {
+                operation,
+                sessionId: summarizeIdentifier(this.sessionId),
+            });
+            return;
         }
 
-        const content = response?.content;
-        if (Array.isArray(content)) {
-            for (const item of content) {
-                if (!this.sessionId && item?.sessionId) {
-                    this.sessionId = item.sessionId;
-                    logger.debug('[CodexMCP] Session ID extracted from content:', this.sessionId);
-                    changed = true;
-                }
-                if (!this.conversationId && item && typeof item === 'object' && 'conversationId' in item && item.conversationId) {
-                    this.conversationId = item.conversationId;
-                    logger.debug('[CodexMCP] Conversation ID extracted from content:', this.conversationId);
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
-            this.publishIdentifierUpdate();
-        }
+        logger.debug('[CodexMCP] Response lineage state', {
+            operation,
+            sessionId: summarizeIdentifier(this.sessionId),
+            conversationId: summarizeIdentifier(this.conversationId),
+            distinctConversationId: this.conversationId !== this.sessionId,
+        });
     }
 
     getSessionId(): string | null {

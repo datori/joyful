@@ -78,10 +78,22 @@ const sandboxConfig: SandboxConfig = {
 
 describe('CodexMcpClient sandbox integration', () => {
     const originalRustLog = process.env.RUST_LOG;
+    const originalCodexThreadId = process.env.CODEX_THREAD_ID;
+    const originalCodexSessionId = process.env.CODEX_SESSION_ID;
+    const originalCodexConversationId = process.env.CODEX_CONVERSATION_ID;
+    const originalCodexManagedByNpm = process.env.CODEX_MANAGED_BY_NPM;
 
     beforeEach(() => {
         vi.clearAllMocks();
         process.env.RUST_LOG = originalRustLog;
+        delete process.env.CODEX_THREAD_ID;
+        delete process.env.CODEX_SESSION_ID;
+        delete process.env.CODEX_CONVERSATION_ID;
+        if (originalCodexManagedByNpm === undefined) {
+            delete process.env.CODEX_MANAGED_BY_NPM;
+        } else {
+            process.env.CODEX_MANAGED_BY_NPM = originalCodexManagedByNpm;
+        }
         mockExecSync.mockReturnValue('codex-cli 0.43.0');
         mockClientConnect.mockResolvedValue(undefined);
         mockClientClose.mockResolvedValue(undefined);
@@ -92,6 +104,26 @@ describe('CodexMcpClient sandbox integration', () => {
 
     afterAll(() => {
         process.env.RUST_LOG = originalRustLog;
+        if (originalCodexThreadId === undefined) {
+            delete process.env.CODEX_THREAD_ID;
+        } else {
+            process.env.CODEX_THREAD_ID = originalCodexThreadId;
+        }
+        if (originalCodexSessionId === undefined) {
+            delete process.env.CODEX_SESSION_ID;
+        } else {
+            process.env.CODEX_SESSION_ID = originalCodexSessionId;
+        }
+        if (originalCodexConversationId === undefined) {
+            delete process.env.CODEX_CONVERSATION_ID;
+        } else {
+            process.env.CODEX_CONVERSATION_ID = originalCodexConversationId;
+        }
+        if (originalCodexManagedByNpm === undefined) {
+            delete process.env.CODEX_MANAGED_BY_NPM;
+        } else {
+            process.env.CODEX_MANAGED_BY_NPM = originalCodexManagedByNpm;
+        }
     });
 
     it('wraps MCP transport when sandbox is enabled', async () => {
@@ -172,6 +204,29 @@ describe('CodexMcpClient sandbox integration', () => {
         );
     });
 
+    it('removes inherited Codex lineage environment variables before launching Codex', async () => {
+        process.env.CODEX_THREAD_ID = 'stale-thread';
+        process.env.CODEX_SESSION_ID = 'stale-session';
+        process.env.CODEX_CONVERSATION_ID = 'stale-conversation';
+        process.env.CODEX_MANAGED_BY_NPM = '1';
+        const client = new CodexMcpClient();
+
+        await client.connect();
+
+        expect(mockStdioCtor).toHaveBeenCalledWith(
+            expect.objectContaining({
+                env: expect.objectContaining({
+                    CODEX_MANAGED_BY_NPM: '1',
+                }),
+            }),
+        );
+
+        const ctorArgs = mockStdioCtor.mock.calls[0]?.[0];
+        expect(ctorArgs?.env?.CODEX_THREAD_ID).toBeUndefined();
+        expect(ctorArgs?.env?.CODEX_SESSION_ID).toBeUndefined();
+        expect(ctorArgs?.env?.CODEX_CONVERSATION_ID).toBeUndefined();
+    });
+
     it('publishes identifiers extracted from startSession responses', async () => {
         const client = new CodexMcpClient();
         const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
@@ -190,6 +245,83 @@ describe('CodexMcpClient sandbox integration', () => {
         expect(identifierUpdates).toContainEqual({
             sessionId: 'codex-session-1',
             conversationId: 'codex-convo-1',
+        });
+    });
+
+    it('treats thread identifiers from notifications as conversation lineage', () => {
+        const client = new CodexMcpClient();
+        const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
+        client.setIdentifierUpdateHandler((ids) => identifierUpdates.push(ids));
+
+        const notificationHandler = mockSetNotificationHandler.mock.calls[0]?.[1];
+        expect(notificationHandler).toBeTypeOf('function');
+
+        notificationHandler({
+            params: {
+                msg: {
+                    type: 'session_configured',
+                    session_id: 'codex-session-2',
+                    thread_id: 'codex-thread-2',
+                },
+            },
+        });
+
+        expect(identifierUpdates).toContainEqual({
+            sessionId: 'codex-session-2',
+            conversationId: 'codex-thread-2',
+        });
+    });
+
+    it('extracts thread identifiers from structured content when conversation ids are absent', async () => {
+        const client = new CodexMcpClient();
+        const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
+        client.setIdentifierUpdateHandler((ids) => identifierUpdates.push(ids));
+
+        mockClientCallTool.mockResolvedValue({
+            meta: {
+                sessionId: 'codex-session-3',
+            },
+            content: [
+                {
+                    structuredContent: {
+                        threadId: 'codex-thread-3',
+                    },
+                },
+            ],
+        });
+
+        await client.startSession({ prompt: 'hello' });
+
+        expect(identifierUpdates).toContainEqual({
+            sessionId: 'codex-session-3',
+            conversationId: 'codex-thread-3',
+        });
+    });
+
+    it('clears stale conversation lineage when a new session id arrives before a new thread id', () => {
+        const client = new CodexMcpClient();
+        const identifierUpdates: Array<{ sessionId: string | null; conversationId: string | null }> = [];
+        client.setIdentifierUpdateHandler((ids) => identifierUpdates.push(ids));
+        client.hydrateIdentifiers({
+            sessionId: 'old-session',
+            conversationId: 'old-thread',
+        });
+
+        const notificationHandler = mockSetNotificationHandler.mock.calls[0]?.[1];
+        expect(notificationHandler).toBeTypeOf('function');
+
+        notificationHandler({
+            params: {
+                msg: {
+                    type: 'session_configured',
+                    session_id: 'new-session',
+                },
+            },
+        });
+
+        expect(identifierUpdates).toContainEqual({
+            sessionId: 'new-session',
+            conversationId: null,
         });
     });
 
