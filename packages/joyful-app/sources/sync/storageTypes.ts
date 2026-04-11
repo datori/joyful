@@ -36,6 +36,7 @@ export const MetadataSchema = z.object({
     claudeSessionId: z.string().optional(), // Claude Code session ID
     codexSessionId: z.string().optional(), // Codex provider session ID
     codexConversationId: z.string().optional(), // Codex provider conversation ID
+    codexContinuityNote: z.string().optional(), // Joyful continuity diagnostic for Codex sessions
     tools: z.array(z.string()).optional(),
     slashCommands: z.array(z.string()).optional(),
     homeDir: z.string().optional(), // User's home directory on the machine

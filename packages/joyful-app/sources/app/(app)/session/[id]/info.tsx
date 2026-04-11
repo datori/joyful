@@ -121,6 +121,14 @@ function formatDangerouslySkipPermissionsMetadata(
     return 'Unknown';
 }
 
+function formatIdentifierSummary(value: string): string {
+    if (value.length <= 16) {
+        return value;
+    }
+
+    return `${value.substring(0, 8)}...${value.substring(value.length - 8)}`;
+}
+
 function SessionInfoContent({ session }: { session: Session }) {
     const { theme } = useUnistyles();
     const router = useRouter();
@@ -157,6 +165,15 @@ function SessionInfoContent({ session }: { session: Session }) {
             Modal.alert(t('common.error'), t('sessionInfo.failedToCopyMetadata'));
         }
     }, [session]);
+
+    const copyIdentifier = useCallback(async (value: string, successMessage: string, failureMessage: string) => {
+        try {
+            await Clipboard.setStringAsync(value);
+            Modal.alert(t('common.success'), successMessage);
+        } catch (error) {
+            Modal.alert(t('common.error'), failureMessage);
+        }
+    }, []);
 
     // Use HappyAction for archiving - it handles errors automatically
     const [archivingSession, performArchive] = useJoyfulAction(async () => {
@@ -284,23 +301,52 @@ function SessionInfoContent({ session }: { session: Session }) {
                 <ItemGroup>
                     <Item
                         title={t('sessionInfo.joyfulSessionId')}
-                        subtitle={`${session.id.substring(0, 8)}...${session.id.substring(session.id.length - 8)}`}
+                        subtitle={formatIdentifierSummary(session.id)}
                         icon={<Ionicons name="finger-print-outline" size={29} color="#007AFF" />}
                         onPress={handleCopySessionId}
                     />
                     {session.metadata?.claudeSessionId && (
                         <Item
                             title={t('sessionInfo.claudeCodeSessionId')}
-                            subtitle={`${session.metadata.claudeSessionId.substring(0, 8)}...${session.metadata.claudeSessionId.substring(session.metadata.claudeSessionId.length - 8)}`}
+                            subtitle={formatIdentifierSummary(session.metadata.claudeSessionId)}
                             icon={<Ionicons name="code-outline" size={29} color="#9C27B0" />}
-                            onPress={async () => {
-                                try {
-                                    await Clipboard.setStringAsync(session.metadata!.claudeSessionId!);
-                                    Modal.alert(t('common.success'), t('sessionInfo.claudeCodeSessionIdCopied'));
-                                } catch (error) {
-                                    Modal.alert(t('common.error'), t('sessionInfo.failedToCopyClaudeCodeSessionId'));
-                                }
-                            }}
+                            onPress={() => copyIdentifier(
+                                session.metadata!.claudeSessionId!,
+                                t('sessionInfo.claudeCodeSessionIdCopied'),
+                                t('sessionInfo.failedToCopyClaudeCodeSessionId'),
+                            )}
+                        />
+                    )}
+                    {session.metadata?.codexSessionId && (
+                        <Item
+                            title={t('sessionInfo.codexSessionId')}
+                            subtitle={formatIdentifierSummary(session.metadata.codexSessionId)}
+                            icon={<Ionicons name="terminal-outline" size={29} color="#0A84FF" />}
+                            onPress={() => copyIdentifier(
+                                session.metadata!.codexSessionId!,
+                                t('sessionInfo.codexSessionIdCopied'),
+                                t('sessionInfo.failedToCopyCodexSessionId'),
+                            )}
+                        />
+                    )}
+                    {session.metadata?.codexConversationId && (
+                        <Item
+                            title={t('sessionInfo.codexConversationId')}
+                            subtitle={formatIdentifierSummary(session.metadata.codexConversationId)}
+                            icon={<Ionicons name="chatbubbles-outline" size={29} color="#30B0C7" />}
+                            onPress={() => copyIdentifier(
+                                session.metadata!.codexConversationId!,
+                                t('sessionInfo.codexConversationIdCopied'),
+                                t('sessionInfo.failedToCopyCodexConversationId'),
+                            )}
+                        />
+                    )}
+                    {session.metadata?.codexContinuityNote && (
+                        <Item
+                            title={t('sessionInfo.codexContinuity')}
+                            subtitle={session.metadata.codexContinuityNote}
+                            icon={<Ionicons name="warning-outline" size={29} color="#FF9F0A" />}
+                            showChevron={false}
                         />
                     )}
                     <Item
