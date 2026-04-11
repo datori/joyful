@@ -82,6 +82,58 @@ export function emitReadyIfIdle({ pending, queueSize, shouldExit, sendReady, not
     return true;
 }
 
+export function resolveResumeSelectionForNextTurn({
+    queuedResumeFile,
+    storedSessionIdForResume,
+    idleResumeFile = null,
+    findResumeFile,
+}: ResumeSelectionOptions): ResumeSelectionResult {
+    if (queuedResumeFile) {
+        return {
+            resumeFile: queuedResumeFile,
+            source: 'queued_resume',
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: storedSessionIdForResume,
+        };
+    }
+
+    if (!storedSessionIdForResume) {
+        return {
+            resumeFile: idleResumeFile,
+            source: idleResumeFile ? 'idle_timeout' : null,
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: null,
+        };
+    }
+
+    const resumeFile = findResumeFile(storedSessionIdForResume);
+    if (resumeFile) {
+        return {
+            resumeFile,
+            source: 'aborted_session',
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: null,
+        };
+    }
+
+    return {
+        resumeFile: idleResumeFile,
+        source: idleResumeFile ? 'idle_timeout' : null,
+        remainingQueuedResumeFile: null,
+        remainingStoredSessionIdForResume: storedSessionIdForResume,
+    };
+}
+
+export function shouldStartCodexSessionForTurn({
+    wasCreated,
+    resumeFile,
+}: {
+    wasCreated: boolean;
+    resumeFile: string | null;
+}): boolean {
+    return !wasCreated || !!resumeFile;
+}
+
 export function getCodexResumeIdentifiersFromEnv(
     env: Record<string, string | undefined> = process.env,
 ): CodexResumeIdentifiers {

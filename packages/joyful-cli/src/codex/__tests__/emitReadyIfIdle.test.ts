@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
     emitReadyIfIdle,
+    getIdleTranscriptResumeThresholdMs,
     getCodexResumeIdentifiersFromEnv,
     isAbortLikeError,
     isRecoverableCodexSessionError,
     mergeCodexSessionConfigIntoMetadata,
+    resolveResumeSelectionForNextTurn,
+    shouldStartCodexSessionForTurn,
 } from '../runCodex.helpers';
 
 describe('emitReadyIfIdle', () => {
@@ -68,6 +71,27 @@ describe('emitReadyIfIdle', () => {
     });
 });
 
+describe('getIdleTranscriptResumeThresholdMs', () => {
+    it('disables idle transcript replay by default', () => {
+        expect(getIdleTranscriptResumeThresholdMs({})).toBeNull();
+    });
+
+    it('returns a positive configured threshold when explicitly enabled', () => {
+        expect(getIdleTranscriptResumeThresholdMs({
+            JOYFUL_CODEX_IDLE_TRANSCRIPT_RESUME_MS: '600000',
+        })).toBe(600000);
+    });
+
+    it('treats zero or invalid values as disabled', () => {
+        expect(getIdleTranscriptResumeThresholdMs({
+            JOYFUL_CODEX_IDLE_TRANSCRIPT_RESUME_MS: '0',
+        })).toBeNull();
+        expect(getIdleTranscriptResumeThresholdMs({
+            JOYFUL_CODEX_IDLE_TRANSCRIPT_RESUME_MS: 'abc',
+        })).toBeNull();
+    });
+});
+
 describe('isAbortLikeError', () => {
     it('treats an aborted request signal as a user abort even when the thrown error is generic', () => {
         const controller = new AbortController();
@@ -95,6 +119,103 @@ describe('isRecoverableCodexSessionError', () => {
     it('does not retry on ordinary model or application errors', () => {
         expect(isRecoverableCodexSessionError(new Error('Model not found'))).toBe(false);
         expect(isRecoverableCodexSessionError(new Error('Permission denied'))).toBe(false);
+    });
+});
+
+describe('resolveResumeSelectionForNextTurn', () => {
+    it('prefers a queued resume file over abort recovery', () => {
+        const result = resolveResumeSelectionForNextTurn({
+            queuedResumeFile: '/tmp/queued.jsonl',
+            storedSessionIdForResume: 'session-1',
+            findResumeFile: vi.fn(() => '/tmp/abort.jsonl'),
+        });
+
+        expect(result).toEqual({
+            resumeFile: '/tmp/queued.jsonl',
+            source: 'queued_resume',
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: 'session-1',
+        });
+    });
+
+    it('uses the aborted-session transcript when available', () => {
+        const findResumeFile = vi.fn(() => '/tmp/abort.jsonl');
+
+        const result = resolveResumeSelectionForNextTurn({
+            queuedResumeFile: null,
+            storedSessionIdForResume: 'session-2',
+            idleResumeFile: '/tmp/idle.jsonl',
+            findResumeFile,
+        });
+
+        expect(findResumeFile).toHaveBeenCalledWith('session-2');
+        expect(result).toEqual({
+            resumeFile: '/tmp/abort.jsonl',
+            source: 'aborted_session',
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: null,
+        });
+    });
+
+    it('keeps the stored abort session id when the transcript is not visible yet', () => {
+        const findResumeFile = vi.fn(() => null);
+
+        const result = resolveResumeSelectionForNextTurn({
+            queuedResumeFile: null,
+            storedSessionIdForResume: 'session-3',
+            idleResumeFile: null,
+            findResumeFile,
+        });
+
+        expect(findResumeFile).toHaveBeenCalledWith('session-3');
+        expect(result).toEqual({
+            resumeFile: null,
+            source: null,
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: 'session-3',
+        });
+    });
+
+    it('falls back to an idle-time transcript refresh when the live session has gone stale', () => {
+        const findResumeFile = vi.fn(() => null);
+
+        const result = resolveResumeSelectionForNextTurn({
+            queuedResumeFile: null,
+            storedSessionIdForResume: null,
+            idleResumeFile: '/tmp/idle.jsonl',
+            findResumeFile,
+        });
+
+        expect(findResumeFile).not.toHaveBeenCalled();
+        expect(result).toEqual({
+            resumeFile: '/tmp/idle.jsonl',
+            source: 'idle_timeout',
+            remainingQueuedResumeFile: null,
+            remainingStoredSessionIdForResume: null,
+        });
+    });
+});
+
+describe('shouldStartCodexSessionForTurn', () => {
+    it('starts a new session when none exists yet', () => {
+        expect(shouldStartCodexSessionForTurn({
+            wasCreated: false,
+            resumeFile: null,
+        })).toBe(true);
+    });
+
+    it('starts a fresh session when a transcript resume was selected after abort', () => {
+        expect(shouldStartCodexSessionForTurn({
+            wasCreated: true,
+            resumeFile: '/tmp/abort.jsonl',
+        })).toBe(true);
+    });
+
+    it('continues the live session when no resume file is queued', () => {
+        expect(shouldStartCodexSessionForTurn({
+            wasCreated: true,
+            resumeFile: null,
+        })).toBe(false);
     });
 });
 

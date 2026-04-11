@@ -35,10 +35,13 @@ import { resolveCodexExecutionPolicy } from './executionPolicy';
 import { mapCodexMcpMessageToSessionEnvelopes, mapCodexProcessorMessageToSessionEnvelopes } from './utils/sessionProtocolMapper';
 import {
     emitReadyIfIdle,
+    getIdleTranscriptResumeThresholdMs,
     getCodexResumeIdentifiersFromEnv,
     isAbortLikeError,
     isRecoverableCodexSessionError,
     mergeCodexSessionConfigIntoMetadata,
+    resolveResumeSelectionForNextTurn,
+    shouldStartCodexSessionForTurn,
 } from './runCodex.helpers';
 
 /**
@@ -61,6 +64,7 @@ export async function runCodex(opts: {
         if (value.length <= 14) return value;
         return `${value.slice(0, 8)}…${value.slice(-6)}`;
     };
+    const idleTranscriptResumeThresholdMs = getIdleTranscriptResumeThresholdMs();
     const getContextLineage = () => ({
         persistedSessionId: summarizeIdentifier(persistedCodexSessionId),
         persistedConversationId: summarizeIdentifier(persistedCodexConversationId),
@@ -77,6 +81,48 @@ export async function runCodex(opts: {
             ...getContextLineage(),
             ...(extra ?? {}),
         });
+    };
+    const warnIfSessionOnlyLineage = (strategy: 'in_process_continue' | 'persisted_ids_continue') => {
+        if (!client.hasActiveSession() || client.getConversationId()) {
+            return;
+        }
+
+        logger.warn('[Codex] Continuing with session-only lineage; Codex conversation/thread id is missing', {
+            strategy,
+            ...getContextLineage(),
+        });
+    };
+    const setCodexContinuityNote = (note: string) => {
+        if (persistedCodexContinuityNote === note) {
+            return;
+        }
+
+        persistedCodexContinuityNote = note;
+        session.updateMetadata((currentMetadata) => ({
+            ...currentMetadata,
+            codexContinuityNote: note,
+        }));
+    };
+    const markTranscriptReplayContinuity = (
+        source: 'queued_resume' | 'aborted_session' | 'idle_timeout',
+        reason?: 'mode_change' | 'recoverable_session_error' | null,
+    ) => {
+        let note: string;
+        if (source === 'idle_timeout') {
+            note = 'Provider continuity was abandoned in favor of transcript replay after an idle timeout. This started a fresh Codex thread.';
+        } else if (source === 'aborted_session' || reason === 'recoverable_session_error') {
+            note = 'Provider continuity was abandoned in favor of transcript replay after Codex session recovery. This started a fresh Codex thread.';
+        } else {
+            note = 'Provider continuity was abandoned in favor of transcript replay after a Joyful-managed session restart. This started a fresh Codex thread.';
+        }
+
+        logger.warn('[Codex] Provider continuity was abandoned in favor of transcript replay', {
+            source,
+            ...(reason ? { reason } : {}),
+            note,
+            ...getContextLineage(),
+        });
+        setCodexContinuityNote(note);
     };
 
     //
@@ -135,11 +181,12 @@ export async function runCodex(opts: {
     const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state });
     let persistedCodexSessionId = response?.metadata?.codexSessionId ?? null;
     let persistedCodexConversationId = response?.metadata?.codexConversationId ?? null;
+    let persistedCodexContinuityNote = response?.metadata?.codexContinuityNote ?? null;
 
     // Handle server unreachable case - create offline stub with hot reconnection
     let session: ApiSessionClient;
     const syncPersistedCodexIdentifiersToSession = (targetSession: ApiSessionClient) => {
-        if (!persistedCodexSessionId && !persistedCodexConversationId) {
+        if (!persistedCodexSessionId && !persistedCodexConversationId && !persistedCodexContinuityNote) {
             return;
         }
 
@@ -147,6 +194,7 @@ export async function runCodex(opts: {
             ...currentMetadata,
             ...(persistedCodexSessionId ? { codexSessionId: persistedCodexSessionId } : {}),
             ...(persistedCodexConversationId ? { codexConversationId: persistedCodexConversationId } : {}),
+            ...(persistedCodexContinuityNote ? { codexContinuityNote: persistedCodexContinuityNote } : {}),
         }));
     };
     // Permission handler declared here so it can be updated in onSessionSwap callback
@@ -500,6 +548,8 @@ export async function runCodex(opts: {
     });
     let wasCreated = false;
     let nextExperimentalResume: string | null = null;
+    let nextExperimentalResumeReason: 'mode_change' | 'recoverable_session_error' | null = null;
+    let lastCodexActivityAt = Date.now();
 
     const resetTurnState = () => {
         permissionHandler.clearSessionApprovals();
@@ -536,6 +586,7 @@ export async function runCodex(opts: {
         }
 
         nextExperimentalResume = resumeFile;
+        nextExperimentalResumeReason = 'recoverable_session_error';
         storedSessionIdForResume = null;
         messageBuffer.addMessage('Restoring previous Codex context...', 'status');
         logger.debug('[Codex] Recovering session using resume file:', resumeFile);
@@ -559,6 +610,7 @@ export async function runCodex(opts: {
 
     client.setPermissionHandler(permissionHandler);
     client.setHandler((msg) => {
+        lastCodexActivityAt = Date.now();
         logger.debug(`[Codex] MCP message: ${JSON.stringify(msg)}`);
 
         // Add messages to the ink UI buffer based on message type
@@ -716,6 +768,7 @@ export async function runCodex(opts: {
                 try {
                     const prevSessionId = client.getSessionId();
                     nextExperimentalResume = findCodexResumeFile(prevSessionId);
+                    nextExperimentalResumeReason = nextExperimentalResume ? 'mode_change' : null;
                     if (nextExperimentalResume) {
                         logger.debug(`[Codex] Found resume file for session ${prevSessionId}: ${nextExperimentalResume}`);
                         messageBuffer.addMessage('Resuming previous context…', 'status');
@@ -751,39 +804,70 @@ export async function runCodex(opts: {
                             sandboxManagedByHappy,
                         );
 
-                        if (!wasCreated) {
-                            let resumeFile: string | null = null;
+                        const idleDurationMs = Date.now() - lastCodexActivityAt;
+                        const idleResumeFile =
+                            wasCreated &&
+                            !nextExperimentalResume &&
+                            idleTranscriptResumeThresholdMs !== null &&
+                            idleDurationMs >= idleTranscriptResumeThresholdMs
+                                ? findCodexResumeFile(client.getSessionId())
+                                : null;
 
-                            // Priority 1: Explicit resume file from mode change or recovery
-                            if (nextExperimentalResume) {
-                                resumeFile = nextExperimentalResume;
-                                nextExperimentalResume = null; // consume once
-                                logger.debug('[Codex] Using resume file for new session:', resumeFile);
-                            }
-                            // Priority 2: Resume from stored abort session
-                            else if (storedSessionIdForResume) {
-                                const abortResumeFile = findCodexResumeFile(storedSessionIdForResume);
-                                if (abortResumeFile) {
-                                    resumeFile = abortResumeFile;
-                                    logger.debug('[Codex] Using resume file from aborted session:', resumeFile);
-                                    messageBuffer.addMessage('Resuming from aborted session...', 'status');
-                                }
-                                storedSessionIdForResume = null; // consume once
-                            }
+                        const resumeSelection = resolveResumeSelectionForNextTurn({
+                            queuedResumeFile: nextExperimentalResume,
+                            storedSessionIdForResume,
+                            idleResumeFile,
+                            findResumeFile: findCodexResumeFile,
+                        });
+                        const queuedResumeReason = nextExperimentalResumeReason;
+                        nextExperimentalResume = resumeSelection.remainingQueuedResumeFile;
+                        nextExperimentalResumeReason = resumeSelection.remainingQueuedResumeFile ? nextExperimentalResumeReason : null;
+                        storedSessionIdForResume = resumeSelection.remainingStoredSessionIdForResume;
 
-                            if (!resumeFile && client.hasActiveSession()) {
+                        if (resumeSelection.resumeFile && resumeSelection.source === 'queued_resume') {
+                            logger.debug('[Codex] Using resume file for new session:', resumeSelection.resumeFile);
+                        } else if (resumeSelection.resumeFile && resumeSelection.source === 'aborted_session') {
+                            logger.debug('[Codex] Using resume file from aborted session:', resumeSelection.resumeFile);
+                            messageBuffer.addMessage('Resuming from aborted session...', 'status');
+                        } else if (resumeSelection.resumeFile && resumeSelection.source === 'idle_timeout') {
+                            logger.debug('[Codex] Refreshing Codex context from transcript after idle period', {
+                                idleDurationMs,
+                                resumeFile: resumeSelection.resumeFile,
+                                idleTranscriptResumeThresholdMs,
+                            });
+                            messageBuffer.addMessage('Refreshing Codex context after idle period...', 'status');
+                        }
+
+                        if (shouldStartCodexSessionForTurn({
+                            wasCreated,
+                            resumeFile: resumeSelection.resumeFile,
+                        })) {
+                            if (!resumeSelection.resumeFile && client.hasActiveSession()) {
                                 const strategy = wasCreated ? 'in_process_continue' : 'persisted_ids_continue';
                                 logContextStrategy(strategy, wasCreated ? 'existing_live_session' : 'reused_persisted_provider_ids');
+                                warnIfSessionOnlyLineage(strategy);
                                 messageBuffer.addMessage('Reconnecting to previous Codex context...', 'status');
                                 const response = await client.continueSession(
                                     message.message,
                                     { signal: requestSignal }
                                 );
                                 logger.debug('[Codex] continueSession response:', response);
+                                lastCodexActivityAt = Date.now();
                             } else {
-                                if (resumeFile) {
+                                if (resumeSelection.resumeFile && resumeSelection.source) {
+                                    markTranscriptReplayContinuity(
+                                        resumeSelection.source,
+                                        resumeSelection.source === 'queued_resume' ? queuedResumeReason : null,
+                                    );
                                     logContextStrategy('transcript_resume', 'resume_file_available', {
-                                        resumeFile,
+                                        resumeFile: resumeSelection.resumeFile,
+                                        resumeSource: resumeSelection.source,
+                                        ...(resumeSelection.source === 'queued_resume' && queuedResumeReason
+                                            ? { resumeReason: queuedResumeReason }
+                                            : {}),
+                                        ...(resumeSelection.source === 'idle_timeout'
+                                            ? { idleDurationMs, idleTranscriptResumeThresholdMs }
+                                            : {}),
                                     });
                                 } else {
                                     if (persistedCodexSessionId || persistedCodexConversationId) {
@@ -810,24 +894,27 @@ export async function runCodex(opts: {
                                 }
 
                                 // Apply resume file if found
-                                if (resumeFile) {
-                                    (startConfig.config as any).experimental_resume = resumeFile;
+                                if (resumeSelection.resumeFile) {
+                                    (startConfig.config as any).experimental_resume = resumeSelection.resumeFile;
                                 }
 
                                 await client.startSession(
                                     startConfig,
                                     { signal: requestSignal }
                                 );
+                                lastCodexActivityAt = Date.now();
                             }
                             wasCreated = true;
                             first = false;
                         } else {
                             logContextStrategy('in_process_continue', 'existing_live_session');
+                            warnIfSessionOnlyLineage('in_process_continue');
                             const response = await client.continueSession(
                                 message.message,
                                 { signal: requestSignal }
                             );
                             logger.debug('[Codex] continueSession response:', response);
+                            lastCodexActivityAt = Date.now();
                         }
 
                         break;
